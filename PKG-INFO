@@ -1,0 +1,18 @@
+Metadata-Version: 1.1
+Name: libgutenberg
+Version: 0.1.6
+Summary: Common files used by Project Gutenberg python projects.
+Home-page: http://pypi.python.org/pypi/libgutenberg/
+Author: Marcello Perathoner
+Author-email: webmaster@gutenberg.org
+License: GPL v3
+Description: Useless as standalone install. Used only as requirement for other packages.
+Keywords: project gutenberg
+Platform: OS-independent
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Other Audience
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
