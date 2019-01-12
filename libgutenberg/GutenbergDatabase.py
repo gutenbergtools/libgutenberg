@@ -24,6 +24,9 @@ psycopg2.extensions.register_type (psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type (psycopg2.extensions.UNICODEARRAY)
 
 from .Logger import debug, critical
+from .CommonOptions import Options
+
+options = Options()
 
 DatabaseError  = psycopg2.DatabaseError
 IntegrityError = psycopg2.IntegrityError

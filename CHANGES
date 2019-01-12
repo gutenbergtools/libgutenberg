@@ -1,0 +1,10 @@
+CHANGES
+
+0.2.0 (Jan 10, 2019)
+
+- setup.py now uses setuptools to facilitate use in more complex packaging environments
+- added a borg class to provide global option across PG python classes
+
+0.1.6 (Apr 21, 2017)
+
+- earliest version in version control
