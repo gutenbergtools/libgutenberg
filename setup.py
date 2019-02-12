@@ -17,9 +17,11 @@ setup (
 
     install_requires = [
         'lxml',
+        'six>=1.4.1',
     ],
     extras_require = {
-        'postgres':  ['psycopg2']
+        'postgres':  ['psycopg2'],
+        'covers': ['cairocffi==0.8.0'],
     },
     packages = [
         'libgutenberg'
