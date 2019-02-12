@@ -2,4 +2,4 @@
 
 __all__ = ['DublinCore', 'DummyConnectionPool',
            'GutenbergDatabaseDublinCore', 'GutenbergDatabase',
-           'GutenbergGlobals', 'Logger', 'MediaTypes']
+           'GutenbergGlobals', 'Logger', 'MediaTypes', 'Cover', 'tests']
