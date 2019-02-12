@@ -1,0 +1,27 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "8242d1a2a62efaf6b19d0b43ba9984f5488c60f963ddb6131d6cca2dcb7846e9"
+        },
+        "pipfile-spec": 6,
+        "requires": {
+            "python_version": "3.6"
+        },
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "libgutenberg": {
+            "extras": [
+                "covers"
+            ],
+            "path": "."
+        }
+    },
+    "develop": {}
+}
