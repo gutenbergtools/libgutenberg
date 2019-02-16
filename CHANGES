@@ -1,5 +1,8 @@
 CHANGES
 
+0.3.1 (Feb 15, 2019)
+- added mimetypes for assorted files found in PG ebooks
+
 0.3.0 (Feb 12, 2019)
 - added Cover
 - added convenience methods on DublinCore
