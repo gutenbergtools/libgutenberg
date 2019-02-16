@@ -27,8 +27,9 @@ for ext, mimetype in (
         ('jar',     'application/java-archive'),
         ('jpeg',    'image/jpeg'),
         ('jpg',     'image/jpeg'),
+        ('jfif',    'image/jpeg'),
         ('js',      'application/javascript'),
-        ('json',    'application/x-suggestions+json'),
+        ('json',    'application/json'),
         ('marc',    'application/marc'),
         ('mobi',    'application/x-mobipocket-ebook'),
         ('mobile',  'application/xhtml+xml'),
@@ -48,6 +49,13 @@ for ext, mimetype in (
         ('wap',     'application/vnd.wap.xhtml+xml'),
         ('xhtml',   'application/xhtml+xml'),
         ('xml',     'application/xml'),
+        ('.mscz',   'application/x-musescore+xml'),
+        ('.mid',    'audio/midi'),
+        ('.midi',   'audio/midi'),
+        ('.mus',    'application/x-myriad-music'),
+        ('.sib',    'application/x-sibelius-score'),
+        ('.mxl',    'application/vnd.recordare.musicxml'),
+        ('.mp3',    'audio/mpeg'),
 ):
     T2E[mimetype] = ext
     E2T[ext] = mimetype
