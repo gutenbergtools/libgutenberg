@@ -17,6 +17,7 @@ from __future__ import unicode_literals
 
 import re
 import datetime
+import gettext
 import textwrap
 
 import six
@@ -130,6 +131,7 @@ LANGS = """ af  | Afrikaans
 
 title_splitter = re.compile (r'[\r\n:]+', flags=re.M)
 
+_ = gettext.gettext
 
 class _HTML_Writer (object):
     """ Write metadata suitable for inclusion in HTML.
