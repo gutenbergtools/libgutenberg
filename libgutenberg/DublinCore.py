@@ -15,13 +15,14 @@ DublinCore metadata swiss army knife.
 
 from __future__ import unicode_literals
 
-import re
 import datetime
-import gettext
+import re
 import textwrap
+from gettext import gettext as _
 
 import six
 import lxml
+
 from lxml.builder import ElementMaker
 
 from . import GutenbergGlobals as gg
@@ -130,8 +131,6 @@ LANGS = """ af  | Afrikaans
  yi  | Yiddish """
 
 title_splitter = re.compile (r'[\r\n:]+', flags=re.M)
-
-_ = gettext.gettext
 
 class _HTML_Writer (object):
     """ Write metadata suitable for inclusion in HTML.
