@@ -1,5 +1,8 @@
 CHANGES
 
+0.3.2 (May 10, 2019)
+- fixed a missing import for internationalization. This code relied on installation of "_" into the context's builtins. If you are installing a translator into builtins, you'll also need to install it into the gettext module.
+
 0.3.1 (Feb 15, 2019)
 - added mimetypes for assorted files found in PG ebooks
 
