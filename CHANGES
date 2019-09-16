@@ -1,5 +1,8 @@
 CHANGES
 
+0.4.0 (September 16, 2019)
+- added a constant PG_URL with the https url so we can keep the http version for RDF and XML namespacing only. This has the effect of changing dc file URLs to https. For some discussion of https in RDF, see https://www.w3.org/blog/2016/05/https-and-the-semantic-weblinked-data/ 
+
 0.3.2 (May 10, 2019)
 - fixed a missing import for internationalization. This code relied on installation of "_" into the context's builtins. If you are installing a translator into builtins, you'll also need to install it into the gettext module.
 
