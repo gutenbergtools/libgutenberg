@@ -471,7 +471,7 @@ class DublinCore (object):
         num_auths = 0
         creators = []
         for author in self.authors:
-            if author.marcrel in ('cre', 'edt'):
+            if author.marcrel in ('aut', 'cre', 'edt'):
                 num_auths += 1
                 creators.append (author)
         if num_auths == 1:
