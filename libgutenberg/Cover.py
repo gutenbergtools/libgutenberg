@@ -296,7 +296,7 @@ def _clip(value, lower, upper):
 # an Image instance which is a composition of different Cairo functionality.
 #
 
-def draw(dc, cover_width=400, cover_height=600):
+def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg"):
     """
     Main drawing function, which generates a cover of the given dimension and
     renders title, author, and graphics.
@@ -546,12 +546,13 @@ def draw(dc, cover_width=400, cover_height=600):
     
     def drawText():
         fill = Image.colorRGB(50, 50, 50)
+        white = Image.colorRGB(255, 255, 255)
 
         title_font_size = cover_width * 0.08
         subtitle_font_size = cover_width * 0.05
         title_font_properties = (title_font_size, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
         subtitle_font_properties = (subtitle_font_size, cairo.FONT_SLANT_NORMAL,
-                                     cairo.FONT_WEIGHT_NORMAL)
+                                    cairo.FONT_WEIGHT_NORMAL)
         title_font_family = select_font(title)
         subtitle_font_family = select_font(subtitle)
         title_font_properties = scale_font(title, title_font_family, title_font_properties)
@@ -590,6 +591,21 @@ def draw(dc, cover_width=400, cover_height=600):
         width = cover_width - (2 * cover_height * cover_margin / 100)
         height = author_height
         cover_image.text(author, x, y, width, height, fill, author_font)
+
+        branding_font_size = cover_width * 0.075
+        branding_font_properties = (branding_font_size, cairo.FONT_SLANT_NORMAL, 
+                                    cairo.FONT_WEIGHT_BOLD) 
+        branding_font_family = select_font(branding)
+        branding_font_properties = scale_font(
+            branding,
+            branding_font_family,
+            branding_font_properties
+        )
+        branding_font = cover_image.font(branding_font_family, branding_font_properties)
+        cover_image.context.text_extents(branding)
+        x = cover_width * 0.5
+        y = cover_height * 0.9
+        cover_image.text(branding, x, y, width / 2, height, white, branding_font)
 
     # Create the new cover image.
     cover_margin = 2
