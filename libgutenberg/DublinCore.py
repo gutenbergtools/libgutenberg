@@ -15,12 +15,14 @@ DublinCore metadata swiss army knife.
 
 from __future__ import unicode_literals
 
-import re
 import datetime
+import re
 import textwrap
+from gettext import gettext as _
 
 import six
 import lxml
+
 from lxml.builder import ElementMaker
 
 from . import GutenbergGlobals as gg
@@ -128,6 +130,7 @@ LANGS = """ af  | Afrikaans
  cy  | Welsh
  yi  | Yiddish """
 
+title_splitter = re.compile (r'[\r\n:]+', flags=re.M)
 
 class _HTML_Writer (object):
     """ Write metadata suitable for inclusion in HTML.
@@ -385,7 +388,6 @@ class DublinCore (object):
 
     def add_author (self, name, marcrel = 'cre'):
         """ Add author. """
-
         try:
             role = self.role_map[marcrel]
         except KeyError:
@@ -449,6 +451,40 @@ class DublinCore (object):
 
         except Exception as what:
             exception (what)
+
+    def split_title (self):
+        if not self.title:
+            return ['', '']
+        title = title_splitter.split (self.title, maxsplit=1)
+        return title if len(title) > 1 else [title[0], '']
+
+    @property
+    def subtitle (self):
+        return self.split_title()[1]
+
+    @property
+    def title_no_subtitle (self):
+        return self.split_title()[0]
+
+    # as you'd expect to see the names on a cover, last names last.
+    def authors_short(self):
+        num_auths = 0
+        creators = []
+        for author in self.authors:
+            if author.marcrel in ('aut', 'cre', 'edt'):
+                num_auths += 1
+                creators.append (author)
+        if num_auths == 1:
+            return DublinCore.make_pretty_name (creators[0].name)
+        elif num_auths == 2:
+            names = "%s and %s" % (
+                DublinCore.make_pretty_name (creators[0].name),
+                DublinCore.make_pretty_name (creators[1].name)
+            )
+            return names
+        elif num_auths > 2:
+            return "%s et al." % DublinCore.make_pretty_name (creators[0].name)
+        return ''
 
 
 class GutenbergDublinCore (DublinCore):

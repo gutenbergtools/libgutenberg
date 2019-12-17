@@ -1,0 +1,31 @@
+CHANGES
+
+0.5.0 (October 22, 2019)
+- fixed mimetype extensions that should't have dots
+- added Project Gutenberg branding to cover
+
+0.4.1 (October 8, 2019)
+- fixed bug where creators with marcrel='aut' were not included as authors on the cover 
+
+0.4.0 (September 16, 2019)
+- added a constant PG_URL with the https url so we can keep the http version for RDF and XML namespacing only. This has the effect of changing dc file URLs to https. For some discussion of https in RDF, see https://www.w3.org/blog/2016/05/https-and-the-semantic-weblinked-data/ 
+
+0.3.2 (May 10, 2019)
+- fixed a missing import for internationalization. This code relied on installation of "_" into the context's builtins. If you are installing a translator into builtins, you'll also need to install it into the gettext module.
+
+0.3.1 (Feb 15, 2019)
+- added mimetypes for assorted files found in PG ebooks
+
+0.3.0 (Feb 12, 2019)
+- added Cover
+- added convenience methods on DublinCore
+- handling of optional dependencies psycopg and cairocffi
+
+0.2.0 (Jan 10, 2019)
+
+- setup.py now uses setuptools to facilitate use in more complex packaging environments
+- added a borg class to provide global option across PG python classes
+
+0.1.6 (Apr 21, 2017)
+
+- earliest version in version control

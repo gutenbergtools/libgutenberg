@@ -3,9 +3,9 @@
 # libgutenberg setup.py
 #
 
-__version__ = '0.1.6'
+__version__ = '0.5.0'
 
-from distutils.core import setup
+from setuptools import setup
 
 setup (
     name         = 'libgutenberg',
@@ -17,13 +17,12 @@ setup (
 
     install_requires = [
         'lxml',
-        # We cannot make this package dependent on psycopg2 because
-        # most users will not have postgres installed.  Thus all
-        # packages that actually use the GutenbergDatabase module will
-        # have to depend on psycopg2 themselves.
-        # 'psycopg2',
+        'six>=1.4.1',
     ],
-
+    extras_require = {
+        'postgres':  ['psycopg2'],
+        'covers': ['cairocffi==0.8.0'],
+    },
     packages = [
         'libgutenberg'
     ],
@@ -31,20 +30,20 @@ setup (
     # metadata for upload to PyPI
 
     author = "Marcello Perathoner",
-    author_email = "webmaster@gutenberg.org",
+    maintainer = "Eric Hellman",
+    maintainer_email = "eric@hellman.net",
     description = "Common files used by Project Gutenberg python projects.",
     long_description = "Useless as standalone install. Used only as requirement for other packages.",
     license = "GPL v3",
     keywords = "project gutenberg",
-    url = "http://pypi.python.org/pypi/libgutenberg/",
+    url = "https://github.com/gutenbergtools/libgutenberg/",
 
     classifiers = [
-        "Development Status :: 4 - Beta",
-        "Environment :: Console",
         "Intended Audience :: Other Audience",
         "License :: OSI Approved :: GNU General Public License (GPL)",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.6",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
 

@@ -21,7 +21,7 @@ import datetime
 
 from . import DublinCore
 from . import GutenbergGlobals as gg
-from .GutenbergGlobals import NS, Struct
+from .GutenbergGlobals import Struct, PG_URL
 from .Logger import info, warning, error
 from .GutenbergDatabase import xl, DatabaseError, IntegrityError
 
@@ -291,7 +291,7 @@ order by filetypes.sortorder, encodings.sortorder, fk_filetypes,
                 fn = 'dirs/' + fn
 
             file_.filename    = fn
-            file_.url         = str (NS.pg) + fn
+            file_.url         = PG_URL + fn
             file_.id          = row.pk
             file_.extent      = row.filesize
             file_.hr_extent   = self.human_readable_size (row.filesize)
@@ -312,7 +312,7 @@ order by filetypes.sortorder, encodings.sortorder, fk_filetypes,
                 file_.mediatypes.append (gg.DCIMT ('application/zip'))
 
             if file_.generated and not row.fk_filetypes.startswith ('cover.'):
-                file_.url = "%sebooks/%d.%s" % (str (NS.pg), id_, row.fk_filetypes)
+                file_.url = "%sebooks/%d.%s" % (PG_URL, id_, row.fk_filetypes)
 
             self.files.append (file_)
 

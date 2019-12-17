@@ -17,16 +17,28 @@ import os
 import csv
 import datetime
 
-import psycopg2
-import psycopg2.extensions
+from .Logger import warning, debug, critical
+from .CommonOptions import Options
 
-psycopg2.extensions.register_type (psycopg2.extensions.UNICODE)
-psycopg2.extensions.register_type (psycopg2.extensions.UNICODEARRAY)
+try:
+    import psycopg2
+    import psycopg2.extensions
 
-from .Logger import debug, critical
+    psycopg2.extensions.register_type (psycopg2.extensions.UNICODE)
+    psycopg2.extensions.register_type (psycopg2.extensions.UNICODEARRAY)
+    DatabaseError  = psycopg2.DatabaseError
+    IntegrityError = psycopg2.IntegrityError
 
-DatabaseError  = psycopg2.DatabaseError
-IntegrityError = psycopg2.IntegrityError
+except ImportError:
+    class DatabaseError(Exception):
+        pass
+    class IntegrityError(Exception):
+        pass
+    warning ('Gutenberg Database is inactive because psycopg2 not installed')
+
+
+options = Options()
+
 
 DB = None
 

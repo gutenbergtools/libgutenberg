@@ -29,6 +29,9 @@ class Struct (object):
     """
     pass
 
+PG_CANONICAL_HOST = 'www.gutenberg.org'
+
+PG_URL = 'https://' + PG_CANONICAL_HOST + '/'
 
 NSMAP = {
     'atom':       'http://www.w3.org/2005/Atom',
@@ -38,7 +41,7 @@ NSMAP = {
     'dcam':       'http://purl.org/dc/dcam/',
     'dcmitype':   'http://purl.org/dc/dcmitype/',
     'dcterms':    'http://purl.org/dc/terms/',
-    'ebook':      'http://www.gutenberg.org/ebooks/',             # URL
+    'ebook':      'http://' + PG_CANONICAL_HOST + '/ebooks/',             # for RDF only
     'foaf':       'http://xmlns.com/foaf/0.1/',
     'marcrel':    'http://id.loc.gov/vocabulary/relators/',
     'mathml':     'http://www.w3.org/1998/Math/MathML',
@@ -47,10 +50,10 @@ NSMAP = {
     'opds':       'http://opds-spec.org/2010/Catalog',
     'opf':        'http://www.idpf.org/2007/opf',
     'opensearch': 'http://a9.com/-/spec/opensearch/1.1/',
-    'pg':         'http://www.gutenberg.org/',                    # URL
-    'pgagents':   'http://www.gutenberg.org/2009/agents/',
-    'pgtei':      'http://www.gutenberg.org/tei/marcello/0.5/ns',
-    'pgterms':    'http://www.gutenberg.org/2009/pgterms/',
+    'pg':         'http://' + PG_CANONICAL_HOST + '/',                    # for RDF only
+    'pgagents':   'http://' + PG_CANONICAL_HOST + '/2009/agents/',        # for RDF only
+    'pgtei':      'http://' + PG_CANONICAL_HOST + '/tei/marcello/0.5/ns', # for RDF only
+    'pgterms':    'http://' + PG_CANONICAL_HOST + '/2009/pgterms/',       # for RDF only
     'py':         'http://genshi.edgewall.org/',
     'rdf':        'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
     'rdfs':       'http://www.w3.org/2000/01/rdf-schema#',
