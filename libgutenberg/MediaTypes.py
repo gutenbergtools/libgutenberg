@@ -83,7 +83,7 @@ def guess_type (url):
     """ Guess the mimetype of an url. """
 
     ext = url.split ('.')[-1]
-    return E2T[ext.lower ()]
+    return E2T.get (ext.lower (), '')
 
 
 class MediatypesLookup (object):
