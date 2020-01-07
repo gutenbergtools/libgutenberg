@@ -1,5 +1,8 @@
 CHANGES
 
+0.6.0 (January 7, 2020)
+- added a 'first_letter' attribute to authors from the database to support linking to authorlists in the new version of PG website
+
 0.5.1 (January 4, 2020)
 - changed MediaTypes so that exceptions aren't raised when an extension is not known or present
 - added tests for MediaTypes
