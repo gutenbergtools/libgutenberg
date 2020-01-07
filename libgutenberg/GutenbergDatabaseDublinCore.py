@@ -25,6 +25,7 @@ from .GutenbergGlobals import Struct, PG_URL
 from .Logger import info, warning, error
 from .GutenbergDatabase import xl, DatabaseError, IntegrityError
 
+RE_FIRST_AZ = re.compile (r"^[a-z]")
 
 class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
     """ Augment GutenbergDublinCore class. """
@@ -109,6 +110,10 @@ ORDER BY role, author""", {'ebook': id_})
             author.name_and_dates = \
                 DublinCore.GutenbergDublinCore.format_author_date (author)
 
+            # used to link to authorlists on new PG site
+            first_let_match = RE_FIRST_AZ.search (author.name_and_dates.lower ())
+            author.first_lettter = first_let_match.group (0) if first_let_match  else  'other'
+            
             c2.execute ("SELECT alias, alias_heading from aliases where fk_authors = %d"
                         % row.pk)
             for row2 in c2.fetchall ():
