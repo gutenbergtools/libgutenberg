@@ -402,6 +402,9 @@ insert into files (fk_books, filename, filesize, filemtime,
         except OSError:
             error ("Cannot stat %s" % filename)
 
+        except IntegrityError:
+            error ("Book number %s is not in database." % id_)
+
 
     def register_coverpage (self, id_, url, code = 901):
         """ Register a coverpage for this ebook. """
