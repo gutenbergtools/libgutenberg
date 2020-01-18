@@ -404,6 +404,7 @@ insert into files (fk_books, filename, filesize, filemtime,
 
         except IntegrityError:
             error ("Book number %s is not in database." % id_)
+            c.execute ('rollback')
 
 
     def register_coverpage (self, id_, url, code = 901):
