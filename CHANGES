@@ -1,4 +1,6 @@
 CHANGES
+0.6.2 (January 18, 2020)
+- add rollback for missing book id exception.
 
 0.6.1 (January 15, 2020)
 - added exception handling in store_file_in_database for missing book id.
