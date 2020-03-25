@@ -105,19 +105,25 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         # id, copyright and release date
 
         self.project_gutenberg_id = id_ = ebook
-        
-        c.execute ("""
-select copyrighted, release_date, downloads from books where pk = %(ebook)s""",
-                   {'ebook': id_})
 
-        for row in c.fetchall ():
-            row = xl (c, row)
-            self.release_date = row.release_date
-            self.rights = ('Copyrighted. Read the copyright notice inside this book for details.'
-                           if row.copyrighted
+#         c.execute ("""
+# select copyrighted, release_date, downloads from books where pk = %(ebook)s""",
+#                    {'ebook': id_})
+        result=session.query(Books).filter(Books.pk==id_)
+
+        # for row in c.fetchall ():
+        #     row = xl (c, row)
+        #     self.release_date = row.release_date
+        #     self.rights = ('Copyrighted. Read the copyright notice inside this book for details.'
+        #                    if row.copyrighted
+        #                    else 'Public domain in the USA.')
+        #     self.downloads = row.downloads
+        for book in result:
+            self.release_date=book.release_date
+            self.rights=('Copyrighted. Read the copyright notice inside this book for details.'
+                           if book.copyrighted
                            else 'Public domain in the USA.')
-            self.downloads = row.downloads
-
+            self.downloads=book.downloads
 
         # authors
         # for a list of relator codes see:
