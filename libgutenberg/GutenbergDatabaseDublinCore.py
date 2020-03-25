@@ -19,13 +19,52 @@ import re
 import os
 import datetime
 
+from sqlalchemy import create_engine  
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.ext.declarative import declarative_base  
+from sqlalchemy.orm import sessionmaker
+
 from . import DublinCore
 from . import GutenbergGlobals as gg
 from .GutenbergGlobals import Struct, PG_URL
 from .Logger import info, warning, error
-from .GutenbergDatabase import xl, DatabaseError, IntegrityError
+from .GutenbergDatabase import xl, DatabaseError, IntegrityError,get_sqlalchemy_url
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.dialects import postgresql
 
 RE_FIRST_AZ = re.compile (r"^[a-z]")
+# select copyrighted, release_date, downloads from books where pk = %(ebook)s""",
+#                    {'ebook': id_})
+#session.query().filter(Books.pk==id_)
+
+engine = create_engine(get_sqlalchemy_url(), echo = True)
+Base = declarative_base()
+
+
+class Books(Base):
+    __tablename__ = 'books'
+    pk=Column(Integer,primary_key=True,nullable=False,default=0)
+    copyrighted=Column(Integer,nullable=False,default=0)
+    updatemode=Column(Integer,nullable=False,default=0)
+    release_date=Column(DateTime,nullable=False)
+    filemask=Column(String(240))
+    gutindex=Column(String)
+    downloads=Column(Integer,nullable=False,default=0)
+    title=Column(String)
+    tsvec=Column(postgresql.TSVECTOR)
+    nonfiling=Column(Integer,nullable=False,default=0)
+
+#  copyrighted  | integer                |           | not null | 0
+#  updatemode   | integer                |           | not null | 0
+#  release_date | date                   |           | not null | ('now'::text)::date
+#  filemask     | character varying(240) |           |          |
+#  gutindex     | text                   |           |          |
+#  downloads    | integer                |           | not null | 0
+#  title        | text                   |           |          |
+#  tsvec        | tsvector               |           |          |
+#  nonfiling    | integer                |           | not null | 0
+Session = sessionmaker(bind = engine)
+session = Session()
 
 class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
     """ Augment GutenbergDublinCore class. """
@@ -66,7 +105,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         # id, copyright and release date
 
         self.project_gutenberg_id = id_ = ebook
-
+        
         c.execute ("""
 select copyrighted, release_date, downloads from books where pk = %(ebook)s""",
                    {'ebook': id_})
