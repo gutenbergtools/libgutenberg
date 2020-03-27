@@ -170,23 +170,34 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             aliases=Table('aliases', META_DATA, autoload=True, autoload_with=engine)
             # c2.execute ("SELECT alias, alias_heading from aliases where fk_authors = %d"
             #             % row.pk)
-            alias_res=session.query(aliases).filter(aliases.c.fk_authors==res.authors.pk)
-            for row2 in c2.fetchall ():
-                row2 = xl (c2, row2)
+            aliases_res=session.query(aliases).filter(aliases.c.fk_authors==res.authors.pk)
+            # for row2 in c2.fetchall ():
+            #     row2 = xl (c2, row2)
+            #     alias = Struct ()
+            #     alias.alias = row2.alias
+            #     alias.heading = row2.alias_heading
+            #     author.aliases.append (alias)
+            for row2 in aliases_res:
                 alias = Struct ()
                 alias.alias = row2.alias
                 alias.heading = row2.alias_heading
                 author.aliases.append (alias)
 
-            c2.execute ("""
-SELECT description, url from author_urls where fk_authors = %d""" % row.pk)
-            for row2 in c2.fetchall ():
-                row2 = xl (c2, row2)
+#             c2.execute ("""
+# SELECT description, url from author_urls where fk_authors = %d""" % row.pk)
+            author_urls=Table('author_urls', META_DATA, autoload=True, autoload_with=engine)
+            url_res=session.query(author_urls).filter(url_res.c.fk_authors==res.authors.pk)
+            # for row2 in c2.fetchall ():
+            #     row2 = xl (c2, row2)
+            #     webpage = Struct ()
+            #     webpage.description = row2.description
+            #     webpage.url = row2.url
+            #     author.webpages.append (webpage)
+            for row2 in url_res:
                 webpage = Struct ()
                 webpage.description = row2.description
                 webpage.url = row2.url
                 author.webpages.append (webpage)
-
             self.authors.append (author)
 
 
