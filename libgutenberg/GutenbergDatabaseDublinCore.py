@@ -100,7 +100,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 # select copyrighted, release_date, downloads from books where pk = %(ebook)s""",
 #                    {'ebook': id_})
         Books=Table('Books', META_DATA, autoload=True, autoload_with=engine)
-        result=session.query(Books).filter(Books.pk==id_)
+        result=session.query(Books).filter(Books.c.pk==id_)
 
         # for row in c.fetchall ():
         #     row = xl (c, row)
@@ -127,7 +127,13 @@ SELECT authors.pk as pk, author, born_floor, born_ceil, died_floor, died_ceil, f
    JOIN roles   ON mn_books_authors.fk_roles   = roles.pk
 WHERE mn_books_authors.fk_books = %(ebook)s
 ORDER BY role, author""", {'ebook': id_})
-
+        roles=Table('roles', META_DATA, autoload=True, autoload_with=engine)
+        authors=Table('authors', META_DATA, autoload=True, autoload_with=engine)
+        mn_books_authors=Table('mn_books_authors', META_DATA, autoload=True, autoload_with=engine)
+        result=session.query(mn_books_authors).\
+            join(authors,mn_books_authors.c.fk_authors == authors.c.pk).\
+            join(roles,mn_books_authors.c.fk_roles == roles.c.pk).\
+            filter(mn_books_authors.c.fk_books==id_).order_by(roles.c.role,authors.c.author)
         for row in c.fetchall ():
             row = xl (c, row)
 
