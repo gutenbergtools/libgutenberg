@@ -203,14 +203,19 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         # titles, notes
 
-        c.execute ("""
-select attributes.text, attributes.nonfiling,
-       attriblist.name, attriblist.caption
-  from attributes, attriblist
- where attributes.fk_books = %(ebook)s
-   and attributes.fk_attriblist = attriblist.pk
- order by attriblist.name""", {'ebook': id_})
-
+#         c.execute ("""
+# select attributes.text, attributes.nonfiling,
+#        attriblist.name, attriblist.caption
+#   from attributes, attriblist
+#  where attributes.fk_books = %(ebook)s
+#    and attributes.fk_attriblist = attriblist.pk
+#  order by attriblist.name""", {'ebook': id_})
+        attributes=Table('attributes', META_DATA, autoload=True, autoload_with=engine)
+        attriblist=Table('attriblist', META_DATA, autoload=True, autoload_with=engine)
+        attr_result=session.query(attributes,attriblist).\
+            filter(attributes.c.fk_books ==id_).\
+            filter(attributes.c.fk_attriblist == attriblist.c.pk).\
+            order_by(attriblist.c.name)
         for row in c.fetchall ():
             row = xl (c, row)
 
