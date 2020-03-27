@@ -120,13 +120,13 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         # for a list of relator codes see:
         # http://www.loc.gov/loc.terms/relators/
 
-        c.execute ("""
-SELECT authors.pk as pk, author, born_floor, born_ceil, died_floor, died_ceil, fk_roles, role
-   FROM mn_books_authors
-   JOIN authors ON mn_books_authors.fk_authors = authors.pk
-   JOIN roles   ON mn_books_authors.fk_roles   = roles.pk
-WHERE mn_books_authors.fk_books = %(ebook)s
-ORDER BY role, author""", {'ebook': id_})
+#         c.execute ("""
+# SELECT authors.pk as pk, author, born_floor, born_ceil, died_floor, died_ceil, fk_roles, role
+#    FROM mn_books_authors
+#    JOIN authors ON mn_books_authors.fk_authors = authors.pk
+#    JOIN roles   ON mn_books_authors.fk_roles   = roles.pk
+# WHERE mn_books_authors.fk_books = %(ebook)s
+# ORDER BY role, author""", {'ebook': id_})
         roles=Table('roles', META_DATA, autoload=True, autoload_with=engine)
         authors=Table('authors', META_DATA, autoload=True, autoload_with=engine)
         mn_books_authors=Table('mn_books_authors', META_DATA, autoload=True, autoload_with=engine)
@@ -134,21 +134,32 @@ ORDER BY role, author""", {'ebook': id_})
             join(authors,mn_books_authors.c.fk_authors == authors.c.pk).\
             join(roles,mn_books_authors.c.fk_roles == roles.c.pk).\
             filter(mn_books_authors.c.fk_books==id_).order_by(roles.c.role,authors.c.author)
-        for row in c.fetchall ():
-            row = xl (c, row)
+        # for row in c.fetchall ():
+        #     row = xl (c, row)
 
+        #     author = Struct ()
+        #     author.id             = row.pk
+        #     author.name           = row.author
+        #     author.marcrel        = row.fk_roles
+        #     author.role           = row.role
+        #     author.birthdate      = row.born_floor
+        #     author.deathdate      = row.died_floor
+        #     author.birthdate2     = row.born_ceil
+        #     author.deathdate2     = row.died_ceil
+        #     author.aliases        = []
+        #     author.webpages       = []
+        for res in result:
             author = Struct ()
-            author.id             = row.pk
-            author.name           = row.author
-            author.marcrel        = row.fk_roles
-            author.role           = row.role
-            author.birthdate      = row.born_floor
-            author.deathdate      = row.died_floor
-            author.birthdate2     = row.born_ceil
-            author.deathdate2     = row.died_ceil
+            author.id             = res.authors.pk
+            author.name           = res.authors.author
+            author.marcrel        = res.mn_books_authors.fk_roles
+            author.role           = res.roles.role
+            author.birthdate      = res.authors.born_floor
+            author.deathdate      = res.authors.died_floor
+            author.birthdate2     = res.authors.born_ceil
+            author.deathdate2     = res.authors.died_ceil
             author.aliases        = []
             author.webpages       = []
-
             author.name_and_dates = \
                 DublinCore.GutenbergDublinCore.format_author_date (author)
 
@@ -156,8 +167,10 @@ ORDER BY role, author""", {'ebook': id_})
             first_let_match = RE_FIRST_AZ.search (author.name_and_dates.lower ())
             author.first_lettter = first_let_match.group (0) if first_let_match  else  'other'
             
-            c2.execute ("SELECT alias, alias_heading from aliases where fk_authors = %d"
-                        % row.pk)
+            aliases=Table('aliases', META_DATA, autoload=True, autoload_with=engine)
+            # c2.execute ("SELECT alias, alias_heading from aliases where fk_authors = %d"
+            #             % row.pk)
+            alias_res=session.query(aliases).filter(aliases.c.fk_authors==res.authors.pk)
             for row2 in c2.fetchall ():
                 row2 = xl (c2, row2)
                 alias = Struct ()
