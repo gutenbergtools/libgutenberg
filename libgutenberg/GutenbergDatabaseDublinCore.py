@@ -31,38 +31,28 @@ from .Logger import info, warning, error
 from .GutenbergDatabase import xl, DatabaseError, IntegrityError,get_sqlalchemy_url
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.dialects import postgresql
+from sqlalchemy import MetaData, Table
 
 RE_FIRST_AZ = re.compile (r"^[a-z]")
-# select copyrighted, release_date, downloads from books where pk = %(ebook)s""",
-#                    {'ebook': id_})
-#session.query().filter(Books.pk==id_)
 
 engine = create_engine(get_sqlalchemy_url(), echo = True)
-Base = declarative_base()
+# Base = declarative_base()
+META_DATA = MetaData(bind=engine, reflect=True)
+
+# class Books(Base):
+#     __tablename__ = 'books'
+#     pk=Column(Integer,primary_key=True,nullable=False,default=0)
+#     copyrighted=Column(Integer,nullable=False,default=0)
+#     updatemode=Column(Integer,nullable=False,default=0)
+#     release_date=Column(DateTime,nullable=False)
+#     filemask=Column(String(240))
+#     gutindex=Column(String)
+#     downloads=Column(Integer,nullable=False,default=0)
+#     title=Column(String)
+#     tsvec=Column(postgresql.TSVECTOR)
+#     nonfiling=Column(Integer,nullable=False,default=0)
 
 
-class Books(Base):
-    __tablename__ = 'books'
-    pk=Column(Integer,primary_key=True,nullable=False,default=0)
-    copyrighted=Column(Integer,nullable=False,default=0)
-    updatemode=Column(Integer,nullable=False,default=0)
-    release_date=Column(DateTime,nullable=False)
-    filemask=Column(String(240))
-    gutindex=Column(String)
-    downloads=Column(Integer,nullable=False,default=0)
-    title=Column(String)
-    tsvec=Column(postgresql.TSVECTOR)
-    nonfiling=Column(Integer,nullable=False,default=0)
-
-#  copyrighted  | integer                |           | not null | 0
-#  updatemode   | integer                |           | not null | 0
-#  release_date | date                   |           | not null | ('now'::text)::date
-#  filemask     | character varying(240) |           |          |
-#  gutindex     | text                   |           |          |
-#  downloads    | integer                |           | not null | 0
-#  title        | text                   |           |          |
-#  tsvec        | tsvector               |           |          |
-#  nonfiling    | integer                |           | not null | 0
 Session = sessionmaker(bind = engine)
 session = Session()
 
@@ -109,6 +99,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 #         c.execute ("""
 # select copyrighted, release_date, downloads from books where pk = %(ebook)s""",
 #                    {'ebook': id_})
+        Books=Table('Books', META_DATA, autoload=True, autoload_with=engine)
         result=session.query(Books).filter(Books.pk==id_)
 
         # for row in c.fetchall ():
