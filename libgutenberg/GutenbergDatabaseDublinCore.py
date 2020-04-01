@@ -270,22 +270,25 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         for row in lang_res:
             subject = Struct ()
             subject.id = row.subjects.c.pk
-            subject.subject = row.subject.c.subject
+            subject.subject = row.subjects.c.subject
             self.subjects.append (subject)
 
 
         # bookshelves (PG private vocabulary)
 
-        c.execute ("""
-select pk, bookshelf from bookshelves, mn_books_bookshelves
-  where bookshelves.pk = mn_books_bookshelves.fk_bookshelves
-    and mn_books_bookshelves.fk_books = %(ebook)s""", {'ebook': id_})
-
-        for row in c.fetchall ():
-            row = xl (c, row)
+#         c.execute ("""
+# select pk, bookshelf from bookshelves, mn_books_bookshelves
+#   where bookshelves.pk = mn_books_bookshelves.fk_bookshelves
+#     and mn_books_bookshelves.fk_books = %(ebook)s""", {'ebook': id_})
+        bookshelves=Table('bookshelves', META_DATA, autoload=True, autoload_with=engine)
+        mn_books_bookshelves=Table('mn_books_bookshelves', META_DATA, autoload=True, autoload_with=engine)
+        book_shelf_result=session.query(bookshelves,mn_books_bookshelves).\
+            filter(bookshelves.c.pk == mn_books_bookshelves.c.fk_bookshelves).\
+            filter(mn_books_bookshelves.c.fk_books ==id_)
+        for row in book_shelf_result:
             bookshelf = Struct ()
-            bookshelf.id = row.pk
-            bookshelf.bookshelf = row.bookshelf
+            bookshelf.id = row.bookshelves.c.pk
+            bookshelf.bookshelf = row.bookshelves.c.bookshelf
             self.bookshelves.append (bookshelf)
 
 
