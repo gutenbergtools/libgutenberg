@@ -294,16 +294,19 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         # LoCC (vocabulary)
 
-        c.execute ("""
-select pk, locc from loccs, mn_books_loccs
-  where loccs.pk = mn_books_loccs.fk_loccs
-    and mn_books_loccs.fk_books = %(ebook)s""", {'ebook': id_})
-
-        for row in c.fetchall ():
-            row = xl (c, row)
+#         c.execute ("""
+# select pk, locc from loccs, mn_books_loccs
+#   where loccs.pk = mn_books_loccs.fk_loccs
+#     and mn_books_loccs.fk_books = %(ebook)s""", {'ebook': id_})
+        loccs=Table('loccs', META_DATA, autoload=True, autoload_with=engine)
+        mn_books_loccs=Table('mn_books_loccs', META_DATA, autoload=True, autoload_with=engine)
+        locc_res=session.query(loccs,mn_books_loccs).\
+            filter(loccs.c.pk == mn_books_loccs.c.fk_loccs).\
+            filter(mn_books_loccs.c.fk_books  ==id_)
+        for row in locc_res:
             locc = Struct ()
-            locc.id = row.pk
-            locc.locc = row.locc
+            locc.id = row.loccs.c.pk
+            locc.locc = row.loccs.c.locc
             self.loccs.append (locc)
 
 
