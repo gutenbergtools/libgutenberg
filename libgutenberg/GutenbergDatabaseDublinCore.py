@@ -216,13 +216,12 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             filter(attributes.c.fk_books ==id_).\
             filter(attributes.c.fk_attriblist == attriblist.c.pk).\
             order_by(attriblist.c.name)
-        for row in c.fetchall ():
-            row = xl (c, row)
+        for row in attr_result:
 
             marc = Struct ()
-            marc.code = row.name.split (' ')[0]
-            marc.text = self.strip_marc_subfields (row.text)
-            marc.caption = row.caption
+            marc.code = row.attriblist.c.name.split (' ')[0]
+            marc.text = self.strip_marc_subfields (row.attributes.c.text)
+            marc.caption = row.attriblist.c.caption
             self.marcs.append (marc)
 
             if marc.code == '245':
