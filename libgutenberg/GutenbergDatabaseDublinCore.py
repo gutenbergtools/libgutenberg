@@ -312,21 +312,23 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         # categories (vocabulary)
 
-        c.execute ("""
-select dcmitype, description from dcmitypes, mn_books_categories
-  where dcmitypes.pk = mn_books_categories.fk_categories
-    and fk_books = %(ebook)s""", {'ebook': id_})
-        rows = c.fetchall ()
+#         c.execute ("""
+# select dcmitype, description from dcmitypes, mn_books_categories
+#   where dcmitypes.pk = mn_books_categories.fk_categories
+#     and fk_books = %(ebook)s""", {'ebook': id_})
+        dcmitypes=Table('dcmitypes', META_DATA, autoload=True, autoload_with=engine)
+        mn_books_categories=Table('mn_books_categories', META_DATA, autoload=True, autoload_with=engine)
+        dcm_result=session.query(dcmitypes,mn_books_categories).\
+            filter(dcmitypes.c.pk == mn_books_categories.c.fk_categories).\
+            filter(mn_books_categories.c.fk_categories==id_)
+        if not dcm_result:
+            dcm_result.append ( ('Text', 'Text') )
 
-        if not rows:
-            rows.append ( ('Text', 'Text') )
-
-        for row in rows:
-            row = xl (c, row)
-            self.categories.append (row.dcmitype)
+        for row in dcm_result:
+            self.categories.append (row.dcmitypes.c.dcmitype)
             dcmitype = Struct ()
-            dcmitype.id = row.dcmitype
-            dcmitype.description = row.description
+            dcmitype.id = row.dcmitypes.c.dcmitype
+            dcmitype.description = row.dcmitypes.c.description
             self.dcmitypes.append (dcmitype)
 
         self.load_files_from_database (ebook)
