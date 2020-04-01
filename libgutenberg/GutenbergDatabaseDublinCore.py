@@ -233,21 +233,26 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         # languages (datatype)
 
-        c.execute ("""
-select pk, lang from langs, mn_books_langs
-  where langs.pk = mn_books_langs.fk_langs
-    and mn_books_langs.fk_books = %(ebook)s""", {'ebook': id_})
+#         c.execute ("""
+# select pk, lang from langs, mn_books_langs
+#   where langs.pk = mn_books_langs.fk_langs
+#     and mn_books_langs.fk_books = %(ebook)s""", {'ebook': id_})
+        langs=Table('langs', META_DATA, autoload=True, autoload_with=engine)
+        mn_books_langs=Table('mn_books_langs', META_DATA, autoload=True, autoload_with=engine)
+        lang_res=session.query(langs,mn_books_langs).\
+            filter(langs.c.pk == mn_books_langs.c.fk_langs).\
+            filter(mn_books_langs.c.fk_books ==id_)
+        
+        #not sure about whether append will work in ORM
+        #if not how to modify this?
+        if not lang_res:
+            lang_res.append ( ('en', 'English' ) )
 
-        rows = c.fetchall ()
-
-        if not rows:
-            rows.append ( ('en', 'English' ) )
-
-        for row in rows:
+        for row in lang_res:
             row = xl (c, row)
             language = Struct ()
-            language.id = row.pk
-            language.language = row.lang
+            language.id = row.langs.c.pk
+            language.language = row.langs.c.lang
             self.languages.append (language)
 
 
