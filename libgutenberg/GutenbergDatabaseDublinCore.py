@@ -258,16 +258,19 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         # subjects (vocabulary)
 
-        c.execute ("""
-select pk, subject from subjects, mn_books_subjects
-  where subjects.pk = mn_books_subjects.fk_subjects
-    and mn_books_subjects.fk_books = %(ebook)s""", {'ebook': id_})
-
-        for row in c.fetchall ():
-            row = xl (c, row)
+#         c.execute ("""
+# select pk, subject from subjects, mn_books_subjects
+#   where subjects.pk = mn_books_subjects.fk_subjects
+#     and mn_books_subjects.fk_books = %(ebook)s""", {'ebook': id_})
+        mn_books_subjects=Table('mn_books_subjects', META_DATA, autoload=True, autoload_with=engine)
+        subjects=Table('subjects', META_DATA, autoload=True, autoload_with=engine)
+        lang_res=session.query(mn_books_subjects,subjects).\
+            filter(subjects.c.pk == mn_books_subjects.c.fk_subjects).\
+            filter(mn_books_subjects.c.fk_books ==id_)
+        for row in lang_res:
             subject = Struct ()
-            subject.id = row.pk
-            subject.subject = row.subject
+            subject.id = row.subjects.c.pk
+            subject.subject = row.subject.c.subject
             self.subjects.append (subject)
 
 
