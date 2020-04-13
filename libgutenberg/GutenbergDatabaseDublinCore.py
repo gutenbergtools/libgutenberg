@@ -392,32 +392,32 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
             file_.filename    = fn
             file_.url         = PG_URL + fn
-            file_.id          = row.pk
-            file_.extent      = row.filesize
-            file_.hr_extent   = self.human_readable_size (row.filesize)
-            file_.modified    = row.filemtime
-            file_.filetype    = row.fk_filetypes
-            file_.hr_filetype = row.filetype
-            file_.encoding    = row.fk_encodings
-            file_.compression = row.fk_compressions
-            file_.generated   = row.generated
+            file_.id          = row.files.c.pk
+            file_.extent      = row.files.c.filesize
+            file_.hr_extent   = self.human_readable_size (row.files.c.filesize)
+            file_.modified    = row.files.c.filemtime
+            file_.filetype    = row.files.c.fk_filetypes
+            file_.hr_filetype = row.filetypes.c.filetype
+            file_.encoding    = row.files.c.fk_encodings
+            file_.compression = row.files.c.fk_compressions
+            file_.generated   = row.filetypes.c.generated
 
-            if row.filetype:
-                self.filetypes.add (row.filetype)
+            if row.filetypes.c.filetype:
+                self.filetypes.add (row.filetypes.c.filetype)
 
             # internet media type (vocabulary)
 
-            file_.mediatypes = [gg.DCIMT (row.mediatype, row.fk_encodings)]
+            file_.mediatypes = [gg.DCIMT (row.filetypes.c.mediatype, row.files.c.fk_encodings)]
             if file_.compression == 'zip':
                 file_.mediatypes.append (gg.DCIMT ('application/zip'))
 
-            if file_.generated and not row.fk_filetypes.startswith ('cover.'):
-                file_.url = "%sebooks/%d.%s" % (PG_URL, id_, row.fk_filetypes)
+            if file_.generated and not row.files.c.fk_filetypes.startswith ('cover.'):
+                file_.url = "%sebooks/%d.%s" % (PG_URL, id_, row.files.c.fk_filetypes)
 
             self.files.append (file_)
 
             if row.mediatype:
-                self.mediatypes.add (row.mediatype)
+                self.mediatypes.add (row..filetypes.c.mediatype)
 
 
     def remove_filetype_from_database (self, id_, type_):
