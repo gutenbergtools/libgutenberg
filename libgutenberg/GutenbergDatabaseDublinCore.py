@@ -417,7 +417,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             self.files.append (file_)
 
             if row.mediatype:
-                self.mediatypes.add (row..filetypes.c.mediatype)
+                self.mediatypes.add (row.filetypes.c.mediatype)
 
 
     def remove_filetype_from_database (self, id_, type_):
