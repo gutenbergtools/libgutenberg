@@ -352,20 +352,29 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         # files (not strictly DublinCore but useful)
 
-        c.execute (
-"""select files.pk as pk, filename, filetype, mediatype, filesize, filemtime,
-          fk_filetypes, fk_encodings, fk_compressions, generated
-from files
-  left join filetypes on (files.fk_filetypes = filetypes.pk)
-  left join encodings on (files.fk_encodings = encodings.pk)
-where fk_books = %(ebook)s
-  and obsoleted = 0
-  and diskstatus = 0
-order by filetypes.sortorder, encodings.sortorder, fk_filetypes,
-         fk_encodings, fk_compressions, filename""",  {'ebook': id_})
-
-        for row in c.fetchall ():
-            row = xl (c, row)
+#         c.execute (
+# """select files.pk as pk, filename, filetype, mediatype, filesize, filemtime,
+#           fk_filetypes, fk_encodings, fk_compressions, generated
+# from files
+#   left join filetypes on (files.fk_filetypes = filetypes.pk)
+#   left join encodings on (files.fk_encodings = encodings.pk)
+# where fk_books = %(ebook)s
+#   and obsoleted = 0
+#   and diskstatus = 0
+# order by filetypes.sortorder, encodings.sortorder, fk_filetypes,
+#          fk_encodings, fk_compressions, filename""",  {'ebook': id_})
+        files=Table('files', META_DATA, autoload=True, autoload_with=engine)
+        filetypes=Table('filetypes', META_DATA, autoload=True, autoload_with=engine)
+        encodings=Table('encodings', META_DATA, autoload=True, autoload_with=engine)
+        file_result=session.query(files).\
+            join(filetypes.c.pk == files.c.fk_filetypes).\
+            join(encodings.c.pk==files.c.fk_encodings).\
+            filter(files.c.fk_books==id_).\
+            filter(files.c.obsoleted==0).\
+            filter(files.c.diskstatus==0).\
+            order_by(filetypes.c.sortorder, encodings.c.sortorder, files.c.fk_filetypes,\
+                files.c.fk_encodings, files.c.fk_compressions, files.c.filename)
+        for row in file_result:
 
             file_ = Struct ()
             fn = row.filename
