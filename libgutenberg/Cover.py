@@ -31,6 +31,11 @@ import math
 import os
 import sys
 
+
+# Applications should be able to test for cairo like this:
+# from libgutenberg install Cover
+# cairo_is_ok = hasattr(Cover, 'cairo')
+
 try:
     import cairocffi as cairo
 except ImportError:
