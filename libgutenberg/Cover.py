@@ -34,6 +34,10 @@ import sys
 try:
     import cairocffi as cairo
 except ImportError:
+    # cairocffi not available
+    pass
+except OSError:
+    # cairo not installed
     pass
 
 PY2 = sys.version_info[0] == 2
