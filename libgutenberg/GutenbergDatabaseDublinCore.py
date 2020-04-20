@@ -467,13 +467,14 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
             filename = re.sub ('^.*/cache/', 'cache/', filename)
 
-            conn = self.pool.connect ()
-            c  = conn.cursor ()
+            # conn = self.pool.connect ()
+            # c  = conn.cursor ()
 
-            c.execute ('start transaction')
-            c.execute ("select * from filetypes where pk = %(type)s", {'type': type_} )
-
-            for dummy_row in c.fetchall (): # if type_ found
+            # c.execute ('start transaction')
+            # c.execute ("select * from filetypes where pk = %(type)s", {'type': type_} )
+            filetypes=Table('filetypes', META_DATA, autoload=True, autoload_with=engine).c
+            fresult=session.query(filetypes).filter(filetypes.pk==type_)
+            for dummy_row in fresult: # if type_ found
                 diskstatus = 0
                 #if type_.startswith ('cover'):
                 #    diskstatus = 1
