@@ -423,17 +423,20 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
     def remove_filetype_from_database (self, id_, type_):
         """ Remove filetype from PG database. """
 
-        conn = self.pool.connect ()
-        c  = conn.cursor ()
+#         conn = self.pool.connect ()
+#         c  = conn.cursor ()
 
-        c.execute ('start transaction')
-        c.execute ("""delete from files where
-fk_books = %(id)s and
-fk_filetypes = %(fk_filetypes)s and
-filename ~ '^cache'""",
-                   { 'id': id_,
-                     'fk_filetypes': type_ })
-        c.execute ('commit')
+#         c.execute ('start transaction')
+#         c.execute ("""delete from files where
+# fk_books = %(id)s and
+# fk_filetypes = %(fk_filetypes)s and
+# filename ~ '^cache'""",
+#                    { 'id': id_,
+#                      'fk_filetypes': type_ })
+#         c.execute ('commit')
+        files=Table('files', META_DATA, autoload=True, autoload_with=engine).c
+        session.query(files).filter(files.fk_books==id_).filter(files.fk_filetypes==type_).delete()
+        session.commit()
 
 
     def remove_file_from_database (self, filename):
