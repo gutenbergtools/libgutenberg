@@ -479,12 +479,14 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                 #if type_.startswith ('cover'):
                 #    diskstatus = 1
 
-                c.execute ("""
-delete from files where filename = %(filename)s""",
-                           { 'filename': filename,
-                             'id': id_,
-                             'fk_filetypes': type_ })
-
+#                 c.execute ("""
+# delete from files where filename = %(filename)s""",
+#                            { 'filename': filename,
+#                              'id': id_,
+#                              'fk_filetypes': type_ })
+                files=Table('files', META_DATA, autoload=True, autoload_with=engine).c
+                session.query(files).filter(filetypes.filename==filename).delete()
+                session.commit()
                 c.execute ("""
 insert into files (fk_books, filename, filesize, filemtime,
                    fk_filetypes, fk_encodings, fk_compressions, diskstatus)
