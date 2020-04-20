@@ -442,13 +442,16 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
     def remove_file_from_database (self, filename):
         """ Remove file from PG database. """
 
-        conn = self.pool.connect ()
-        c  = conn.cursor ()
+        # conn = self.pool.connect ()
+        # c  = conn.cursor ()
 
-        c.execute ('start transaction')
-        c.execute ("delete from files where filename = %(filename)s",
-                   { 'filename': filename })
-        c.execute ('commit')
+        # c.execute ('start transaction')
+        # c.execute ("delete from files where filename = %(filename)s",
+        #            { 'filename': filename })
+        # c.execute ('commit')
+        files=Table('files', META_DATA, autoload=True, autoload_with=engine).c
+        session.query(files).filter(files.filename==filename).delete()
+        session.commit()
 
 
     def store_file_in_database (self, id_, filename, type_):
