@@ -35,26 +35,8 @@ from sqlalchemy import MetaData, Table
 
 RE_FIRST_AZ = re.compile (r"^[a-z]")
 
-engine = create_engine(get_sqlalchemy_url(), echo = True)
-# Base = declarative_base()
-META_DATA = MetaData(bind=engine, reflect=True)
-
-# class Books(Base):
-#     __tablename__ = 'books'
-#     pk=Column(Integer,primary_key=True,nullable=False,default=0)
-#     copyrighted=Column(Integer,nullable=False,default=0)
-#     updatemode=Column(Integer,nullable=False,default=0)
-#     release_date=Column(DateTime,nullable=False)
-#     filemask=Column(String(240))
-#     gutindex=Column(String)
-#     downloads=Column(Integer,nullable=False,default=0)
-#     title=Column(String)
-#     tsvec=Column(postgresql.TSVECTOR)
-#     nonfiling=Column(Integer,nullable=False,default=0)
 
 
-Session = sessionmaker(bind = engine)
-session = Session()
 
 class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
     """ Augment GutenbergDublinCore class. """
@@ -88,10 +70,13 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         """
 
-        conn = self.pool.connect ()
-        c  = conn.cursor ()
-        c2 = conn.cursor ()
-
+        # conn = self.pool.connect ()
+        # c  = conn.cursor ()
+        # c2 = conn.cursor ()
+        engine = create_engine(get_sqlalchemy_url(), echo = True)
+        META_DATA = MetaData(bind=engine, reflect=True)
+        Session = sessionmaker(bind = engine)
+        session = Session()
         # id, copyright and release date
 
         self.project_gutenberg_id = id_ = ebook
@@ -347,9 +332,12 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         self.files = []
         self.generated_files = []
 
-        conn = self.pool.connect ()
-        c  = conn.cursor ()
-
+        # conn = self.pool.connect ()
+        # c  = conn.cursor ()
+        engine = create_engine(get_sqlalchemy_url(), echo = True)
+        META_DATA = MetaData(bind=engine, reflect=True)
+        Session = sessionmaker(bind = engine)
+        session = Session()
         # files (not strictly DublinCore but useful)
 
 #         c.execute (
@@ -422,7 +410,10 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
     def remove_filetype_from_database (self, id_, type_):
         """ Remove filetype from PG database. """
-
+        engine = create_engine(get_sqlalchemy_url(), echo = True)
+        META_DATA = MetaData(bind=engine, reflect=True)
+        Session = sessionmaker(bind = engine)
+        session = Session()
 #         conn = self.pool.connect ()
 #         c  = conn.cursor ()
 
@@ -441,7 +432,10 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
     def remove_file_from_database (self, filename):
         """ Remove file from PG database. """
-
+        engine = create_engine(get_sqlalchemy_url(), echo = True)
+        META_DATA = MetaData(bind=engine, reflect=True)
+        Session = sessionmaker(bind = engine)
+        session = Session()
         # conn = self.pool.connect ()
         # c  = conn.cursor ()
 
@@ -456,7 +450,10 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
     def store_file_in_database (self, id_, filename, type_):
         """ Store file in PG database. """
-
+        engine = create_engine(get_sqlalchemy_url(), echo = True)
+        META_DATA = MetaData(bind=engine, reflect=True)
+        Session = sessionmaker(bind = engine)
+        session = Session()
         encoding = None
         if type_ == 'txt':
             type_ = 'txt.utf-8'
@@ -492,7 +489,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                                 statinfo.st_mtime).isoformat (),
                    fk_filetypes=type_, fk_encodings=encoding, fk_compressions=None, diskstatus=diskstatus)
                 session.add(new_data)
-                session.flush()
+                session.commit()
 #                 c.execute ("""
 # insert into files (fk_books, filename, filesize, filemtime,
 #                    fk_filetypes, fk_encodings, fk_compressions, diskstatus)
@@ -514,28 +511,32 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         except IntegrityError:
             error ("Book number %s is not in database." % id_)
-            c.execute ('rollback')
+            #c.execute ('rollback')
+            session.rollback()
 
 
     def register_coverpage (self, id_, url, code = 901):
         """ Register a coverpage for this ebook. """
-
-        conn = self.pool.connect ()
-        c  = conn.cursor ()
-        c.execute ('commit')
+        engine = create_engine(get_sqlalchemy_url(), echo = True)
+        META_DATA = MetaData(bind=engine, reflect=True)
+        Session = sessionmaker(bind = engine)
+        session = Session()
+        #conn = self.pool.connect ()
+        #c  = conn.cursor ()
+        #c.execute ('commit')
 
         try:
-            c.execute ('start transaction')
+            #c.execute ('start transaction')
 
             c.execute ("""
 insert into attributes (fk_books, fk_attriblist, text) values (%(ebook)s, %(code)s, %(url)s)""",
                        {'ebook': id_, 'code': code, 'url': gg.archive2files (id_, url)})
 
-            c.execute ('commit')
+            session.commit()
 
         except IntegrityError: # Duplicate key
-            c.execute ('rollback')
+            session.rollback()
 
         except DatabaseError as what:
             warning ("Error updating coverpage in database: %s." % what)
-            c.execute ('rollback')
+            session.rollback()
