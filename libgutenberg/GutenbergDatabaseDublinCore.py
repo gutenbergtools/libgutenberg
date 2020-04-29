@@ -487,21 +487,27 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                 files=Table('files', META_DATA, autoload=True, autoload_with=engine).c
                 session.query(files).filter(filetypes.filename==filename).delete()
                 session.commit()
-                c.execute ("""
-insert into files (fk_books, filename, filesize, filemtime,
-                   fk_filetypes, fk_encodings, fk_compressions, diskstatus)
-  values (%(ebook)s, %(filename)s, %(filesize)s, %(filemtime)s,
-  %(fk_filetypes)s, %(fk_encodings)s, 'none', %(diskstatus)s)""",
-                           {'ebook':        id_,
-                            'filename':     filename,
-                            'filesize':     statinfo.st_size,
-                            'filemtime':    datetime.datetime.fromtimestamp (
+                #files=Table('files', META_DATA, autoload=True, autoload_with=engine)
+                new_data=files(fk_books=id_, filename=filename, filesize=statinfo.st_size, filemtime=datetime.datetime.fromtimestamp (
                                 statinfo.st_mtime).isoformat (),
-                            'fk_encodings': encoding,
-                            'fk_filetypes': type_,
-                            'diskstatus':   diskstatus})
+                   fk_filetypes=type_, fk_encodings=encoding, fk_compressions=None, diskstatus=diskstatus)
+                session.add(new_data)
+                session.flush()
+#                 c.execute ("""
+# insert into files (fk_books, filename, filesize, filemtime,
+#                    fk_filetypes, fk_encodings, fk_compressions, diskstatus)
+#   values (%(ebook)s, %(filename)s, %(filesize)s, %(filemtime)s,
+#   %(fk_filetypes)s, %(fk_encodings)s, 'none', %(diskstatus)s)""",
+#                            {'ebook':        id_,
+#                             'filename':     filename,
+#                             'filesize':     statinfo.st_size,
+#                             'filemtime':    datetime.datetime.fromtimestamp (
+#                                 statinfo.st_mtime).isoformat (),
+#                             'fk_encodings': encoding,
+#                             'fk_filetypes': type_,
+#                             'diskstatus':   diskstatus})
 
-            c.execute ('commit')
+#             c.execute ('commit')
 
         except OSError:
             error ("Cannot stat %s" % filename)
