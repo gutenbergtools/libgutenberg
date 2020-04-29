@@ -234,7 +234,6 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             lang_res.append ( ('en', 'English' ) )
 
         for row in lang_res:
-            row = xl (c, row)
             language = Struct ()
             language.id = row.langs.c.pk
             language.language = row.langs.c.lang
