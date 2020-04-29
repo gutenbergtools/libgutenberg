@@ -526,10 +526,12 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         try:
             #c.execute ('start transaction')
-
-            c.execute ("""
-insert into attributes (fk_books, fk_attriblist, text) values (%(ebook)s, %(code)s, %(url)s)""",
-                       {'ebook': id_, 'code': code, 'url': gg.archive2files (id_, url)})
+            attributes=Table('attributes', META_DATA, autoload=True, autoload_with=engine).c
+            new_attr=attributes(fk_books=id_, fk_attriblist=code, text=gg.archive2files (id_, url))
+            session.add(new_attr)
+#             c.execute ("""
+# insert into attributes (fk_books, fk_attriblist, text) values (%(ebook)s, %(code)s, %(url)s)""",
+#                        {'ebook': id_, 'code': code, 'url': gg.archive2files (id_, url)})
 
             session.commit()
 
