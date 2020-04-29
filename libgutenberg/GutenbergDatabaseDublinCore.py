@@ -35,9 +35,6 @@ from sqlalchemy import MetaData, Table
 
 RE_FIRST_AZ = re.compile (r"^[a-z]")
 
-
-
-
 class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
     """ Augment GutenbergDublinCore class. """
 
@@ -69,31 +66,15 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         Best method if direct database connection available.
 
         """
-
-        # conn = self.pool.connect ()
-        # c  = conn.cursor ()
-        # c2 = conn.cursor ()
         engine = create_engine(get_sqlalchemy_url(), echo = True)
         META_DATA = MetaData(bind=engine, reflect=True)
         Session = sessionmaker(bind = engine)
         session = Session()
-        # id, copyright and release date
-
         self.project_gutenberg_id = id_ = ebook
 
-#         c.execute ("""
-# select copyrighted, release_date, downloads from books where pk = %(ebook)s""",
-#                    {'ebook': id_})
         Books=Table('Books', META_DATA, autoload=True, autoload_with=engine)
         result=session.query(Books).filter(Books.c.pk==id_)
 
-        # for row in c.fetchall ():
-        #     row = xl (c, row)
-        #     self.release_date = row.release_date
-        #     self.rights = ('Copyrighted. Read the copyright notice inside this book for details.'
-        #                    if row.copyrighted
-        #                    else 'Public domain in the USA.')
-        #     self.downloads = row.downloads
         for book in result:
             self.release_date=book.release_date
             self.rights=('Copyrighted. Read the copyright notice inside this book for details.'
@@ -105,13 +86,6 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         # for a list of relator codes see:
         # http://www.loc.gov/loc.terms/relators/
 
-#         c.execute ("""
-# SELECT authors.pk as pk, author, born_floor, born_ceil, died_floor, died_ceil, fk_roles, role
-#    FROM mn_books_authors
-#    JOIN authors ON mn_books_authors.fk_authors = authors.pk
-#    JOIN roles   ON mn_books_authors.fk_roles   = roles.pk
-# WHERE mn_books_authors.fk_books = %(ebook)s
-# ORDER BY role, author""", {'ebook': id_})
         roles=Table('roles', META_DATA, autoload=True, autoload_with=engine)
         authors=Table('authors', META_DATA, autoload=True, autoload_with=engine)
         mn_books_authors=Table('mn_books_authors', META_DATA, autoload=True, autoload_with=engine)
@@ -119,20 +93,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             join(authors,mn_books_authors.c.fk_authors == authors.c.pk).\
             join(roles,mn_books_authors.c.fk_roles == roles.c.pk).\
             filter(mn_books_authors.c.fk_books==id_).order_by(roles.c.role,authors.c.author)
-        # for row in c.fetchall ():
-        #     row = xl (c, row)
 
-        #     author = Struct ()
-        #     author.id             = row.pk
-        #     author.name           = row.author
-        #     author.marcrel        = row.fk_roles
-        #     author.role           = row.role
-        #     author.birthdate      = row.born_floor
-        #     author.deathdate      = row.died_floor
-        #     author.birthdate2     = row.born_ceil
-        #     author.deathdate2     = row.died_ceil
-        #     author.aliases        = []
-        #     author.webpages       = []
         for res in result:
             author = Struct ()
             author.id             = res.authors.pk
@@ -153,31 +114,18 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             author.first_lettter = first_let_match.group (0) if first_let_match  else  'other'
             
             aliases=Table('aliases', META_DATA, autoload=True, autoload_with=engine)
-            # c2.execute ("SELECT alias, alias_heading from aliases where fk_authors = %d"
-            #             % row.pk)
+
             aliases_res=session.query(aliases).filter(aliases.c.fk_authors==res.authors.pk)
-            # for row2 in c2.fetchall ():
-            #     row2 = xl (c2, row2)
-            #     alias = Struct ()
-            #     alias.alias = row2.alias
-            #     alias.heading = row2.alias_heading
-            #     author.aliases.append (alias)
+
             for row2 in aliases_res:
                 alias = Struct ()
                 alias.alias = row2.alias
                 alias.heading = row2.alias_heading
                 author.aliases.append (alias)
 
-#             c2.execute ("""
-# SELECT description, url from author_urls where fk_authors = %d""" % row.pk)
             author_urls=Table('author_urls', META_DATA, autoload=True, autoload_with=engine)
             url_res=session.query(author_urls).filter(url_res.c.fk_authors==res.authors.pk)
-            # for row2 in c2.fetchall ():
-            #     row2 = xl (c2, row2)
-            #     webpage = Struct ()
-            #     webpage.description = row2.description
-            #     webpage.url = row2.url
-            #     author.webpages.append (webpage)
+
             for row2 in url_res:
                 webpage = Struct ()
                 webpage.description = row2.description
@@ -185,16 +133,6 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                 author.webpages.append (webpage)
             self.authors.append (author)
 
-
-        # titles, notes
-
-#         c.execute ("""
-# select attributes.text, attributes.nonfiling,
-#        attriblist.name, attriblist.caption
-#   from attributes, attriblist
-#  where attributes.fk_books = %(ebook)s
-#    and attributes.fk_attriblist = attriblist.pk
-#  order by attriblist.name""", {'ebook': id_})
         attributes=Table('attributes', META_DATA, autoload=True, autoload_with=engine)
         attriblist=Table('attriblist', META_DATA, autoload=True, autoload_with=engine)
         attr_result=session.query(attributes,attriblist).\
@@ -215,13 +153,6 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                 self.title_file_as = self.title_file_as[0].upper () + self.title_file_as[1:]
                 info ("Title: %s" % self.title)
 
-
-        # languages (datatype)
-
-#         c.execute ("""
-# select pk, lang from langs, mn_books_langs
-#   where langs.pk = mn_books_langs.fk_langs
-#     and mn_books_langs.fk_books = %(ebook)s""", {'ebook': id_})
         langs=Table('langs', META_DATA, autoload=True, autoload_with=engine)
         mn_books_langs=Table('mn_books_langs', META_DATA, autoload=True, autoload_with=engine)
         lang_res=session.query(langs,mn_books_langs).\
@@ -242,10 +173,6 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         # subjects (vocabulary)
 
-#         c.execute ("""
-# select pk, subject from subjects, mn_books_subjects
-#   where subjects.pk = mn_books_subjects.fk_subjects
-#     and mn_books_subjects.fk_books = %(ebook)s""", {'ebook': id_})
         mn_books_subjects=Table('mn_books_subjects', META_DATA, autoload=True, autoload_with=engine)
         subjects=Table('subjects', META_DATA, autoload=True, autoload_with=engine)
         lang_res=session.query(mn_books_subjects,subjects).\
@@ -260,10 +187,6 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         # bookshelves (PG private vocabulary)
 
-#         c.execute ("""
-# select pk, bookshelf from bookshelves, mn_books_bookshelves
-#   where bookshelves.pk = mn_books_bookshelves.fk_bookshelves
-#     and mn_books_bookshelves.fk_books = %(ebook)s""", {'ebook': id_})
         bookshelves=Table('bookshelves', META_DATA, autoload=True, autoload_with=engine)
         mn_books_bookshelves=Table('mn_books_bookshelves', META_DATA, autoload=True, autoload_with=engine)
         book_shelf_result=session.query(bookshelves,mn_books_bookshelves).\
@@ -278,10 +201,6 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         # LoCC (vocabulary)
 
-#         c.execute ("""
-# select pk, locc from loccs, mn_books_loccs
-#   where loccs.pk = mn_books_loccs.fk_loccs
-#     and mn_books_loccs.fk_books = %(ebook)s""", {'ebook': id_})
         loccs=Table('loccs', META_DATA, autoload=True, autoload_with=engine)
         mn_books_loccs=Table('mn_books_loccs', META_DATA, autoload=True, autoload_with=engine)
         locc_res=session.query(loccs,mn_books_loccs).\
@@ -296,10 +215,6 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
         # categories (vocabulary)
 
-#         c.execute ("""
-# select dcmitype, description from dcmitypes, mn_books_categories
-#   where dcmitypes.pk = mn_books_categories.fk_categories
-#     and fk_books = %(ebook)s""", {'ebook': id_})
         dcmitypes=Table('dcmitypes', META_DATA, autoload=True, autoload_with=engine)
         mn_books_categories=Table('mn_books_categories', META_DATA, autoload=True, autoload_with=engine)
         dcm_result=session.query(dcmitypes,mn_books_categories).\
@@ -331,25 +246,12 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         self.files = []
         self.generated_files = []
 
-        # conn = self.pool.connect ()
-        # c  = conn.cursor ()
         engine = create_engine(get_sqlalchemy_url(), echo = True)
         META_DATA = MetaData(bind=engine, reflect=True)
         Session = sessionmaker(bind = engine)
         session = Session()
         # files (not strictly DublinCore but useful)
 
-#         c.execute (
-# """select files.pk as pk, filename, filetype, mediatype, filesize, filemtime,
-#           fk_filetypes, fk_encodings, fk_compressions, generated
-# from files
-#   left join filetypes on (files.fk_filetypes = filetypes.pk)
-#   left join encodings on (files.fk_encodings = encodings.pk)
-# where fk_books = %(ebook)s
-#   and obsoleted = 0
-#   and diskstatus = 0
-# order by filetypes.sortorder, encodings.sortorder, fk_filetypes,
-#          fk_encodings, fk_compressions, filename""",  {'ebook': id_})
         files=Table('files', META_DATA, autoload=True, autoload_with=engine)
         filetypes=Table('filetypes', META_DATA, autoload=True, autoload_with=engine)
         encodings=Table('encodings', META_DATA, autoload=True, autoload_with=engine)
@@ -413,17 +315,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         META_DATA = MetaData(bind=engine, reflect=True)
         Session = sessionmaker(bind = engine)
         session = Session()
-#         conn = self.pool.connect ()
-#         c  = conn.cursor ()
 
-#         c.execute ('start transaction')
-#         c.execute ("""delete from files where
-# fk_books = %(id)s and
-# fk_filetypes = %(fk_filetypes)s and
-# filename ~ '^cache'""",
-#                    { 'id': id_,
-#                      'fk_filetypes': type_ })
-#         c.execute ('commit')
         files=Table('files', META_DATA, autoload=True, autoload_with=engine).c
         session.query(files).filter(files.fk_books==id_).filter(files.fk_filetypes==type_).delete()
         session.commit()
@@ -435,13 +327,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         META_DATA = MetaData(bind=engine, reflect=True)
         Session = sessionmaker(bind = engine)
         session = Session()
-        # conn = self.pool.connect ()
-        # c  = conn.cursor ()
 
-        # c.execute ('start transaction')
-        # c.execute ("delete from files where filename = %(filename)s",
-        #            { 'filename': filename })
-        # c.execute ('commit')
         files=Table('files', META_DATA, autoload=True, autoload_with=engine).c
         session.query(files).filter(files.filename==filename).delete()
         session.commit()
@@ -463,11 +349,6 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
             filename = re.sub ('^.*/cache/', 'cache/', filename)
 
-            # conn = self.pool.connect ()
-            # c  = conn.cursor ()
-
-            # c.execute ('start transaction')
-            # c.execute ("select * from filetypes where pk = %(type)s", {'type': type_} )
             filetypes=Table('filetypes', META_DATA, autoload=True, autoload_with=engine).c
             fresult=session.query(filetypes).filter(filetypes.pk==type_)
             for dummy_row in fresult: # if type_ found
@@ -475,42 +356,20 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                 #if type_.startswith ('cover'):
                 #    diskstatus = 1
 
-#                 c.execute ("""
-# delete from files where filename = %(filename)s""",
-#                            { 'filename': filename,
-#                              'id': id_,
-#                              'fk_filetypes': type_ })
                 files=Table('files', META_DATA, autoload=True, autoload_with=engine).c
                 session.query(files).filter(filetypes.filename==filename).delete()
                 session.commit()
-                #files=Table('files', META_DATA, autoload=True, autoload_with=engine)
                 new_data=files(fk_books=id_, filename=filename, filesize=statinfo.st_size, filemtime=datetime.datetime.fromtimestamp (
                                 statinfo.st_mtime).isoformat (),
                    fk_filetypes=type_, fk_encodings=encoding, fk_compressions=None, diskstatus=diskstatus)
                 session.add(new_data)
                 session.commit()
-#                 c.execute ("""
-# insert into files (fk_books, filename, filesize, filemtime,
-#                    fk_filetypes, fk_encodings, fk_compressions, diskstatus)
-#   values (%(ebook)s, %(filename)s, %(filesize)s, %(filemtime)s,
-#   %(fk_filetypes)s, %(fk_encodings)s, 'none', %(diskstatus)s)""",
-#                            {'ebook':        id_,
-#                             'filename':     filename,
-#                             'filesize':     statinfo.st_size,
-#                             'filemtime':    datetime.datetime.fromtimestamp (
-#                                 statinfo.st_mtime).isoformat (),
-#                             'fk_encodings': encoding,
-#                             'fk_filetypes': type_,
-#                             'diskstatus':   diskstatus})
-
-#             c.execute ('commit')
 
         except OSError:
             error ("Cannot stat %s" % filename)
 
         except IntegrityError:
             error ("Book number %s is not in database." % id_)
-            #c.execute ('rollback')
             session.rollback()
 
 
@@ -520,19 +379,11 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         META_DATA = MetaData(bind=engine, reflect=True)
         Session = sessionmaker(bind = engine)
         session = Session()
-        #conn = self.pool.connect ()
-        #c  = conn.cursor ()
-        #c.execute ('commit')
 
         try:
-            #c.execute ('start transaction')
             attributes=Table('attributes', META_DATA, autoload=True, autoload_with=engine).c
             new_attr=attributes(fk_books=id_, fk_attriblist=code, text=gg.archive2files (id_, url))
             session.add(new_attr)
-#             c.execute ("""
-# insert into attributes (fk_books, fk_attriblist, text) values (%(ebook)s, %(code)s, %(url)s)""",
-#                        {'ebook': id_, 'code': code, 'url': gg.archive2files (id_, url)})
-
             session.commit()
 
         except IntegrityError: # Duplicate key
