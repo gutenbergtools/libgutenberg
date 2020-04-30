@@ -18,20 +18,20 @@ from __future__ import unicode_literals
 import re
 import os
 import datetime
-from flask_sqlalchemy import SQLAlchemy
-from SQLAlchemy import create_engine  
-from SQLAlchemy import Column, Integer, String, DateTime
-from SQLAlchemy.ext.declarative import declarative_base  
-from SQLAlchemy.orm import sessionmaker
-from SQLAlchemy.orm import sessionmaker
-from SQLAlchemy.dialects import postgresql
-from SQLAlchemy import MetaData, Table
+
+from sqlalchemy import create_engine  
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.ext.declarative import declarative_base  
+from sqlalchemy.orm import sessionmaker
+
 from . import DublinCore
 from . import GutenbergGlobals as gg
 from .GutenbergGlobals import Struct, PG_URL
 from .Logger import info, warning, error
 from .GutenbergDatabase import xl, DatabaseError, IntegrityError,get_sqlalchemy_url
-
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.dialects import postgresql
+from sqlalchemy import MetaData, Table
 
 RE_FIRST_AZ = re.compile (r"^[a-z]")
 
