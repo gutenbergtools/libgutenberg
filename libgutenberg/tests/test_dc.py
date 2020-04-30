@@ -3,13 +3,15 @@
 
 import unittest
 
-from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
 from libgutenberg.CommonOptions import Options
+from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
+
+db_exists = GutenbergDatabaseDublinCore.engine is not None
 
 options = Options()
 options.config = None
 
-@unittest.skipIf(not hasattr(GutenbergDatabase, 'psycopg2'), 'psycopg2 not installed')
+@unittest.skipIf(not db_exists, 'database not configured')
 class TestOldDC(unittest.TestCase):
     # "War and Peace"
     ebook = 2600
@@ -24,7 +26,6 @@ class TestOldDC(unittest.TestCase):
 
         self.dc.load_from_database(self.ebook)
 
-
     def test_metadata(self):
         self.assertEqual(self.dc.project_gutenberg_id, 2600)
         self.assertEqual(self.dc.title, "War and Peace")
@@ -35,7 +36,7 @@ class TestOldDC(unittest.TestCase):
     def tearDown(self):
         pass
 
-@unittest.skipIf(not hasattr(GutenbergDatabase, 'psycopg2'), 'psycopg2 not installed')
+@unittest.skipIf(not db_exists, 'database not configured')
 class TestNewDC(unittest.TestCase):
     # "War and Peace"
     ebook = 2600

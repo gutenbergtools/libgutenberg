@@ -21,19 +21,46 @@ import datetime
 
 from sqlalchemy import create_engine  
 from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import MetaData, Table
 from sqlalchemy.ext.declarative import declarative_base  
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import sessionmaker
 
 from . import DublinCore
 from . import GutenbergGlobals as gg
 from .GutenbergGlobals import Struct, PG_URL
 from .Logger import info, warning, error
-from .GutenbergDatabase import xl, DatabaseError, IntegrityError,get_sqlalchemy_url
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.dialects import postgresql
-from sqlalchemy import MetaData, Table
+from .GutenbergDatabase import xl, DatabaseError, IntegrityError, get_sqlalchemy_url
 
 RE_FIRST_AZ = re.compile (r"^[a-z]")
+
+# make libgutenberg usable without a database connenction
+try:
+    engine = create_engine(get_sqlalchemy_url(), echo = True)
+    META_DATA = MetaData(bind=engine, reflect=True)
+except OSError:
+    warning('database not configured')
+    engine = None
+    META_DATA = None
+    
+# Base = declarative_base()
+
+# class Books(Base):
+#     __tablename__ = 'books'
+#     pk=Column(Integer,primary_key=True,nullable=False,default=0)
+#     copyrighted=Column(Integer,nullable=False,default=0)
+#     updatemode=Column(Integer,nullable=False,default=0)
+#     release_date=Column(DateTime,nullable=False)
+#     filemask=Column(String(240))
+#     gutindex=Column(String)
+#     downloads=Column(Integer,nullable=False,default=0)
+#     title=Column(String)
+#     tsvec=Column(postgresql.TSVECTOR)
+#     nonfiling=Column(Integer,nullable=False,default=0)
+
+
+Session = sessionmaker(bind = engine)
+session = Session()
 
 class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
     """ Augment GutenbergDublinCore class. """
