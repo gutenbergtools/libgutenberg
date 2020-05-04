@@ -1,4 +1,7 @@
 CHANGES
+0.6.3 (April 17, 2020)
+- catch OSError when importing cairocffi
+
 0.6.2 (January 18, 2020)
 - add rollback for missing book id exception.
 

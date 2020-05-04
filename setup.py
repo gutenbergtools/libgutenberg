@@ -3,7 +3,7 @@
 # libgutenberg setup.py
 #
 
-__version__ = '0.6.2'
+__version__ = '0.6.3'
 
 from setuptools import setup
 
