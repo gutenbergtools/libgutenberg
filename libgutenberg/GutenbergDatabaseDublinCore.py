@@ -104,22 +104,22 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                         autoload_with=engine)
         mn_books_authors = Table('mn_books_authors', META_DATA,
                                  autoload=True, autoload_with=engine)
-        result = session.query(mn_books_authors).\
-            join(authors, mn_books_authors.c.fk_authors == authors.c.pk).\
-            join(roles, mn_books_authors.c.fk_roles == roles.c.pk).\
+        result = session.query(authors,mn_books_authors,roles).\
+            filter(mn_books_authors.c.fk_authors == authors.c.pk).\
+            filter(mn_books_authors.c.fk_roles == roles.c.pk).\
             filter(mn_books_authors.c.fk_books == id_).\
             order_by(roles.c.role, authors.c.author)
 
         for res in result:
             author = Struct()
-            author.id = res.authors.pk
-            author.name = res.authors.author
-            author.marcrel = res.mn_books_authors.fk_roles
-            author.role = res.roles.role
-            author.birthdate = res.authors.born_floor
-            author.deathdate = res.authors.died_floor
-            author.birthdate2 = res.authors.born_ceil
-            author.deathdate2 = res.authors.died_ceil
+            author.id = res.pk
+            author.name = res.author
+            author.marcrel = res.fk_roles
+            author.role = res.role
+            author.birthdate = res.born_floor
+            author.deathdate = res.died_floor
+            author.birthdate2 = res.born_ceil
+            author.deathdate2 = res.died_ceil
             author.aliases = []
             author.webpages = []
             author.name_and_dates = DublinCore.GutenbergDublinCore.\
