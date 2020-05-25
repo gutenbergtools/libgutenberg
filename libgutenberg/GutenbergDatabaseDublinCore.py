@@ -250,12 +250,11 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             filter(mn_books_categories.c.fk_categories == id_)
         if not dcm_result:
             dcm_result.append(('Text', 'Text'))
-
         for row in dcm_result:
-            self.categories.append(row.dcmitypes.c.dcmitype)
+            self.categories.append(row.dcmitype)
             dcmitype = Struct()
-            dcmitype.id = row.dcmitypes.c.dcmitype
-            dcmitype.description = row.dcmitypes.c.description
+            dcmitype.id = row.dcmitype
+            dcmitype.description = row.description
             self.dcmitypes.append(dcmitype)
         self.load_files_from_database(ebook)
 
