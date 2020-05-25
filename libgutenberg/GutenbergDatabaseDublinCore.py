@@ -221,8 +221,8 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             filter(mn_books_bookshelves.c.fk_books == id_)
         for row in book_shelf_result:
             bookshelf = Struct()
-            bookshelf.id = row.bookshelves.c.pk
-            bookshelf.bookshelf = row.bookshelves.c.bookshelf
+            bookshelf.id = row.pk
+            bookshelf.bookshelf = row.bookshelf
             self.bookshelves.append(bookshelf)
 
         # LoCC(vocabulary)
