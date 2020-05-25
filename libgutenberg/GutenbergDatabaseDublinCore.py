@@ -134,7 +134,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                             autoload_with=engine)
 
             aliases_res = session.query(aliases).\
-                filter(aliases.c.fk_authors == res.authors.pk)
+                filter(aliases.c.fk_authors == res.pk)
 
             for row2 in aliases_res:
                 alias = Struct()
