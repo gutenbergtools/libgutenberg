@@ -271,7 +271,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         self.files = []
         self.generated_files = []
 
-        engine = create_engine(get_sqlalchemy_url(), echo=True)
+        engine = create_engine(get_sqlalchemy_url(), echo=False)
         META_DATA = MetaData(bind=engine, reflect=True)
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -283,9 +283,9 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                           autoload_with=engine)
         encodings = Table('encodings', META_DATA, autoload=True,
                           autoload_with=engine)
-        file_result = session.query(files).\
-            join(filetypes.c.pk == files.c.fk_filetypes).\
-            join(encodings.c.pk == files.c.fk_encodings).\
+        file_result = session.query(files,filetypes,encodings).\
+            join(filetypes,filetypes.c.pk == files.c.fk_filetypes).\
+            join(encodings,encodings.c.pk == files.c.fk_encodings).\
             filter(files.c.fk_books == id_).\
             filter(files.c.obsoleted == 0).\
             filter(files.c.diskstatus == 0).\
@@ -310,35 +310,35 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
             file_.filename = fn
             file_.url = PG_URL + fn
-            file_.id = row.files.c.pk
-            file_.extent = row.files.c.filesize
-            file_.hr_extent = self.human_readable_size(row.files.c.filesize)
-            file_.modified = row.files.c.filemtime
-            file_.filetype = row.files.c.fk_filetypes
-            file_.hr_filetype = row.filetypes.c.filetype
-            file_.encoding = row.files.c.fk_encodings
-            file_.compression = row.files.c.fk_compressions
-            file_.generated = row.filetypes.c.generated
+            file_.id = row.pk
+            file_.extent = row.filesize
+            file_.hr_extent = self.human_readable_size(row.filesize)
+            file_.modified = row.filemtime
+            file_.filetype = row.fk_filetypes
+            file_.hr_filetype = row.filetype
+            file_.encoding = row.fk_encodings
+            file_.compression = row.fk_compressions
+            file_.generated = row.generated
 
-            if row.filetypes.c.filetype:
-                self.filetypes.add(row.filetypes.c.filetype)
+            if row.filetype:
+                self.filetypes.add(row.filetypes.filetype)
 
             # internet media type (vocabulary)
 
-            file_.mediatypes = [gg.DCIMT(row.filetypes.c.mediatype,
-                                         row.files.c.fk_encodings)]
+            file_.mediatypes = [gg.DCIMT(row.mediatype,
+                                         row.fk_encodings)]
             if file_.compression == 'zip':
                 file_.mediatypes.append(gg.DCIMT('application/zip'))
 
-            if file_.generated and not row.files.c.\
+            if file_.generated and not row.\
                     fk_filetypes.startswith('cover.'):
                 file_.url = "%sebooks/%d.%s" % (PG_URL, id_,
-                                                row.files.c.fk_filetypes)
+                                                row.fk_filetypes)
 
             self.files.append(file_)
 
             if row.mediatype:
-                self.mediatypes.add(row.filetypes.c.mediatype)
+                self.mediatypes.add(row.mediatype)
 
     def remove_filetype_from_database(self, id_, type_):
         """ Remove filetype from PG database. """
