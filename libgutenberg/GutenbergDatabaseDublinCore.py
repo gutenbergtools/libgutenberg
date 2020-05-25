@@ -348,9 +348,10 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         session = Session()
 
         files = Table('files', META_DATA, autoload=True,
-                      autoload_with=engine).c
-        session.query(files).filter(files.fk_books == id_).\
-            filter(files.fk_filetypes == type_).delete()
+                      autoload_with=engine)
+        session.query(files).filter(files.c.fk_books == id_).\
+            filter(files.c.cfk_filetypes == type_).\
+            delete(synchronize_session=False)
         session.commit()
 
     def remove_file_from_database(self, filename):
@@ -361,8 +362,9 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         session = Session()
 
         files = Table('files', META_DATA, autoload=True,
-                      autoload_with=engine).c
-        session.query(files).filter(files.filename == filename).delete()
+                      autoload_with=engine)
+        session.query(files).filter(files.c.filename == filename).\
+            delete(synchronize_session=False)
         session.commit()
 
     def store_file_in_database(self, id_, filename, type_):
