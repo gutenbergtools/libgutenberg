@@ -145,7 +145,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             author_urls = Table('author_urls', META_DATA, autoload=True,
                                 autoload_with=engine)
             url_res = session.query(author_urls).\
-                filter(url_res.c.fk_authors == res.authors.pk)
+                filter(author_urls.c.fk_authors == res.pk)
 
             for row2 in url_res:
                 webpage = Struct()
