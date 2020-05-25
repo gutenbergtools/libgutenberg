@@ -44,21 +44,6 @@ except OSError:
     engine = None
     META_DATA = None
 
-# Base = declarative_base()
-
-# class Books(Base):
-#     __tablename__ = 'books'
-#     pk=Column(Integer,primary_key=True,nullable=False,default=0)
-#     copyrighted=Column(Integer,nullable=False,default=0)
-#     updatemode=Column(Integer,nullable=False,default=0)
-#     release_date=Column(DateTime,nullable=False)
-#     filemask=Column(String(240))
-#     gutindex=Column(String)
-#     downloads=Column(Integer,nullable=False,default=0)
-#     title=Column(String)
-#     tsvec=Column(postgresql.TSVECTOR)
-#     nonfiling=Column(Integer,nullable=False,default=0)
-
 
 Session = sessionmaker(bind=engine)
 session = Session()
