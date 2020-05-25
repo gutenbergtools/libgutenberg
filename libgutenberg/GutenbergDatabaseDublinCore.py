@@ -84,7 +84,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         session = Session()
         self.project_gutenberg_id = id_ = ebook
 
-        Books = Table('Books', META_DATA, autoload=True, autoload_with=engine)
+        Books = Table('books', META_DATA, autoload=True, autoload_with=engine)
         result = session.query(Books).filter(Books.c.pk == id_)
 
         for book in result:
