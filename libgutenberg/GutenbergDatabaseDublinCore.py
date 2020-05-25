@@ -384,8 +384,8 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             filename = re.sub('^.*/cache/', 'cache/', filename)
 
             filetypes = Table('filetypes', META_DATA, autoload=True,
-                              autoload_with=engine).c
-            fresult = session.query(filetypes).filter(filetypes.pk == type_)
+                              autoload_with=engine)
+            fresult = session.query(filetypes).filter(filetypes.c.pk == type_)
             for dummy_row in fresult:  # if type_ found
                 diskstatus = 0
                 # if type_.startswith ('cover'):
@@ -393,8 +393,8 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
 
                 files = Table('files', META_DATA, autoload=True,
                               autoload_with=engine).c
-                session.query(files).filter(filetypes.filename == filename).\
-                    delete()
+                session.query(files).filter(files.filename == filename).\
+                    delete(synchronize_session=False)
                 session.commit()
                 new_data = files(fk_books=id_, filename=filename,
                                  filesize=statinfo.st_size,
