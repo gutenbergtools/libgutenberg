@@ -201,13 +201,13 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                                   autoload=True, autoload_with=engine)
         subjects = Table('subjects', META_DATA, autoload=True,
                          autoload_with=engine)
-        lang_res = session.query(mn_books_subjects, subjects).\
+        subject_res = session.query(mn_books_subjects, subjects).\
             filter(subjects.c.pk == mn_books_subjects.c.fk_subjects).\
             filter(mn_books_subjects.c.fk_books == id_)
-        for row in lang_res:
+        for row in subject_res:
             subject = Struct()
-            subject.id = row.subjects.c.pk
-            subject.subject = row.subjects.c.subject
+            subject.id = row.pk
+            subject.subject = row.subject
             self.subjects.append(subject)
 
         # bookshelves (PG private vocabulary)
