@@ -186,15 +186,13 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             filter(langs.c.pk == mn_books_langs.c.fk_langs).\
             filter(mn_books_langs.c.fk_books == id_)
 
-        # not sure about whether append will work in ORM
-        # if not how to modify this?
         if not lang_res:
             lang_res.append(('en', 'English'))
 
         for row in lang_res:
             language = Struct()
-            language.id = row.langs.c.pk
-            language.language = row.langs.c.lang
+            language.id = row.pk
+            language.language = row.lang
             self.languages.append(language)
 
         # subjects(vocabulary)
