@@ -162,12 +162,12 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             filter(attributes.c.fk_books == id_).\
             filter(attributes.c.fk_attriblist == attriblist.c.pk).\
             order_by(attriblist.c.name)
+        
         for row in attr_result:
-
             marc = Struct()
-            marc.code = row.attriblist.c.name.split(' ')[0]
-            marc.text = self.strip_marc_subfields(row.attributes.c.text)
-            marc.caption = row.attriblist.c.caption
+            marc.code = row.name.split(' ')[0]
+            marc.text = self.strip_marc_subfields(row.text)
+            marc.caption = row.caption
             self.marcs.append(marc)
 
             if marc.code == '245':
@@ -176,6 +176,8 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                 self.title_file_as = self.title_file_as[0].upper() +\
                     self.title_file_as[1:]
                 info("Title: %s" % self.title)
+
+        # languages (datatype)
 
         langs = Table('langs', META_DATA, autoload=True, autoload_with=engine)
         mn_books_langs = Table('mn_books_langs', META_DATA, autoload=True,
