@@ -235,8 +235,8 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
             filter(mn_books_loccs.c.fk_books == id_)
         for row in locc_res:
             locc = Struct()
-            locc.id = row.loccs.c.pk
-            locc.locc = row.loccs.c.locc
+            locc.id = row.pk
+            locc.locc = row.locc
             self.loccs.append(locc)
 
         # categories(vocabulary)
