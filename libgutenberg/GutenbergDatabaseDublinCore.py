@@ -373,6 +373,15 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         META_DATA = MetaData(bind=engine, reflect=True)
         Session = sessionmaker(bind=engine)
         session = Session()
+        Base = declarative_base()
+        class FileRec(Base):
+            __tablename__ = 'files'
+            pk = Column(Integer, primary_key=True)
+            fk_books = Column(Integer)
+            filename = Column(String)
+            filesize = Column(Integer)
+            diskstatus = Column(Integer)
+            obsoleted = Column(Integer)
         encoding = None
         if type_ == 'txt':
             type_ = 'txt.utf-8'
@@ -390,13 +399,9 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                 diskstatus = 0
                 # if type_.startswith ('cover'):
                 #     diskstatus = 1
-
-                files = Table('files', META_DATA, autoload=True,
-                              autoload_with=engine).c
-                session.query(files).filter(files.filename == filename).\
+                session.query(FileRec).filter(FileRec.filename == filename).\
                     delete(synchronize_session=False)
-                session.commit()
-                new_data = files(fk_books=id_, filename=filename,
+                new_data = FileRec(fk_books=id_, filename=filename,
                                  filesize=statinfo.st_size,
                                  filemtime=datetime.datetime.
                                  fromtimestamp(statinfo.st_mtime).
@@ -404,7 +409,7 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
                                  fk_encodings=encoding, fk_compressions=None,
                                  diskstatus=diskstatus)
                 session.add(new_data)
-                session.commit()
+            session.commit()
 
         except OSError:
             error("Cannot stat %s" % filename)
@@ -419,7 +424,6 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         META_DATA = MetaData(bind=engine, reflect=True)
         Session = sessionmaker(bind=engine)
         session = Session()
-
         try:
             attributes = Table('attributes', META_DATA, autoload=True,
                                autoload_with=engine).c
