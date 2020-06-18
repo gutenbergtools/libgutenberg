@@ -25,7 +25,7 @@ from sqlalchemy import MetaData, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import sessionmaker
-
+from sqlalchemy.ext.automap import automap_base
 from . import DublinCore
 from . import GutenbergGlobals as gg
 from .GutenbergGlobals import Struct, PG_URL
@@ -424,12 +424,12 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         META_DATA = MetaData(bind=engine, reflect=True)
         Session = sessionmaker(bind=engine)
         session = Session()
+        Base = automap_base()
+        Base.prepare(engine, reflect=True)
+        attributes=Base.classes.attributes
         try:
-            attributes = Table('attributes', META_DATA, autoload=True,
-                               autoload_with=engine).c
-            new_attr = attributes(fk_books=id_, fk_attriblist=code,
+            session.add(attributes(fk_books=id_, fk_attriblist=code,
                                   text=gg.archive2files(id_, url))
-            session.add(new_attr)
             session.commit()
 
         except IntegrityError:  # Duplicate key
