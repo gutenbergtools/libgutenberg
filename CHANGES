@@ -1,5 +1,5 @@
 CHANGES
-0.6.4 (September 1, 2020)
+0.6.5 (September 1, 2020)
 - fix logger so that it handles non int ebook
 
 0.6.3 (April 17, 2020)
