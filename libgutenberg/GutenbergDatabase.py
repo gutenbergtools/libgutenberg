@@ -29,7 +29,10 @@ try:
     DatabaseError  = psycopg2.DatabaseError
     IntegrityError = psycopg2.IntegrityError
 
+    db_exists = True
+
 except ImportError:
+    db_exists = False
     class DatabaseError(Exception):
         pass
     class IntegrityError(Exception):
