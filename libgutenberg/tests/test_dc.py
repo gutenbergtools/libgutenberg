@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
 import unittest
 
 from libgutenberg.CommonOptions import Options
@@ -82,8 +83,26 @@ class TestDC(unittest.TestCase):
         self.assertEqual(self.dc.files[0].mediatypes[-1].mimetype, 'text/plain')
         self.assertEqual(len(self.dc.mediatypes), 6)
         self.assertTrue('audio/ogg' in self.dc.mediatypes)
-        
-        
+
+
+    def exercise(self, ebook):
+        dummypool = DummyConnectionPool.ConnectionPool()
+        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(dummypool)
+        dc.load_from_database(ebook)
+        test = '%s%s%s%s' % (dc.title, dc.title_file_as, dc.rights,dc.rights)
+        test = [lang.id for lang in dc.languages]
+        test = [marc.code for marc in dc.marcs]
+        test = [[alias for alias in author.aliases] for author in dc.authors]
+        test = [subject for subject in dc.subjects]
+
+    def test_10k(self):
+        start_time = datetime.datetime.now()
+
+        for ebook in range(5, 60005, 60):
+            self.exercise(ebook)
+                
+        end_time = datetime.datetime.now()
+        print(' Finished 10,000 tests. Total time: %s' % (end_time - start_time))
 
 
     def tearDown(self):
