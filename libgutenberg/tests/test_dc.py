@@ -136,5 +136,17 @@ class TestDC(unittest.TestCase):
         self.dc2.load_files_from_database(self.ebook2)
         self.assertEqual(numfiles, len(self.dc2.files))
 
+    def test_register_coverpage(self):
+        def get_cover(ebook):
+            self.dc.load_from_database(ebook)
+            for marc in self.dc.marcs:
+                if marc.code == '901':
+                    return marc.text
+        #ebook = 46     # tests the method, but there's no code to undo the test
+        ebook = 199     # no ebook by that number
+        self.dc.register_coverpage(ebook, 'new_cover')
+        # does nothing to avoid violates foreign key constraint
+        self.assertEqual(get_cover(ebook), None) 
+        
     def tearDown(self):
         pass
