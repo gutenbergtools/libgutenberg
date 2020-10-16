@@ -125,5 +125,16 @@ class TestDC(unittest.TestCase):
         self.assertEqual(numfiles, len(self.dc2.files))
         
 
+    def test_delete_types(self):
+        fn = 'cache_for_test'  # command only remove filenames starting with 'cache'
+        self.dc2.load_files_from_database(self.ebook2)
+        numfiles = len(self.dc2.files)
+        self.dc2.store_file_in_database(self.ebook2, fn, 'qioo') # type is extinct
+        self.dc2.load_files_from_database(self.ebook2)
+        self.assertEqual(numfiles + 1, len(self.dc2.files))
+        self.dc2.remove_filetype_from_database(self.ebook2, 'qioo')
+        self.dc2.load_files_from_database(self.ebook2)
+        self.assertEqual(numfiles, len(self.dc2.files))
+
     def tearDown(self):
         pass
