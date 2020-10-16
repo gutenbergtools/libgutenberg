@@ -107,6 +107,23 @@ class TestDC(unittest.TestCase):
         end_time = datetime.datetime.now()
         print(' Finished 10,000 tests. Total time: %s' % (end_time - start_time))
 
+    def test_add_delete_files(self):
+        fn = 'README.md'
+        saved = False
+        self.dc2.load_files_from_database(self.ebook2)
+        numfiles = len(self.dc2.files)
+        self.dc2.store_file_in_database(self.ebook2, fn, 'txt')
+        self.dc2.store_file_in_database(self.ebook2, fn, 'txt') # test over-writing
+        self.dc2.load_files_from_database(2600)
+        for file_ in self.dc2.files:
+            if file_.archive_path == fn:
+                saved = True
+                break
+        self.assertTrue(saved)
+        self.dc2.remove_file_from_database(fn) # filenames are unique!
+        self.dc2.load_files_from_database(self.ebook2)
+        self.assertEqual(numfiles, len(self.dc2.files))
+        
 
     def tearDown(self):
         pass
