@@ -25,11 +25,11 @@ class TestDC(unittest.TestCase):
         self.dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(dummypool)
         self.dc2 = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(dummypool)
         #self.dc2 = self.dc
-        self.dc.load_from_database(self.ebook)
-        self.dc2.load_from_database(self.ebook2)
         
 
     def test_metadata(self):
+        self.dc.load_from_database(self.ebook)
+        self.dc2.load_from_database(self.ebook2)
         self.assertEqual(self.dc.project_gutenberg_id, 20050)
         self.assertEqual(self.dc.title, self.title)
         self.assertEqual(self.dc.rights, 'Public domain in the USA.')
@@ -63,9 +63,12 @@ class TestDC(unittest.TestCase):
 
 
     def test_files(self):
+        self.dc.load_from_database(self.ebook)
+        self.dc2.load_from_database(self.ebook2)
         self.assertTrue(self.dc.new_filesystem)
         self.assertEqual(len(self.dc2.files) , 11)
         self.assertEqual(len(self.dc.files) , 159)
+        self.assertEqual(self.dc.files[0].archive_path, '2/0/0/5/20050/20050-readme.txt')
         self.assertEqual(self.dc.files[0].url, 'https://www.gutenberg.org/files/20050/20050-readme.txt')
         self.assertTrue(self.dc.files[0].extent, True)
         self.assertEqual(self.dc.files[0].hr_extent, '25\xa0kB')
