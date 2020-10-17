@@ -27,7 +27,11 @@ class CustomFormatter (logging.Formatter):
 
     def format (self, record):
         """ Add ebook no. to string format params. """
-        record.ebook = ebook
+        try:
+            myebook = int (ebook)
+        except ValueError:
+            myebook = 0
+        record.ebook = myebook
         return logging.Formatter.format (self, record)
 
 
