@@ -5,7 +5,7 @@
 
 GutenbergDatabaseDublinCore.py
 
-Copyright 2009-2014 by Marcello Perathoner
+Copyright 2009-2020 by Project Gutenberg
 
 Distributable under the GNU General Public License Version 3 or newer.
 
@@ -15,26 +15,17 @@ DublinCore metadata swiss army knife augmented with PG database access.
 
 from __future__ import unicode_literals
 
-import re
-import os
 import datetime
-
-from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy import MetaData, Table
+import os
+import re
 from sqlalchemy.exc import DBAPIError
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects import postgresql
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.automap import automap_base
-from sqlalchemy import text
 
 from . import DublinCore
 from . import GutenbergGlobals as gg
 from . import GutenbergDatabase
 from .GutenbergGlobals import Struct, PG_URL
 from .Logger import info, warning, error
-from .GutenbergDatabase import xl, DatabaseError, IntegrityError, Objectbase
+from .GutenbergDatabase import DatabaseError, IntegrityError, Objectbase
 from .Models import Attribute, Book, Encoding, File, Filetype
 
 
@@ -49,10 +40,10 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
         self.filetypes = set()
         self.files = []
         self.generated_files = []
-        
+
         # there are applications that rely on this class to configure the db pool
         self.setup_db(pool)
-        
+
         self.marcs = []
         self.ob = None
         self.session = None
@@ -62,15 +53,15 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
         # here we need to pass the pool to the engine
         if pool and not GutenbergDatabase.custom_connection_pool:
             GutenbergDatabase.custom_connection_pool = pool
-            
-            
+
+
     def get_my_session(self):
         if not GutenbergDatabase.OB:
             GutenbergDatabase.OB = Objectbase()
         if not self.session:
             self.session = GutenbergDatabase.OB.get_session()
         return self.session
-        
+
 
 
     def has_images(self):
@@ -99,10 +90,10 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
         self.release_date = book.release_date
         self.downloads = book.downloads
         self.rights = book.rights
-        
+
         # authors
         self.authors = book.authors
-        
+
         for attrib in book.attributes:
             marc = Struct()
             marc.code = attrib.attribute_type.name.split(' ')[0]
@@ -128,11 +119,11 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
         # bookshelves (PG private vocabulary)
 
         self.bookshelves = book.bookshelves
-        
+
         # LoCC (vocabulary)
 
         self.loccs = book.loccs
-        
+
         # categories(text, audiobook, etc)
         if book.categories:
             self.dcmitypes = [struct(id=cat.dcmitype[0], description=cat.dcmitype[1])
@@ -156,7 +147,7 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
         self.generated_files = []
 
         session = self.get_my_session()
-        
+
         # files(not strictly DublinCore but useful)
 
         self.files = session.query(File).outerjoin(Filetype).outerjoin(Encoding).\
@@ -202,7 +193,8 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
         """ Remove file from PG database. """
         session = self.get_my_session()
         with session.begin_nested():
-            session.query(File).filter(File.archive_path == filename).delete(synchronize_session='fetch')
+            session.query(File).filter(File.archive_path == filename).\
+                                delete(synchronize_session='fetch')
         session.commit()
 
     def store_file_in_database(self, id_, filename, type_):
@@ -224,7 +216,8 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
             diskstatus = 0
             session.begin_nested()
             # delete existing filename record
-            session.query(File).filter(File.archive_path == filename).delete(synchronize_session='fetch')
+            session.query(File).filter(File.archive_path == filename).\
+                                delete(synchronize_session='fetch')
             newfile = File(
                 fk_books=id_, archive_path=filename,
                 extent=statinfo.st_size,
@@ -234,7 +227,7 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
             )
             session.add(newfile)
             session.commit()
- 
+
         except OSError:
             error("Cannot stat %s" % filename)
 
