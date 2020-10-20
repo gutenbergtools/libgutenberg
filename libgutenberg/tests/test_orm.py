@@ -5,9 +5,11 @@ import unittest
 
 from libgutenberg import GutenbergDatabase
 
-db_exists = GutenbergDatabase.db_exists
+from libgutenberg.CommonOptions import Options
 
+options = Options()
 options.config = None
+db_exists = GutenbergDatabase.db_exists
 
 @unittest.skipIf(not db_exists, 'database not configured')
 class TestORM(unittest.TestCase):
