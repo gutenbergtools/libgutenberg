@@ -16,18 +16,26 @@ import re
 import os
 import csv
 import datetime
+import logging
+
 
 from .Logger import warning, debug, critical
 from .CommonOptions import Options
+from .Models import Base, metadata
 
 try:
     import psycopg2
     import psycopg2.extensions
+    from sqlalchemy import create_engine
+    from sqlalchemy import MetaData, Table
+    from sqlalchemy.orm import sessionmaker
+    from sqlalchemy.pool.impl import NullPool
 
     psycopg2.extensions.register_type (psycopg2.extensions.UNICODE)
     psycopg2.extensions.register_type (psycopg2.extensions.UNICODEARRAY)
     DatabaseError  = psycopg2.DatabaseError
     IntegrityError = psycopg2.IntegrityError
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 
     db_exists = True
 
@@ -41,9 +49,11 @@ except ImportError:
 
 
 options = Options()
+custom_connection_pool = None
 
 
 DB = None
+OB = None
 
 class xl (object):
     """ Translate numeric indices into field names.
@@ -100,31 +110,6 @@ def get_connection_params (args = None):
                'port': int (port),
                'database': database,
                'user': user }
-
-    try:
-        def matches (s1, s2):
-            """ Match literal value or * """
-            if s1 == '*':
-                return True
-            if s1 == s2:
-                return True
-            return False
-
-        # scan .pgpass for password
-        with open ("~/.pgpass", "r") as f:
-            for line in f.readlines ():
-                # format: hostname:port:database:username:password
-                fields = line.split (':')
-                if (matches (fields[0], host) and
-                    matches (fields[1], port) and
-                    matches (fields[2], database) and
-                    matches (fields[3], user)):
-                    params['password'] = fields[4]
-                    break
-
-    except IOError:
-        pass
-
     return params
 
 
@@ -132,7 +117,7 @@ def get_sqlalchemy_url ():
     """ Build a connection string for SQLAlchemy. """
 
     params = get_connection_params ()
-    return "postgres://%(user)s:%(password)s@%(host)s:%(port)d/%(database)s'" % params
+    return "postgresql://%(user)s@%(host)s:%(port)d/%(database)s" % params
 
 
 class Database (object):
@@ -169,3 +154,20 @@ class Database (object):
     def get_cursor (self):
         """ Return database cursor. """
         return self.conn.cursor ()
+
+class Objectbase(object):
+    def __init__ (self):
+        if custom_connection_pool:
+            if hasattr(custom_connection_pool, 'dummy'):
+                self.engine = create_engine(get_sqlalchemy_url(), echo=False,
+                                            poolclass=NullPool)
+            else:
+                self.engine = create_engine(get_sqlalchemy_url(), echo=False,
+                                        pool=custom_connection_pool)
+        else:
+            self.engine = create_engine(get_sqlalchemy_url(), echo=False)
+
+        self.Session = sessionmaker(bind=self.engine)
+    
+    def get_session(self):
+        return self.Session()

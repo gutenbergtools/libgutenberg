@@ -16,6 +16,7 @@ from . import GutenbergDatabase
 
 class ConnectionPool (object):
     """A class that looks like a SQLAlchemy engine/connection pool. """
+    dummy = True
 
     def connect (self):
         return GutenbergDatabase.DB.conn

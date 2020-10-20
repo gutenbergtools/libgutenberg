@@ -130,6 +130,18 @@ LANGS = """ af  | Afrikaans
  cy  | Welsh
  yi  | Yiddish """
 
+DCMITYPES = [
+    ("Text","Text"),
+    ("Sound","Sound"),
+    ("Sound","Sound"),
+    ("Sound","Sound"),
+    ("Image","Image"),
+    ("StillImage","Still Image"),
+    ("Sound","Sound"),
+    ("MovingImage","Moving Image"),
+    ("Dataset","Data Set"),
+    ("Collection","Collection")
+]
 title_splitter = re.compile (r'[\r\n:]+', flags=re.M)
 
 class _HTML_Writer (object):

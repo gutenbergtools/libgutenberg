@@ -101,11 +101,12 @@ class TestDC(unittest.TestCase):
     def test_10k(self):
         start_time = datetime.datetime.now()
 
-        for ebook in range(5, 60005, 60):
+        for ebook in range(5, 60005, 100):
             self.exercise(ebook)
+
                 
         end_time = datetime.datetime.now()
-        print(' Finished 10,000 tests. Total time: %s' % (end_time - start_time))
+        print(' Finished 6,000 tests. Total time: %s' % (end_time - start_time))
 
     def test_add_delete_files(self):
         fn = 'README.md'
