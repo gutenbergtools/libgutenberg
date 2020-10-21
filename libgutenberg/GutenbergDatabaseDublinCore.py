@@ -29,6 +29,7 @@ from .GutenbergDatabase import DatabaseError, IntegrityError, Objectbase
 from .Models import Attribute, Book, Encoding, File, Filetype
 
 
+
 class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
     """ Augment GutenbergDublinCore class. """
 
@@ -83,7 +84,7 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
         session = self.get_my_session()
         self.project_gutenberg_id = ebook
 
-        book = session.query(Book).filter(Book.pk == ebook).first()
+        book = session.query(Book).filter_by(pk=ebook).first()
         if not book:
             return
 
@@ -103,7 +104,7 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
 
             if marc.code == '245':
                 self.title = marc.text
-                self.title_file_as = marc.text[book.nonfiling:]
+                self.title_file_as = marc.text[attrib.nonfiling:]
                 self.title_file_as = self.title_file_as[0].upper() +\
                     self.title_file_as[1:]
                 info("Title: %s" % self.title)
@@ -132,7 +133,7 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
             self.dcmitypes = [struct(id='Text', description='Text')]
 
         self.load_files_from_database(ebook)
-        session.commit()
+        #session.commit()
 
     def load_files_from_database(self, ebook):
         """ Load files from PG database.
@@ -150,10 +151,8 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
 
         # files(not strictly DublinCore but useful)
 
-        self.files = session.query(File).outerjoin(Filetype).outerjoin(Encoding).\
-            filter(File.fk_books == ebook).\
-            filter(File.obsoleted == 0).\
-            filter(File.diskstatus == 0).\
+        self.files = session.query(File).filter_by(fk_books=ebook, obsoleted=0, diskstatus=0).\
+            outerjoin(Filetype).outerjoin(Encoding).\
             order_by(Filetype.sortorder, Encoding.sortorder,
                      Filetype.pk, Encoding.pk,
                      File.compression, File.archive_path).all()
@@ -178,7 +177,7 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
 
             if hasattr(file_, 'mediatype'):
                 self.mediatypes.add(file_.mediatype)
-        session.commit()
+        #session.commit()
 
     def remove_filetype_from_database(self, id_, type_):
         """ Remove filetype from PG database. """

@@ -10,7 +10,6 @@ from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import backref, deferred, relationship, synonym
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declarative_base
-
 from . import DublinCore
 from .GutenbergGlobals import DCIMT
 
@@ -53,14 +52,14 @@ class Author(Base):
     deathdate = Column('died_floor', Integer)
     birthdate2 = Column('born_ceil', Integer)
     deathdate2 = Column('died_ceil', Integer)
-    note = Column(Text)
-    downloads = Column(Integer, nullable=False, index=True,
-                       server_default=sqltext("0"))
-    release_date = Column(Date, nullable=False, index=True,
-                          server_default=sqltext("'1970-01-01'::date"))
+    note = deferred(Column(Text))
+    downloads = deferred(Column(Integer, nullable=False, index=True,
+                       server_default=sqltext("0")))
+    release_date = deferred(Column(Date, nullable=False, index=True,
+                          server_default=sqltext("'1970-01-01'::date")))
     tsvec = deferred(Column(TSVECTOR, index=True))
 
-    aliases = relationship('Alias', back_populates='author')
+    aliases = relationship('Alias', back_populates='author', lazy='joined')
     webpages = relationship('AuthorUrl', back_populates='author')
     books = association_proxy('books', 'book')
 
@@ -83,15 +82,15 @@ class Book(Base):
 
     pk = Column(Integer, primary_key=True)
     copyrighted = Column(Integer, nullable=False, server_default=sqltext("0"))
-    updatemode = Column(Integer, nullable=False, server_default=sqltext("0"))
+    updatemode = deferred(Column(Integer, nullable=False, server_default=sqltext("0")))
     release_date = Column(Date, nullable=False, index=True,
                           server_default=sqltext("('now'::text)::date"))
-    filemask = Column(String(240))
-    gutindex = Column(Text)
+    filemask = deferred(Column(String(240)))
+    gutindex = deferred(Column(Text))
     downloads = Column(Integer, nullable=False, index=True, server_default=sqltext("0"))
-    title = Column(Text, index=True)
+    title = deferred(Column(Text, index=True))
     tsvec = deferred(Column(TSVECTOR, index=True))
-    nonfiling = Column(Integer, nullable=False, server_default=sqltext("0"))
+    nonfiling = deferred(Column(Integer, nullable=False, server_default=sqltext("0")))
 
     subjects = relationship('Subject', secondary='mn_books_subjects')
     categories = relationship('Category', secondary='mn_books_categories')
@@ -110,6 +109,8 @@ class Book(Base):
             return 'Copyrighted. Read the copyright notice inside this book for details.'
         return 'Public domain in the USA.'
 
+
+
 class Bookshelf(Base):
     __tablename__ = 'bookshelves'
     __table_args__ = (
@@ -119,9 +120,9 @@ class Bookshelf(Base):
     id = Column('pk', Integer, primary_key=True,
                 server_default=sqltext("nextval('bookshelves_pk_seq'::regclass)"))
     bookshelf = Column(Text, nullable=False, unique=True)
-    downloads = Column(Integer, nullable=False, index=True, server_default=sqltext("0"))
-    release_date = Column(Date, nullable=False, index=True,
-                          server_default=sqltext("'1970-01-01'::date"))
+    downloads = deferred(Column(Integer, nullable=False, index=True, server_default=sqltext("0")))
+    release_date = deferred(Column(Date, nullable=False, index=True,
+                          server_default=sqltext("'1970-01-01'::date")))
     tsvec = deferred(Column(TSVECTOR, index=True))
 
 
@@ -274,9 +275,9 @@ class Subject(Base):
     id = Column('pk', Integer, primary_key=True,
                 server_default=sqltext("nextval(('public.subjects_pk_seq'::text)::regclass)"))
     subject = Column(String(240), nullable=False, unique=True)
-    downloads = Column(Integer, nullable=False, index=True, server_default=sqltext("0"))
-    release_date = Column(Date, nullable=False, index=True,
-                          server_default=sqltext("'1970-01-01'::date"))
+    downloads = deferred(Column(Integer, nullable=False, index=True, server_default=sqltext("0")))
+    release_date = deferred(Column(Date, nullable=False, index=True,
+                          server_default=sqltext("'1970-01-01'::date")))
     tsvec = deferred(Column(TSVECTOR, index=True))
 
 
@@ -463,7 +464,7 @@ class File(Base):
     modified = Column('filemtime', DateTime, index=True)
     diskstatus = Column(Integer, nullable=False, server_default=sqltext("0"))
     obsoleted = Column(Integer, nullable=False, server_default=sqltext("0"))
-    edition = Column(Integer)
+    edition = deferred(Column(Integer))
     # drop these columns!
     md5hash = deferred(Column(LargeBinary))
     sha1hash = deferred(Column(LargeBinary))
@@ -471,13 +472,13 @@ class File(Base):
     ed2khash = deferred(Column(LargeBinary))
     tigertreehash = deferred(Column(LargeBinary))
 
-    note = Column(Text)
-    download = Column(Integer, server_default=sqltext("0"))
+    note = deferred(Column(Text))
+    download = deferred(Column(Integer, server_default=sqltext("0")))
 
     book = relationship('Book')
     compression_type = relationship('Compression')
     encoding_type = relationship('Encoding')
-    file_type = relationship('Filetype')
+    file_type = relationship('Filetype', lazy='joined')
 
     filetype = synonym('fk_filetypes')
     encoding = synonym('fk_encodings')

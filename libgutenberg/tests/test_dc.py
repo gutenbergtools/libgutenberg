@@ -98,6 +98,13 @@ class TestDC(unittest.TestCase):
         test = [[alias for alias in author.aliases] for author in dc.authors]
         test = [subject for subject in dc.subjects]
 
+    def test_one(self):
+        start_time = datetime.datetime.now()
+        self.exercise(2600)
+        end_time = datetime.datetime.now()
+        print(' Finished exercise. Total time: %s' % (end_time - start_time))
+
+
     def test_10k(self):
         start_time = datetime.datetime.now()
 
