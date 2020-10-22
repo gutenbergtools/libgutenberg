@@ -6,10 +6,13 @@ import re
 from sqlalchemy import (ARRAY, Boolean, CheckConstraint, Column, Date, DateTime, ForeignKey, Index,
                         Integer, LargeBinary, String, Table, Text)
 from sqlalchemy import text as sqltext
+from sqlalchemy.sql.expression import select
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import backref, deferred, relationship, synonym
+from sqlalchemy.orm import column_property
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.hybrid import hybrid_property
 from . import DublinCore
 from .GutenbergGlobals import DCIMT
 
@@ -97,9 +100,9 @@ class Book(Base):
     bookshelves = relationship('Bookshelf', secondary='mn_books_bookshelves')
     loccs = relationship('Locc', secondary='mn_books_loccs')
     langs = relationship('Lang', secondary='mn_books_langs')
-    attributes = relationship('Attribute')
-    bookauthors = relationship('BookAuthor')
-    authors = association_proxy('bookauthors', 'author')
+    attributes = relationship('Attribute', order_by='Attribute.fk_attriblist')
+    authors = relationship('BookAuthor', order_by='BookAuthor.role, BookAuthor.name')
+    #authors = association_proxy('bookauthors', 'author')
     #dcmitypes = association_proxy('categories', 'dcmitype')
     #attribute_types = association_proxy('attribute_types', 'attribute_type')
 
@@ -529,12 +532,14 @@ class BookAuthor(Base):
 
     # for a list of relator codes see:
     # http://www.loc.gov/loc.terms/relators/
-    role_type = relationship('Role', backref=backref("authors", cascade="all"))
-    book = relationship(Book, backref=backref("authors", cascade="all, delete-orphan"))
-    author = relationship(Author, backref=backref("authorbooks", cascade="all, delete-orphan"))
+    role_type = relationship('Role', backref=backref("authors", cascade="all"), uselist=False)
+    book = relationship(Book, back_populates="authors")
+    author = relationship(Author, backref=backref("authorbooks", cascade="all, delete-orphan"), uselist=False)
 
     marcrel = synonym('fk_roles')
-
+    role = column_property(select([Role.role]).where(Role.pk == fk_roles))
+    #role = association_proxy('role_type', 'role')
+    name = column_property(select([Author.name]).where(Author.id == fk_authors))
     @property
     def webpages(self):
         return self.author.webpages
@@ -543,12 +548,8 @@ class BookAuthor(Base):
     def aliases(self):
         return self.author.aliases
 
-    @property
-    def role(self):
-        return self.role_type.role
-
     def __getattr__(self, name):
-        if name in {'name', 'id', 'birthdate', 'deathdate', 'birthdate2', 'deathdate2', 'note',
+        if name in {'id', 'birthdate', 'deathdate', 'birthdate2', 'deathdate2', 'note',
                     'downloads', 'release_date', 'tsvec', 'name_and_dates', 'first_lettter'}:
             return self.author.__getattribute__(name)
         raise AttributeError
