@@ -41,6 +41,7 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
         self.filetypes = set()
         self.files = []
         self.generated_files = []
+        self.book = None
 
         # there are applications that rely on this class to configure the db pool
         self.setup_db(pool)
@@ -87,7 +88,7 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
         book = session.query(Book).filter_by(pk=ebook).first()
         if not book:
             return
-
+        self.book = book
         self.release_date = book.release_date
         self.downloads = book.downloads
         self.rights = book.rights
@@ -150,12 +151,13 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
         session = self.get_my_session()
 
         # files(not strictly DublinCore but useful)
-
-        self.files = session.query(File).filter_by(fk_books=ebook, obsoleted=0, diskstatus=0).\
-            outerjoin(Filetype).outerjoin(Encoding).\
-            order_by(Filetype.sortorder, Encoding.sortorder,
-                     Filetype.pk, Encoding.pk,
-                     File.compression, File.archive_path).all()
+        if self.book: 
+            self.files = self.book.files
+        else:
+            #only files wanted
+            self.files = session.query(File).filter_by(fk_books=ebook, obsoleted=0, diskstatus=0).\
+                order_by(File.ftsortorder, File.encsortorder,File.fk_filetypes,
+                        File.fk_encodings, File.compression, File.archive_path).all()
 
         for file_ in self.files:
             fn = file_.archive_path

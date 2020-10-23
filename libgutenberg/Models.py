@@ -102,9 +102,15 @@ class Book(Base):
     langs = relationship('Lang', secondary='mn_books_langs')
     attributes = relationship('Attribute', order_by='Attribute.fk_attriblist')
     authors = relationship('BookAuthor', order_by='BookAuthor.role, BookAuthor.name')
-    #authors = association_proxy('bookauthors', 'author')
+    files = relationship(
+        'File', 
+        primaryjoin='and_(File.fk_books == Book.pk, File.obsoleted == 0, File.diskstatus == 0)',
+        order_by='File.ftsortorder, File.encsortorder, File.fk_filetypes,\
+                  File.fk_encodings, File.compression, File.archive_path',
+        )
+    
+    
     #dcmitypes = association_proxy('categories', 'dcmitype')
-    #attribute_types = association_proxy('attribute_types', 'attribute_type')
 
     @property
     def rights(self):
@@ -469,13 +475,6 @@ class File(Base):
     obsoleted = Column(Integer, nullable=False, server_default=sqltext("0"))
     edition = deferred(Column(Integer))
     # drop these columns!
-    md5hash = deferred(Column(LargeBinary))
-    sha1hash = deferred(Column(LargeBinary))
-    kzhash = deferred(Column(LargeBinary))
-    ed2khash = deferred(Column(LargeBinary))
-    tigertreehash = deferred(Column(LargeBinary))
-
-    note = deferred(Column(Text))
     download = deferred(Column(Integer, server_default=sqltext("0")))
 
     book = relationship('Book')
@@ -485,6 +484,12 @@ class File(Base):
 
     filetype = synonym('fk_filetypes')
     encoding = synonym('fk_encodings')
+
+    ftsortorder = column_property(select([Filetype.sortorder]).where(Filetype.pk == fk_filetypes))
+    encsortorder = column_property(select([Encoding.sortorder]).where(Encoding.pk == fk_encodings))
+
+    generated = association_proxy('file_type', 'generated')
+    mediatype = association_proxy('file_type', 'mediatype')
 
     @property
     def hr_extent(self):
@@ -499,14 +504,6 @@ class File(Base):
     @property
     def hr_filetype(self):
         return self.file_type.filetype if self.fk_filetypes else ''
-
-    @property
-    def generated(self):
-        return self.file_type.generated if self.fk_filetypes else None
-
-    @property
-    def mediatype(self):
-        return self.file_type.mediatype
 
     @property
     def mediatypes(self):

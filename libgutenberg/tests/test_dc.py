@@ -91,6 +91,7 @@ class TestDC(unittest.TestCase):
     def exercise(self, ebook):
         dummypool = DummyConnectionPool.ConnectionPool()
         dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(dummypool)
+        #dc.load_files_from_database(ebook)
         dc.load_from_database(ebook)
         test = '%s%s%s%s' % (dc.title, dc.title_file_as, dc.rights,dc.rights)
         test = [lang.id for lang in dc.languages]
