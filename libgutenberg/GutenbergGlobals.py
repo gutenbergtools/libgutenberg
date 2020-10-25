@@ -182,6 +182,8 @@ def cut_at_newline (text):
 def archive_dir (ebook):
     """ build 1/2/3/4/12345 for 12345 """
     ebook = str (ebook)
+    if len(ebook) == 1:
+        return '0/' + ebook
     a = []
     for c in ebook:
         a.append (c)
