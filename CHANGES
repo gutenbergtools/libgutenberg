@@ -1,4 +1,7 @@
 CHANGES
+0.6.7 (October 25, 2020)
+- fix GutenbergGlobals.archive_dir with a special case for single digit book numbers
+
 0.6.6 (October 16, 2020)
 - add tests for the DC object. This is preparing for a new version, with ORM
 
