@@ -1,4 +1,7 @@
 CHANGES
+0.6.8 (November 2, 2020)
+- add SVG to mediatypes
+
 0.6.7 (October 25, 2020)
 - fix GutenbergGlobals.archive_dir with a special case for single digit book numbers
 
