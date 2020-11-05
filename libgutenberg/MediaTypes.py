@@ -56,6 +56,7 @@ for ext, mimetype in (
         ('sib',    'application/x-sibelius-score'),
         ('mxl',    'application/vnd.recordare.musicxml'),
         ('mp3',    'audio/mpeg'),
+        ('svg',    'image/svg+xml'),
 ):
     T2E[mimetype] = ext
     E2T[ext] = mimetype
@@ -72,6 +73,7 @@ IMAGE_MEDIATYPES = set ( (
     'image/gif',
     'image/jpeg',
     'image/png',
+    'image/svg+xml',
 ) )
 
 AUX_MEDIATYPES = set ( (
