@@ -29,11 +29,13 @@ class TestDC(unittest.TestCase):
     def test_metadata(self):
         dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
         self.metadata_test1(dc)
+        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
         self.metadata_test2(dc)
 
     def test_orm_metadata(self):
         dc = DublinCoreMapping.DublinCoreObject(self.dummypool)
         self.metadata_test1(dc)
+        dc = DublinCoreMapping.DublinCoreObject(self.dummypool)
         self.metadata_test2(dc)
 
     def metadata_test1(self, dc):
@@ -67,7 +69,7 @@ class TestDC(unittest.TestCase):
 
     def metadata_test2(self, dc2):
         dc2.load_from_database(self.ebook2)
-        self.assertEqual(dc2.languages[0].id, 'en')
+        self.assertEqual('en', dc2.languages[0].id)
         self.assertEqual(len(dc2.bookshelves), 5)
         self.assertEqual(dc2.bookshelves[0].bookshelf, 'Napoleonic(Bookshelf)')
         self.assertEqual(dc2.dcmitypes[0].id, 'Text')
@@ -112,6 +114,7 @@ class TestDC(unittest.TestCase):
 
 
     def exercise(self, ebook, dc):
+        dc.__init__(self.dummypool)
         dc.load_from_database(ebook)
         test = '%s%s%s%s' % (dc.title, dc.title_file_as, dc.rights,dc.rights)
         test = [lang.id for lang in dc.languages]
@@ -126,7 +129,7 @@ class TestDC(unittest.TestCase):
         for ebook in range(5, 60005, 60):
             self.exercise(ebook, dc)
         end_time = datetime.datetime.now()
-        print(' Finished 6,000 dc tests. Total time: %s' % (end_time - start_time))
+        print(' Finished 1000 dc tests. Total time: %s' % (end_time - start_time))
 
         dc = DublinCoreMapping.DublinCoreObject(self.dummypool)
         start_time = datetime.datetime.now()
@@ -134,7 +137,7 @@ class TestDC(unittest.TestCase):
         for ebook in range(5, 60005, 60):
             self.exercise(ebook, dc)
         end_time = datetime.datetime.now()
-        print(' Finished 6,000 orm_dc tests. Total time: %s' % (end_time - start_time))
+        print(' Finished 1000 orm_dc tests. Total time: %s' % (end_time - start_time))
 
     def test_add_delete_files(self):
         fn = 'README.md'
