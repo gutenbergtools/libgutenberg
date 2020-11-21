@@ -102,7 +102,7 @@ def get_connection_params(args = None):
     user     = _get('pguser')
 
     params = { 'host': host,
-               'port': int(port),
+               'port': int(port) if port else 5432,
                'database': database,
                'user': user }
     return params
@@ -158,7 +158,7 @@ class Objectbase(object):
                                             poolclass=NullPool)
             else:
                 self.engine = create_engine(get_sqlalchemy_url(), echo=False,
-                                        pool=custom_connection_pool)
+                                        pool=custom_connection_pool.pool)
         else:
             self.engine = create_engine(get_sqlalchemy_url(), echo=False)
 

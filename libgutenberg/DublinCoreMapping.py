@@ -48,7 +48,6 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         self.setup_db(pool)
 
         self.marcs = []
-        self.ob = None
         self.session = None
 
     def setup_db(self, pool):

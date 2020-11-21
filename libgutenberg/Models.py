@@ -503,11 +503,21 @@ class File(Base):
 
     @property
     def hr_filetype(self):
+        if hasattr(self, '_hr_filetype'):
+            return self._hr_filetype
         return self.file_type.filetype if self.fk_filetypes else ''
-
+    
+    @hr_filetype.setter
+    def hr_filetype(self, value):
+        self._hr_filetype = value
+    
+    
     @property
     def mediatypes(self):
-        mts =  [DCIMT(self.file_type.mediatype, self.fk_encodings)]
+        if self.filetype:
+            mts =  [DCIMT(self.file_type.mediatype, self.fk_encodings)]
+        else:
+            mts = []
         if self.compression == 'zip':
             mts.append(DCIMT('application/zip'))
         return mts
