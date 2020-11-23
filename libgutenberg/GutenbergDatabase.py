@@ -24,7 +24,7 @@ try:
     import psycopg2.extensions
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    from sqlalchemy.pool.impl import NullPool
+    from sqlalchemy.pool.impl import QueuePool, NullPool
 
     psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
     psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
@@ -44,8 +44,6 @@ except ImportError:
 
 
 options = Options()
-custom_connection_pool = None
-
 
 DB = None
 OB = None
@@ -151,16 +149,9 @@ class Database(object):
         return self.conn.cursor()
 
 class Objectbase(object):
-    def __init__(self):
-        if custom_connection_pool:
-            if hasattr(custom_connection_pool, 'dummy'):
-                self.engine = create_engine(get_sqlalchemy_url(), echo=False,
-                                            poolclass=NullPool)
-            else:
-                self.engine = create_engine(get_sqlalchemy_url(), echo=False,
-                                        pool=custom_connection_pool.pool)
-        else:
-            self.engine = create_engine(get_sqlalchemy_url(), echo=False)
+    def __init__(self, pooled):
+        poolclass = QueuePool if pooled else NullPool
+        self.engine = create_engine(get_sqlalchemy_url(), echo=False, poolclass=poolclass)
 
         self.Session = sessionmaker(bind=self.engine)
 

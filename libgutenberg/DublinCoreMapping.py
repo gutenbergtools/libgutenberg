@@ -9,8 +9,9 @@ Copyright 2009-2020 by Project Gutenberg
 
 Distributable under the GNU General Public License Version 3 or newer.
 
-Plug-compatable ORM version of GutenbergDatabaseDublin core;
-roughly 2-4 times slower depending on config, but lazy loading and more functional.
+API-compatable ORM version of GutenbergDatabaseDublin core.
+Main difference is how connections are managed. In a multithreading environment, use
+pooled=True and be sure to close the session when done with a thread.
 
 """
 
@@ -30,11 +31,10 @@ from .GutenbergDatabase import DatabaseError, IntegrityError, Objectbase
 from .Models import Attribute, Book, Encoding, File, Filetype
 
 
-
 class DublinCoreObject(DublinCore.GutenbergDublinCore):
     """ Augment GutenbergDublinCore class. """
 
-    def __init__(self, pool):
+    def __init__(self, session=None, pooled=False):
         DublinCore.GutenbergDublinCore.__init__ (self)
 
         self.new_filesystem = False
@@ -43,27 +43,18 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         self.files = []
         self.generated_files = []
         self.book = None
-
-        # there are applications that relied on this class to configure the db pool
-        self.setup_db(pool)
+        self.pooled = pooled
 
         self.marcs = []
-        self.session = None
-
-    def setup_db(self, pool):
-        """there are applications that relied on GutenbergDatabaseDublin to configure the db pool.
-        Here we pass the pool to the engine."""
-        if pool and not GutenbergDatabase.custom_connection_pool:
-            GutenbergDatabase.custom_connection_pool = pool
+        self.session = session
 
 
     def get_my_session(self):
         if not GutenbergDatabase.OB:
-            GutenbergDatabase.OB = Objectbase()
+            GutenbergDatabase.OB = Objectbase(self.pooled)
         if not self.session:
             self.session = GutenbergDatabase.OB.get_session()
         return self.session
-
 
 
     def has_images(self):

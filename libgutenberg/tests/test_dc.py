@@ -33,9 +33,9 @@ class TestDC(unittest.TestCase):
         self.metadata_test2(dc)
 
     def test_orm_metadata(self):
-        dc = DublinCoreMapping.DublinCoreObject(self.dummypool)
+        dc = DublinCoreMapping.DublinCoreObject()
         self.metadata_test1(dc)
-        dc = DublinCoreMapping.DublinCoreObject(self.dummypool)
+        dc = DublinCoreMapping.DublinCoreObject()
         self.metadata_test2(dc)
 
     def metadata_test1(self, dc):
@@ -81,7 +81,7 @@ class TestDC(unittest.TestCase):
         self.files_test2(dc)
 
     def test_orm_files(self):
-        dc = DublinCoreMapping.DublinCoreObject(self.dummypool)
+        dc = DublinCoreMapping.DublinCoreObject()
         self.files_test1(dc)
         self.files_test2(dc)
 
@@ -123,6 +123,9 @@ class TestDC(unittest.TestCase):
         test = [subject for subject in dc.subjects]
 
     def test_10k(self):
+        class DCCompat(DublinCoreMapping.DublinCoreObject):
+            def __init__(self, pool):
+                DublinCoreMapping.DublinCoreObject.__init__(self, session=None, pooled=True)
         dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
         start_time = datetime.datetime.now()
 
@@ -131,11 +134,12 @@ class TestDC(unittest.TestCase):
         end_time = datetime.datetime.now()
         print(' Finished 1000 dc tests. Total time: %s' % (end_time - start_time))
 
-        dc = DublinCoreMapping.DublinCoreObject(self.dummypool)
         start_time = datetime.datetime.now()
 
         for ebook in range(5, 60005, 60):
+            dc = DCCompat(None)
             self.exercise(ebook, dc)
+            dc.session.close()
         end_time = datetime.datetime.now()
         print(' Finished 1000 orm_dc tests. Total time: %s' % (end_time - start_time))
 
