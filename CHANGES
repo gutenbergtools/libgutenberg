@@ -1,4 +1,11 @@
 CHANGES
+0.7.0a (November 24, 2020)
+This version is a significant change from previous version, adding an object relational mapping for the Project Gutenberg database and an ORM-based "Dublin Core" object, "DublinCoreObject" which replicates the "GutenbergDatabaseDublinCore" for most uses. because it is "lazy" - only making queries when needed - it may be much faster in many use cases, and only 10% slower when all attributes are accessed. This release is considered "alpha" with regard to the new objects, but should be production worthy and need no changes when the ORM based objects are not used.
+- add Models.py and DublinCoreMapping modules.
+- test suite greatly expanded, includes a comparative load test
+-
+
+
 0.6.8 (November 2, 2020)
 - add SVG to mediatypes
 
