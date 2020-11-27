@@ -517,7 +517,7 @@ class File(Base):
         if self.filetype:
             mts =  [DCIMT(self.file_type.mediatype, self.fk_encodings)]
         else:
-            mts = []
+            mts = ['application/octet-stream']
         if self.compression == 'zip':
             mts.append(DCIMT('application/zip'))
         return mts
