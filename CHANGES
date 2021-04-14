@@ -1,6 +1,12 @@
 CHANGES
+0.7.0 (April 13, 2021)
+- fixed a spelling mistake
+- added an is_audiobook method
+- added a back relationship
+- quelled scalar_subquery coercion warnings
+
 0.7.0a (November 24, 2020)
-This version is a significant change from previous version, adding an object relational mapping for the Project Gutenberg database and an ORM-based "Dublin Core" object, "DublinCoreObject" which replicates the "GutenbergDatabaseDublinCore" for most uses. because it is "lazy" - only making queries when needed - it may be much faster in many use cases, and only 10% slower when all attributes are accessed. This release is considered "alpha" with regard to the new objects, but should be production worthy and need no changes when the ORM based objects are not used.
+This version is a significant change from previous version, adding an object relational mapping for the Project Gutenberg database and an ORM-based "Dublin Core" object, "DublinCoreObject" which replicates the "GutenbergDatabaseDublinCore" for most uses. because it is "lazy" - only making queries when needed - it may be much faster in many use cases, and about 20% slower when all attributes are accessed. This release is considered "alpha" with regard to the new objects, but should be production worthy and need no changes when the ORM based objects are not used.
 - add Models.py and DublinCoreMapping modules.
 - test suite greatly expanded, includes a comparative load test
 -

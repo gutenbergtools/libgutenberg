@@ -3,7 +3,7 @@
 # libgutenberg setup.py
 #
 
-__version__ = '0.7.0a'
+__version__ = '0.7.0'
 
 from setuptools import setup
 
@@ -16,9 +16,9 @@ setup (
     },
 
     install_requires = [
-        'lxml',
+        'lxml>=4.6.3',
         'six>=1.4.1',
-        'sqlalchemy',
+        'sqlalchemy>=1.4.0',
     ],
     extras_require = {
         'postgres':  ['psycopg2',],
