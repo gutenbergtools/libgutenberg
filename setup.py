@@ -3,7 +3,7 @@
 # libgutenberg setup.py
 #
 
-__version__ = '0.6.8'
+__version__ = '0.7.0'
 
 from setuptools import setup
 
@@ -16,11 +16,12 @@ setup (
     },
 
     install_requires = [
-        'lxml',
+        'lxml>=4.6.3',
         'six>=1.4.1',
+        'sqlalchemy>=1.4.0',
     ],
     extras_require = {
-        'postgres':  ['psycopg2'],
+        'postgres':  ['psycopg2',],
         'covers': ['cairocffi==0.8.0'],
     },
     packages = [
@@ -42,7 +43,6 @@ setup (
         "Intended Audience :: Other Audience",
         "License :: OSI Approved :: GNU General Public License (GPL)",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.6",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],

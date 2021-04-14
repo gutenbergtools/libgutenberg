@@ -12,22 +12,25 @@ Distributable under the GNU General Public License Version 3 or newer.
 
 from __future__ import unicode_literals
 
-import re
+import logging
 import os
-import csv
-import datetime
 
-from .Logger import warning, debug, critical
+
 from .CommonOptions import Options
+from .Logger import warning, debug, critical
 
 try:
     import psycopg2
     import psycopg2.extensions
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from sqlalchemy.pool.impl import QueuePool, NullPool
 
-    psycopg2.extensions.register_type (psycopg2.extensions.UNICODE)
-    psycopg2.extensions.register_type (psycopg2.extensions.UNICODEARRAY)
+    psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
+    psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
     DatabaseError  = psycopg2.DatabaseError
     IntegrityError = psycopg2.IntegrityError
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 
     db_exists = True
 
@@ -37,135 +40,120 @@ except ImportError:
         pass
     class IntegrityError(Exception):
         pass
-    warning ('Gutenberg Database is inactive because psycopg2 not installed')
+    warning('Gutenberg Database is inactive because psycopg2 not installed')
 
 
 options = Options()
 
-
 DB = None
+OB = None
 
-class xl (object):
+class xl(object):
     """ Translate numeric indices into field names.
 
-    >>> r = xl (cursor, row)
+    >>> r = xl(cursor, row)
     >>> r.pk
     >>> r['pk']
     >>> r[0]
     """
 
-    def __init__ (self, cursor, row):
+    def __init__(self, cursor, row):
         self.row = row
-        self.colname_to_index = dict ([(x[1][0], x[0]) for x in enumerate (cursor.description)])
+        self.colname_to_index = dict([(x[1][0], x[0]) for x in enumerate(cursor.description)])
 
-    def __getitem__ (self, column):
-        if isinstance (column, int):
+    def __getitem__(self, column):
+        if isinstance(column, int):
             return self.row[column]
         return self.row[self.colname_to_index[column]]
 
-    def __getattr__ (self, colname):
+    def __getattr__(self, colname):
         return self.row[self.colname_to_index[colname]]
 
-    def get (self, colname, default = None):
+    def get(self, colname, default = None):
         """ Get value from field in row. """
         if colname in self.colname_to_index:
             return self.row[self.colname_to_index [colname]]
         return default
 
 
-def get_connection_params (args = None):
+def get_connection_params(args = None):
     """ Get connection parameters from environment. """
 
     if args is None:
         args = {}
 
-    def _get (param):
+    def _get(param):
         """ Get param either from args or environment or config. """
         if param in args:
             return args[param]
-        param = param.upper ()
+        param = param.upper()
         if param in os.environ:
             return os.environ[param]
         try:
-            return getattr (options.config, param)
+            return getattr(options.config, param)
         except (NameError, AttributeError):
             return None
 
-    host     = _get ('pghost')
-    port     = _get ('pgport')
-    database = _get ('pgdatabase')
-    user     = _get ('pguser')
+    host     = _get('pghost')
+    port     = _get('pgport')
+    database = _get('pgdatabase')
+    user     = _get('pguser')
 
     params = { 'host': host,
-               'port': int (port),
+               'port': int(port) if port else 5432,
                'database': database,
                'user': user }
-
-    try:
-        def matches (s1, s2):
-            """ Match literal value or * """
-            if s1 == '*':
-                return True
-            if s1 == s2:
-                return True
-            return False
-
-        # scan .pgpass for password
-        with open ("~/.pgpass", "r") as f:
-            for line in f.readlines ():
-                # format: hostname:port:database:username:password
-                fields = line.split (':')
-                if (matches (fields[0], host) and
-                    matches (fields[1], port) and
-                    matches (fields[2], database) and
-                    matches (fields[3], user)):
-                    params['password'] = fields[4]
-                    break
-
-    except IOError:
-        pass
-
     return params
 
 
-def get_sqlalchemy_url ():
+def get_sqlalchemy_url():
     """ Build a connection string for SQLAlchemy. """
 
-    params = get_connection_params ()
-    return "postgres://%(user)s:%(password)s@%(host)s:%(port)d/%(database)s'" % params
+    params = get_connection_params()
+    return "postgresql://%(user)s@%(host)s:%(port)d/%(database)s" % params
 
 
-class Database (object):
+class Database(object):
     """ Class to connect to PG database. """
 
-    def __init__ (self, args = None):
-        self.connection_params = get_connection_params (args)
+    def __init__(self, args = None):
+        self.connection_params = get_connection_params(args)
         self.conn = None
 
 
-    def connect (self):
+    def connect(self):
         """ connect to database """
 
         try:
-            vpncmd = getattr (options.config, 'PGVPNCMD', None)
-            vpncmd = os.environ.get ('PGVPNCMD', vpncmd)
+            vpncmd = getattr(options.config, 'PGVPNCMD', None)
+            vpncmd = os.environ.get('PGVPNCMD', vpncmd)
             if vpncmd:
-                debug ("Starting VPN ...")
-                os.system (vpncmd)
+                debug("Starting VPN ...")
+                os.system(vpncmd)
 
-            debug ("Connecting to database ...")
+            debug("Connecting to database ...")
 
-            self.conn = psycopg2.connect (**self.connection_params)
+            self.conn = psycopg2.connect(**self.connection_params)
 
-            debug ("Connected to host %s database %s." %
+            debug("Connected to host %s database %s." %
                   (self.connection_params['host'],
                    self.connection_params['database']))
 
         except psycopg2.DatabaseError as what:
-            critical ("Cannot connect to database server (%s)" % what)
+            critical("Cannot connect to database server (%s)" % what)
             raise
 
 
-    def get_cursor (self):
+    def get_cursor(self):
         """ Return database cursor. """
-        return self.conn.cursor ()
+        return self.conn.cursor()
+
+class Objectbase(object):
+    def __init__(self, pooled):
+        poolclass = QueuePool if pooled else NullPool
+        self.engine = create_engine(get_sqlalchemy_url(), echo=False, poolclass=poolclass)
+
+        self.Session = sessionmaker(bind=self.engine)
+
+    def get_session(self):
+        return self.Session()

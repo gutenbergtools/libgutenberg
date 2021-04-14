@@ -130,6 +130,18 @@ LANGS = """ af  | Afrikaans
  cy  | Welsh
  yi  | Yiddish """
 
+DCMITYPES = [
+    ("Text","Text"),
+    ("Sound","Sound"),
+    ("Sound","Sound"),
+    ("Sound","Sound"),
+    ("Image","Image"),
+    ("StillImage","Still Image"),
+    ("Sound","Sound"),
+    ("MovingImage","Moving Image"),
+    ("Dataset","Data Set"),
+    ("Collection","Collection")
+]
 title_splitter = re.compile (r'[\r\n:]+', flags=re.M)
 
 class _HTML_Writer (object):
@@ -497,49 +509,49 @@ class GutenbergDublinCore (DublinCore):
         self.is_format_of = None
 
 
-    def feed_to_writer (self, writer):
+    def feed_to_writer(self, writer):
         """ Pipe metadata into writer. """
 
-        DublinCore.feed_to_writer (self, writer)
+        DublinCore.feed_to_writer(self, writer)
 
         lit = writer.literal
         uri = writer.uri
 
-        lit ('dcterms:publisher',  self.publisher)
-        lit ('dcterms:rights',     self.rights)
-        uri ('dcterms:isFormatOf', self.is_format_of)
+        lit('dcterms:publisher',  self.publisher)
+        lit('dcterms:rights',     self.rights)
+        uri('dcterms:isFormatOf', self.is_format_of)
 
         for author in self.authors:
             if author.marcrel == 'aut' or author.marcrel == 'cre':
-                lit ('dcterms:creator', author.name_and_dates)
+                lit('dcterms:creator', author.name_and_dates)
             else:
-                lit ('marcrel:' + author.marcrel, author.name_and_dates)
+                lit('marcrel:' + author.marcrel, author.name_and_dates)
 
         for subject in self.subjects:
-            lit ('dcterms:subject', subject.subject, 'dcterms:LCSH')
+            lit('dcterms:subject', subject.subject, 'dcterms:LCSH')
 
         if self.release_date:
-            lit ('dcterms:created', self.release_date.isoformat (),
+            lit('dcterms:created', self.release_date.isoformat(),
                  'dcterms:W3CDTF')
         else:
             if self.created:
-                lit ('dcterms:created', self.created, 'dcterms:W3CDTF')
+                lit('dcterms:created', self.created, 'dcterms:W3CDTF')
 
 
-    def load_from_parser (self, parser):
+    def load_from_parser(self, parser):
         """ Load DublinCore from Project Gutenberg ebook.
 
         Worst method. Use as last resort only.
 
         """
 
-        for body in xpath (parser.xhtml, "//xhtml:body"):
-            self.load_from_pgheader (lxml.etree.tostring (body,
+        for body in xpath(parser.xhtml, "//xhtml:body"):
+            self.load_from_pgheader(lxml.etree.tostring(body,
                                                           encoding = six.text_type,
                                                           method = 'text'))
 
 
-    def load_from_rstheader (self, data):
+    def load_from_rstheader(self, data):
         """ Load DublinCore from RST Metadata.
 
         """
@@ -547,75 +559,75 @@ class GutenbergDublinCore (DublinCore):
         self.publisher = 'Project Gutenberg'
         self.rights = 'Public Domain in the USA.'
 
-        re_field = re.compile (r'^\s*:(.+?):\s+', re.UNICODE)
-        re_end   = re.compile (r'^[^\s]', re.UNICODE)
+        re_field = re.compile(r'^\s*:(.+?):\s+', re.UNICODE)
+        re_end   = re.compile(r'^[^\s]', re.UNICODE)
 
         m = schema = name = None
         contents = ''
 
-        for line in data.splitlines ()[:100]:
-            m = re_field.match (line)
-            m2 = re_end.match (line)
+        for line in data.splitlines()[:100]:
+            m = re_field.match(line)
+            m2 = re_end.match(line)
 
             if name and (m is not None or m2 is not None):
-                contents = contents.strip ()
+                contents = contents.strip()
                 # debug ("Outputting: %s.%s => %s" % (schema, name, contents))
 
                 if schema == 'pg':
                     if name == 'id':
                         try:
-                            self.project_gutenberg_id = int (contents)
-                            self.is_format_of = str (NS.ebook) + str (self.project_gutenberg_id)
+                            self.project_gutenberg_id = int(contents)
+                            self.is_format_of = str(NS.ebook) + str(self.project_gutenberg_id)
                         except ValueError:
-                            error ('Invalid ebook no. in RST meta: %s' % contents)
+                            error('Invalid ebook no. in RST meta: %s' % contents)
                             return False
                     elif name == 'title':
                         self.project_gutenberg_title = contents
                     elif name == 'released':
                         try:
-                            self.release_date = datetime.datetime.strptime (
-                                contents, '%Y-%m-%d').date ()
+                            self.release_date = datetime.datetime.strptime(
+                                contents, '%Y-%m-%d').date()
                         except ValueError:
-                            error ('Invalid date in RST meta: %s' % contents)
+                            error('Invalid date in RST meta: %s' % contents)
                     elif name == 'rights':
-                        if contents.lower () == 'copyrighted':
+                        if contents.lower() == 'copyrighted':
                             self.rights = 'Copyrighted.'
 
                 elif schema == 'dc':
                     if name == 'creator':
-                        self.add_author (contents, 'cre')
+                        self.add_author(contents, 'cre')
                     elif name == 'title':
                         self.title = self.title_file_as = contents
                     elif name == 'language':
                         try:
-                            self.add_lang_id (contents)
+                            self.add_lang_id(contents)
                         except KeyError:
-                            error ('Invalid language id RST meta: %s' % contents)
+                            error('Invalid language id RST meta: %s' % contents)
                     elif name == 'created':
                         pass # published date
 
                 elif schema == 'marcrel':
-                    self.add_author (contents, name)
+                    self.add_author(contents, name)
 
                 contents = ''
                 name = schema = None
 
             if name:
-                contents += '\n' + line.strip ()
+                contents += '\n' + line.strip()
 
             if m is not None:
                 try:
-                    schema, name = m.group (1).lower ().split ('.', 1)
-                    contents = line[m.end ():].strip ()
+                    schema, name = m.group(1).lower().split('.', 1)
+                    contents = line[m.end():].strip()
                 except ValueError:
                     schema = name = None
                     contents = ''
 
         if self.project_gutenberg_id is None:
-            raise ValueError ('This is not a Project Gutenberg RST file.')
+            raise ValueError('This is not a Project Gutenberg RST file.')
 
 
-    def load_from_pgheader (self, data):
+    def load_from_pgheader(self, data):
         """ Load DublinCore from Project Gutenberg ebook.
 
         Worst method. Use as last resort only.
