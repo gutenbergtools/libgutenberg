@@ -148,7 +148,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         else:
             #only files wanted
             self.files = session.query(File).filter_by(fk_books=ebook, obsoleted=0, diskstatus=0).\
-                order_by(File.ftsortorder, File.encsortorder,File.fk_filetypes,
+                order_by(File.ftsortorder, File.encsortorder, File.fk_filetypes,
                         File.fk_encodings, File.compression, File.archive_path).all()
 
         for file_ in self.files:
