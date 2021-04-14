@@ -491,8 +491,10 @@ class File(Base):
     filetype = synonym('fk_filetypes')
     encoding = synonym('fk_encodings')
 
-    ftsortorder = column_property(select([Filetype.sortorder]).where(Filetype.pk == fk_filetypes))
-    encsortorder = column_property(select([Encoding.sortorder]).where(Encoding.pk == fk_encodings))
+    ftsortorder = column_property(select(
+        [Filetype.sortorder]).where(Filetype.pk == fk_filetypes).scalar_subquery())
+    encsortorder = column_property(select(
+        [Encoding.sortorder]).where(Encoding.pk == fk_encodings).scalar_subquery())
 
     generated = association_proxy('file_type', 'generated')
     mediatype = association_proxy('file_type', 'mediatype')
@@ -549,9 +551,9 @@ class BookAuthor(Base):
     author = relationship(Author, backref=backref("authorbooks", cascade="all, delete-orphan"), uselist=False)
 
     marcrel = synonym('fk_roles')
-    role = column_property(select([Role.role]).where(Role.pk == fk_roles))
+    role = column_property(select([Role.role]).where(Role.pk == fk_roles).scalar_subquery())
     #role = association_proxy('role_type', 'role')
-    name = column_property(select([Author.name]).where(Author.id == fk_authors))
+    name = column_property(select([Author.name]).where(Author.id == fk_authors).scalar_subquery())
     @property
     def webpages(self):
         return self.author.webpages
