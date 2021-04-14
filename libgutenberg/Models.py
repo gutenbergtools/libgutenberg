@@ -118,6 +118,12 @@ class Book(Base):
             return 'Copyrighted. Read the copyright notice inside this book for details.'
         return 'Public domain in the USA.'
 
+    @property
+    def is_audiobook(self):
+        for category in self.categories:
+            if category.pk in [1,2]:
+                return True
+        return False
 
 
 class Bookshelf(Base):
@@ -477,7 +483,7 @@ class File(Base):
     # drop these columns!
     download = deferred(Column(Integer, server_default=sqltext("0")))
 
-    book = relationship('Book')
+    book = relationship('Book', back_populates="files")
     compression_type = relationship('Compression')
     encoding_type = relationship('Encoding')
     file_type = relationship('Filetype', lazy='joined')
@@ -521,7 +527,6 @@ class File(Base):
         if self.compression == 'zip':
             mts.append(DCIMT('application/zip'))
         return mts
-
 
 
 class BookAuthor(Base):
