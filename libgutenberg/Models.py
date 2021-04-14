@@ -71,7 +71,7 @@ class Author(Base):
         return DublinCore.GutenbergDublinCore.format_author_date(self)
 
     @property
-    def first_lettter(self):
+    def first_letter(self):
         # used to link to authorlists on new PG site
         first_let_match = RE_FIRST_AZ.search(self.name_and_dates.lower())
         return first_let_match.group(0) if first_let_match else 'other'
@@ -557,7 +557,7 @@ class BookAuthor(Base):
 
     def __getattr__(self, name):
         if name in {'id', 'birthdate', 'deathdate', 'birthdate2', 'deathdate2', 'note',
-                    'downloads', 'release_date', 'tsvec', 'name_and_dates', 'first_lettter'}:
+                    'downloads', 'release_date', 'tsvec', 'name_and_dates', 'first_letter'}:
             return self.author.__getattribute__(name)
         raise AttributeError
 
