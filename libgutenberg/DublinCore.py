@@ -517,18 +517,18 @@ class GutenbergDublinCore (DublinCore):
         lit = writer.literal
         uri = writer.uri
 
-        lit('dcterms:publisher',  self.publisher)
-        lit('dcterms:rights',     self.rights)
+        lit('dc:publisher',  self.publisher)
+        lit('dc:rights',     self.rights)
         uri('dcterms:isFormatOf', self.is_format_of)
 
         for author in self.authors:
             if author.marcrel == 'aut' or author.marcrel == 'cre':
-                lit('dcterms:creator', author.name_and_dates)
+                lit('dc:creator', author.name_and_dates)
             else:
                 lit('marcrel:' + author.marcrel, author.name_and_dates)
 
         for subject in self.subjects:
-            lit('dcterms:subject', subject.subject, 'dcterms:LCSH')
+            lit('dc:subject', subject.subject, 'dcterms:LCSH')
 
         if self.release_date:
             lit('dcterms:created', self.release_date.isoformat(),
