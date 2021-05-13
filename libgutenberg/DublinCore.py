@@ -683,6 +683,7 @@ class GutenbergDublinCore (DublinCore):
             if m:
                 self.project_gutenberg_id = int (m.group (1))
                 self.is_format_of = str (NS.ebook) + str (self.project_gutenberg_id)
+                self.canonical_url = re.sub(r'^http:', 'https:', self.is_format_of) + '/'
 
 
         def handle_languages (self, dummy_prefix, text):
