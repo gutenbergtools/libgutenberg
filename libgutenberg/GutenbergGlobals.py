@@ -147,8 +147,8 @@ XHTML_DOCTYPE   = ("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.1//EN' " +
 XHTML1_DOCTYPE   = ("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' " +
                    "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>")
 
-XHTML_RDFa_DOCTYPE = ("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML+RDFa 1.0//EN' " +
-                      "'http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd'>")
+XHTML_RDFa_DOCTYPE = ("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML+RDFa 1.1//EN' " +
+                      "'http://www.w3.org/MarkUp/DTD/xhtml-rdfa-2.dtd'>")
 
 NCX_DOCTYPE = ("<!DOCTYPE ncx PUBLIC '-//NISO//DTD ncx 2005-1//EN' " +
                "'http://www.daisy.org/z3986/2005/ncx-2005-1.dtd'>")

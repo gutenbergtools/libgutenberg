@@ -381,9 +381,6 @@ class DublinCore (object):
         e = ElementMaker ()
 
         head = e.head (
-            e.link (rel = "schema.DCTERMS", href = str (NS.dcterms)),
-            e.link (rel = "schema.MARCREL", href = str (NS.marcrel)),
-            profile = "http://dublincore.org/documents/2008/08/04/dc-html/",
             *w.metadata
             )
 
