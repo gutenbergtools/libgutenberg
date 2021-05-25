@@ -361,12 +361,12 @@ class DublinCore (object):
         lit = writer.literal
         # uri = writer.uri
 
-        lit ('dcterms:title',      self.title)
-        lit ('dcterms:source',     self.source)
+        lit ('dc:title',      self.title)
 
         for language in self.languages:
-            lit ('dcterms:language', language.id, 'dcterms:RFC4646')
+            lit ('dc:language', language.id, 'dcterms:RFC4646')
 
+        lit ('dcterms:source',     self.source)
         lit ('dcterms:modified',
              datetime.datetime.now (gg.UTC ()).isoformat (),
              'dcterms:W3CDTF')
