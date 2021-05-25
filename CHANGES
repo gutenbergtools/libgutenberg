@@ -1,4 +1,9 @@
 CHANGES
+0.7.1 (May 25, 2021)
+- added GutenbergDublinCore.canonical_url to support https canonical urls distinct from the http URIs we're keeping so as not to break RDF links.
+- updated RDFa style in html head elements from archaic to less archaic (DOCTYPE and schema declarations)
+- use dublin core elements instead of dcterms where appropriate for modern metadata.
+
 0.7.0 (April 13, 2021)
 - fixed a spelling mistake
 - added an is_audiobook method
