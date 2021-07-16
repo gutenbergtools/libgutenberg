@@ -501,10 +501,22 @@ class GutenbergDublinCore (DublinCore):
 
     def __init__ (self):
         DublinCore.__init__ (self)
-        self.project_gutenberg_id = None
         self.project_gutenberg_title = None
         self.is_format_of = None
+        self._project_gutenberg_id = None
 
+    
+    @property
+    def project_gutenberg_id(self):
+        return self._project_gutenberg_id
+
+    @project_gutenberg_id.setter
+    def project_gutenberg_id(self, ebook):
+        self._project_gutenberg_id = int (ebook)
+        self.is_format_of = str (NS.ebook) + str (ebook)
+        self.canonical_url = re.sub(r'^http:', 'https:', self.is_format_of) + '/'
+        
+    
 
     def feed_to_writer(self, writer):
         """ Pipe metadata into writer. """
@@ -682,8 +694,6 @@ class GutenbergDublinCore (DublinCore):
             m = re.search (r'#(\d+)\]', text)
             if m:
                 self.project_gutenberg_id = int (m.group (1))
-                self.is_format_of = str (NS.ebook) + str (self.project_gutenberg_id)
-                self.canonical_url = re.sub(r'^http:', 'https:', self.is_format_of) + '/'
 
 
         def handle_languages (self, dummy_prefix, text):
