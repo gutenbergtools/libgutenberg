@@ -207,7 +207,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
             filename = re.sub('^.*/cache/', 'cache/', filename)
             diskstatus = 0
-            session.begin_nested()
+
             # delete existing filename record
             session.query(File).filter(File.archive_path == filename).\
                                 delete(synchronize_session='fetch')
