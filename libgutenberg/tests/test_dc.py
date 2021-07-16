@@ -143,24 +143,30 @@ class TestDC(unittest.TestCase):
         end_time = datetime.datetime.now()
         print(' Finished 1000 orm_dc tests. Total time: %s' % (end_time - start_time))
 
-    def test_add_delete_files(self):
+    def test_add_delete(self):
+        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
+        self.add_delete_files(dc)
+
+    def test_add_delete_orm(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+        self.add_delete_files(dc)
+
+    def add_delete_files(self, dc):
         fn = 'README.md'
         saved = False
-        dc2 = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
-        dc2.load_files_from_database(self.ebook2)
-        numfiles = len(dc2.files)
-        dc2.store_file_in_database(self.ebook2, fn, 'txt')
-        dc2.store_file_in_database(self.ebook2, fn, 'txt') # test over-writing
-        dc2.load_files_from_database(2600)
-        for file_ in dc2.files:
+        dc.load_files_from_database(self.ebook2)
+        numfiles = len(dc.files)
+        dc.store_file_in_database(self.ebook2, fn, 'txt')
+        dc.store_file_in_database(self.ebook2, fn, 'txt') # test over-writing
+        dc.load_files_from_database(self.ebook2)
+        for file_ in dc.files:
             if file_.archive_path == fn:
                 saved = True
                 break
         self.assertTrue(saved)
-        dc2.remove_file_from_database(fn) # filenames are unique!
-        dc2.load_files_from_database(self.ebook2)
-        self.assertEqual(numfiles, len(dc2.files))
-        
+        dc.remove_file_from_database(fn) # filenames are unique!
+        dc.load_files_from_database(self.ebook2)
+        self.assertEqual(numfiles, len(dc.files))        
 
     def test_delete_types(self):
         fn = 'cache_for_test'  # command only remove filenames starting with 'cache'
