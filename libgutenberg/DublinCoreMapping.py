@@ -203,6 +203,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
             # check good filetype
             if not session.query(Filetype).filter(Filetype.pk == type_).count():
+                warning("%s is not a valid filetype, didn't store %s", type_, filename)
                 return
 
             filename = re.sub('^.*/cache/', 'cache/', filename)
