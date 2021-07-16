@@ -588,7 +588,7 @@ class GutenbergDublinCore (DublinCore):
                             self.project_gutenberg_id = int(contents)
                             self.is_format_of = str(NS.ebook) + str(self.project_gutenberg_id)
                         except ValueError:
-                            error('Invalid ebook no. in RST meta: %s' % contents)
+                            error('Invalid ebook no. in RST meta: %s', contents)
                             return False
                     elif name == 'title':
                         self.project_gutenberg_title = contents
@@ -597,7 +597,7 @@ class GutenbergDublinCore (DublinCore):
                             self.release_date = datetime.datetime.strptime(
                                 contents, '%Y-%m-%d').date()
                         except ValueError:
-                            error('Invalid date in RST meta: %s' % contents)
+                            error('Invalid date in RST meta: %s', contents)
                     elif name == 'rights':
                         if contents.lower() == 'copyrighted':
                             self.rights = 'Copyrighted.'
@@ -611,7 +611,7 @@ class GutenbergDublinCore (DublinCore):
                         try:
                             self.add_lang_id(contents)
                         except KeyError:
-                            error('Invalid language id RST meta: %s' % contents)
+                            error('Invalid language id RST meta: %s', contents)
                     elif name == 'created':
                         pass # published date
 
@@ -685,7 +685,7 @@ class GutenbergDublinCore (DublinCore):
                         pass
 
                 if not self.release_date:
-                    error ("Cannot understand date: %s" % date)
+                    error ("Cannot understand date: %s", date)
 
 
         def handle_ebook_no (self, text):

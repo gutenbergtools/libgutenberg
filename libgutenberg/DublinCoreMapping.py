@@ -99,7 +99,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 self.title_file_as = marc.text[attrib.nonfiling:]
                 self.title_file_as = self.title_file_as[0].upper() +\
                     self.title_file_as[1:]
-                info("Title: %s" % self.title)
+                info("Title: %s", self.title)
 
         # languages (datatype)
 
@@ -223,10 +223,10 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             session.commit()
 
         except OSError:
-            error("Cannot stat %s" % filename)
+            error("Cannot stat %s", filename)
 
         except IntegrityError:
-            error("Book number %s is not in database." % id_)
+            error("Book number %s is not in database.", id_)
             self.session.rollback()
 
 
@@ -243,5 +243,5 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             session.rollback()
 
         except (DatabaseError, DBAPIError) as what:
-            warning("Error updating coverpage in database: %s." % what)
+            warning("Error updating coverpage in database: %s.", what)
             session.rollback()

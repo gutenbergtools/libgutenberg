@@ -135,9 +135,9 @@ class Database(object):
 
             self.conn = psycopg2.connect(**self.connection_params)
 
-            debug("Connected to host %s database %s." %
-                  (self.connection_params['host'],
-                   self.connection_params['database']))
+            debug("Connected to host %s database %s.",
+                self.connection_params['host'],
+                self.connection_params['database'])
 
         except psycopg2.DatabaseError as what:
             critical("Cannot connect to database server (%s)" % what)

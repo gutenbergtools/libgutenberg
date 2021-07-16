@@ -158,7 +158,7 @@ select attributes.text, attributes.nonfiling,
                 self.title = marc.text
                 self.title_file_as = marc.text[row.nonfiling:]
                 self.title_file_as = self.title_file_as[0].upper () + self.title_file_as[1:]
-                info ("Title: %s" % self.title)
+                info ("Title: %s", self.title)
 
 
         # languages (datatype)
@@ -400,10 +400,10 @@ insert into files (fk_books, filename, filesize, filemtime,
             c.execute ('commit')
 
         except OSError:
-            error ("Cannot stat %s" % filename)
+            error ("Cannot stat %s", filename)
 
         except IntegrityError:
-            error ("Book number %s is not in database." % id_)
+            error ("Book number %s is not in database.", id_)
             c.execute ('rollback')
 
 
@@ -427,5 +427,5 @@ insert into attributes (fk_books, fk_attriblist, text) values (%(ebook)s, %(code
             c.execute ('rollback')
 
         except DatabaseError as what:
-            warning ("Error updating coverpage in database: %s." % what)
+            warning ("Error updating coverpage in database: %s.", what)
             c.execute ('rollback')
