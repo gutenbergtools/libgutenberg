@@ -206,7 +206,8 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 warning("%s is not a valid filetype, didn't store %s", type_, filename)
                 return
 
-            filename = re.sub('^.*/cache/', 'cache/', filename)
+            # this introduces a restriction on CACHELOC; should consider deriving the pattern
+            filename = re.sub('^.*/cache\d?/', 'cache/', filename)
             diskstatus = 0
 
             # delete existing filename record
