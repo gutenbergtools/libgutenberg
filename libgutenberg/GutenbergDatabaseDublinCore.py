@@ -113,7 +113,7 @@ ORDER BY role, author""", {'ebook': id_})
             # used to link to authorlists on new PG site
             first_let_match = RE_FIRST_AZ.search (author.name_and_dates.lower ())
             author.first_lettter = first_let_match.group (0) if first_let_match  else  'other'
-            
+
             c2.execute ("SELECT alias, alias_heading from aliases where fk_authors = %d"
                         % row.pk)
             for row2 in c2.fetchall ():

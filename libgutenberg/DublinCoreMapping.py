@@ -28,7 +28,7 @@ from . import GutenbergDatabase
 from .GutenbergGlobals import Struct, PG_URL
 from .Logger import info, warning, error
 from .GutenbergDatabase import DatabaseError, IntegrityError, Objectbase
-from .Models import Attribute, Book, Encoding, File, Filetype
+from .Models import Attribute, Book, File, Filetype
 
 
 class DublinCoreObject(DublinCore.GutenbergDublinCore):
@@ -143,7 +143,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         session = self.get_my_session()
 
         # files(not strictly DublinCore but useful)
-        if self.book: 
+        if self.book:
             self.files = self.book.files
         else:
             #only files wanted
@@ -207,7 +207,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 return
 
             # this introduces a restriction on CACHELOC; should consider deriving the pattern
-            filename = re.sub('^.*/cache\d?/', 'cache/', filename)
+            filename = re.sub(r'^.*/cache\d?/', 'cache/', filename)
             diskstatus = 0
 
             # delete existing filename record

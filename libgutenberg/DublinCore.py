@@ -505,7 +505,7 @@ class GutenbergDublinCore (DublinCore):
         self.is_format_of = None
         self._project_gutenberg_id = None
 
-    
+
     @property
     def project_gutenberg_id(self):
         return self._project_gutenberg_id
@@ -515,8 +515,8 @@ class GutenbergDublinCore (DublinCore):
         self._project_gutenberg_id = int (ebook)
         self.is_format_of = str (NS.ebook) + str (ebook)
         self.canonical_url = re.sub(r'^http:', 'https:', self.is_format_of) + '/'
-        
-    
+
+
 
     def feed_to_writer(self, writer):
         """ Pipe metadata into writer. """
