@@ -1,4 +1,14 @@
 CHANGES
+0.7.2 (July 19, 2021)
+- test_orm now tests the orm
+- removed stray savepoint that caused file addition to fail
+- added tests for ORM add/delete file
+- added a setter for dc.project_gutenberg_id to populate dc.canonical_url and dc.is_format_of
+- added warning for bad filetypes
+- updated logger syntax
+- accommodate output dirs to be named cache1, cache2, etc for saving in db
+
+
 0.7.1 (May 25, 2021)
 - added GutenbergDublinCore.canonical_url to support https canonical urls distinct from the http URIs we're keeping so as not to break RDF links.
 - updated RDFa style in html head elements from archaic to less archaic (DOCTYPE and schema declarations)
