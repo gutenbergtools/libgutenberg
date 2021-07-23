@@ -108,6 +108,7 @@ class DublinCore (object):
 
     def __init__ (self):
         self.title = 'No title'
+        self.alt_title = None
         self.title_file_as = self.title
         self.source = None
         self.languages = []
@@ -630,6 +631,7 @@ class GutenbergDublinCore (DublinCore):
             'notes':        store,
             'encoding':     store,
             'rights':       store,
+            'alt_title':    store,
             }
 
         aliases = {
@@ -642,6 +644,7 @@ class GutenbergDublinCore (DublinCore):
             'note' :                  'notes',
             'character set encoding': 'encoding',
             'copyright':              'rights',
+            'alternate title':        'alt_title',
             }
 
 
