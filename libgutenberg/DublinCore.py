@@ -26,109 +26,9 @@ import lxml
 from lxml.builder import ElementMaker
 
 from . import GutenbergGlobals as gg
-from .GutenbergGlobals import NS, Struct, xpath
+from .GutenbergGlobals import NS, Struct, xpath, ROLES, LANGS
 from .Logger import error, exception
 
-
-ROLES = """ adp | Adapter
- ann | Annotator
- arr | Arranger
- art | Artist
- aut | Author
- aft | Author of afterword, colophon, etc.
- aui | Author of introduction, etc.
- clb | Collaborator
- cmm | Commentator
- com | Compiler
- cmp | Composer
- cnd | Conductor
- ctb | Contributor
- cre | Creator
- dub | Dubious author
- edt | Editor
- egr | Engraver
- frg | Forger
- ill | Illustrator
- lbt | Librettist
- mrk | Markup editor
- mus | Musician
- oth | Other
- pat | Patron
- prf | Performer
- pht | Photographer
- prt | Printer
- pro | Producer
- prg | Programmer
- pfr | Proofreader
- pbl | Publisher
- res | Researcher
- rev | Reviewer
- sng | Singer
- spk | Speaker
- trc | Transcriber
- trl | Translator
- unk | Unknown role """
-
-LANGS = """ af  | Afrikaans
- ale | Aleut
- arp | Arapaho
- br  | Breton
- bg  | Bulgarian
- rmr | Caló
- ca  | Catalan
- ceb | Cebuano
- zh  | Chinese
- cs  | Czech
- da  | Danish
- nl  | Dutch
- en  | English
- eo  | Esperanto
- fi  | Finnish
- fr  | French
- fy  | Frisian
- fur | Friulian
- gla | Gaelic, Scottish
- gl  | Galician
- kld | Gamilaraay
- de  | German
- bgi | Giangan
- el  | Greek
- he  | Hebrew
- hu  | Hungarian
- is  | Icelandic
- ilo | Iloko
- ia  | Interlingua
- iu  | Inuktitut
- ga  | Irish
- iro | Iroquoian
- it  | Italian
- ja  | Japanese
- csb | Kashubian
- kha | Khasi
- ko  | Korean
- la  | Latin
- lt  | Lithuanian
- mi  | Maori
- myn | Mayan Languages
- enm | Middle English
- nah | Nahuatl
- nap | Napoletano-Calabrese
- nai | North American Indian
- no  | Norwegian
- oc  | Occitan
- ang | Old English
- pl  | Polish
- pt  | Portuguese
- ro  | Romanian
- ru  | Russian
- sa  | Sanskrit
- sr  | Serbian
- es  | Spanish
- sv  | Swedish
- tl  | Tagalog
- tr  | Turkish
- cy  | Welsh
- yi  | Yiddish """
 
 DCMITYPES = [
     ("Text","Text"),
@@ -198,24 +98,12 @@ class DublinCore (object):
         )
 
     # load local role map as default
-    role_map = {}
-    inverse_role_map = {}
-    for line in ROLES.splitlines ():
-        pk, role = line.split ('|')
-        pk = pk.strip ()
-        role = role.strip ().lower ()
-        role_map[pk] = role
-        inverse_role_map[role] = pk
+    role_map = ROLES
+    inverse_role_map = {v: k for k, v in ROLES.items()}
 
     # load local language map as default
-    language_map = {}
-    inverse_language_map = {}
-    for line in LANGS.splitlines ():
-        pk, lang = line.split ('|')
-        pk = pk.strip ()
-        lang = lang.strip ().lower ()
-        language_map[pk] = lang
-        inverse_language_map[lang] = pk
+    language_map = LANGS
+    inverse_language_map = {v: k for k, v in LANGS.items()}
 
 
     def __init__ (self):

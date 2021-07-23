@@ -4,13 +4,10 @@
 """
 GutenbergGlobals.py
 
-Copyright 2009 by Marcello Perathoner
+Copyright 2009-2021 by Marcello Perathoner, and Project Gutenberg
 
 Distributable under the GNU General Public License Version 3 or newer.
 
-This module has sadly decayed into a repository for all sorts of cruft.
-
-FIXME: refactor this module
 
 """
 
@@ -68,6 +65,110 @@ NSMAP = {
     'xslfo':      'http://www.w3.org/1999/XSL/Format',
 }
 
+ROLES = {
+    'adp': 'Adapter',
+    'ann': 'Annotator',
+    'arr': 'Arranger',
+    'art': 'Artist',
+    'aut': 'Author',
+    'aft': 'Author of afterword, colophon, etc.',
+    'aui': 'Author of introduction, etc.',
+    'clb': 'Collaborator',
+    'cmm': 'Commentator',
+    'com': 'Compiler',
+    'cmp': 'Composer',
+    'cnd': 'Conductor',
+    'ctb': 'Contributor',
+    'cre': 'Creator',
+    'dub': 'Dubious author',
+    'edt': 'Editor',
+    'egr': 'Engraver',
+    'frg': 'Forger',
+    'ill': 'Illustrator',
+    'lbt': 'Librettist',
+    'mrk': 'Markup editor',
+    'mus': 'Musician',
+    'oth': 'Other',
+    'pat': 'Patron',
+    'prf': 'Performer',
+    'pht': 'Photographer',
+    'prt': 'Printer',
+    'pro': 'Producer',
+    'prg': 'Programmer',
+    'pfr': 'Proofreader',
+    'pbl': 'Publisher',
+    'res': 'Researcher',
+    'rev': 'Reviewer',
+    'sng': 'Singer',
+    'spk': 'Speaker',
+    'trc': 'Transcriber',
+    'trl': 'Translator',
+    'unk': 'Unknown role',
+}
+
+
+LANGS = {
+    'af': 'Afrikaans',
+    'ale': 'Aleut',
+    'arp': 'Arapaho',
+    'br': 'Breton',
+    'bg': 'Bulgarian',
+    'rmr': 'Caló',
+    'ca': 'Catalan',
+    'ceb': 'Cebuano',
+    'zh': 'Chinese',
+    'cs': 'Czech',
+    'da': 'Danish',
+    'nl': 'Dutch',
+    'en': 'English',
+    'eo': 'Esperanto',
+    'fi': 'Finnish',
+    'fr': 'French',
+    'fy': 'Frisian',
+    'fur': 'Friulian',
+    'gla': 'Gaelic, Scottish',
+    'gl': 'Galician',
+    'kld': 'Gamilaraay',
+    'de': 'German',
+    'bgi': 'Giangan',
+    'el': 'Greek',
+    'he': 'Hebrew',
+    'hu': 'Hungarian',
+    'is': 'Icelandic',
+    'ilo': 'Iloko',
+    'ia': 'Interlingua',
+    'iu': 'Inuktitut',
+    'ga': 'Irish',
+    'iro': 'Iroquoian',
+    'it': 'Italian',
+    'ja': 'Japanese',
+    'csb': 'Kashubian',
+    'kha': 'Khasi',
+    'ko': 'Korean',
+    'la': 'Latin',
+    'lt': 'Lithuanian',
+    'mi': 'Maori',
+    'myn': 'Mayan Languages',
+    'enm': 'Middle English',
+    'nah': 'Nahuatl',
+    'nap': 'Napoletano-Calabrese',
+    'nai': 'North American Indian',
+    'no': 'Norwegian',
+    'oc': 'Occitan',
+    'ang': 'Old English',
+    'pl': 'Polish',
+    'pt': 'Portuguese',
+    'ro': 'Romanian',
+    'ru': 'Russian',
+    'sa': 'Sanskrit',
+    'sr': 'Serbian',
+    'es': 'Spanish',
+    'sv': 'Swedish',
+    'tl': 'Tagalog',
+    'tr': 'Turkish',
+    'cy': 'Welsh',
+    'yi': 'Yiddish',
+}
 
 class NameSpaceClark (object):
     """ Build a tag name in Clark notation.
