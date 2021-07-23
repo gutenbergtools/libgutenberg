@@ -65,6 +65,8 @@ NSMAP = {
     'xslfo':      'http://www.w3.org/1999/XSL/Format',
 }
 
+NONFILINGS = {'The ', 'A ', 'An ', 'Der ', 'Die ', 'Das ', 'Eine ', 'Ein ', 
+		      'La ', 'Le ', 'Les ', 'L\'', 'El '}
 ROLES = {
     'adp': 'Adapter',
     'ann': 'Annotator',
