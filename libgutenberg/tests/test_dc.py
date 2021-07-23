@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import os
 import unittest
 
 from libgutenberg.CommonOptions import Options
@@ -195,3 +196,23 @@ class TestDC(unittest.TestCase):
         
     def tearDown(self):
         pass
+
+@unittest.skipIf(not db_exists, 'database not configured')
+class TestDCLoader(unittest.TestCase):
+    def setUp(self):
+        self.test_fakebook = os.path.join(os.path.dirname(__file__),'99999-h.htm')
+
+    def test_load_from_pgheader(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+        dc.get_my_session()
+        with open(self.test_fakebook, 'r') as fakebook_file:
+            dc.load_from_pgheader(fakebook_file.read())
+        set_title = dc.title
+        self.assertEqual(set_title, 'Fake EBook of “Testing”')
+        dc.save()
+        dc.session.flush()
+        dc.load_from_database(99999)
+        self.assertEqual(set_title, dc.title)
+        dc.delete()
+        dc.load_from_database(99999)
+        self.assertFalse(dc.book)
