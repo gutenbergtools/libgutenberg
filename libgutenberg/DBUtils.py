@@ -17,7 +17,7 @@ def ebook_exists(ebook, session=None):
     session = check_session(session)
     ebook = int(ebook)
     try:
-        in_db = session.query(Models.Book).where(Models.Book.pk == ebook).first()
+        in_db = session.get(Models.Book, ebook)
         
     except Exception:
         exception("Error checking for book.")
@@ -61,7 +61,7 @@ def get_lang(language, session=None):
     lang_id = language if isinstance(language, str) else language.id
     language = language if isinstance(language, str) else language.language
     
-    lang = session.query(Models.Lang).where(Models.Lang.id == language).first()
+    lang = session.get(Models.Lang, language)
     if lang:
         return lang
     # check for the language name
