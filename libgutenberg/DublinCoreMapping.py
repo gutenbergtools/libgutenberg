@@ -366,5 +366,10 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
     def delete(self):
         """ only delete the book! """
         session = self.get_my_session()
-        if self.book and self.project_gutenberg_id:
+        if self.book:
+            session.delete(self.book)
+            session.commit()
+            return
+        if self.project_gutenberg_id:
             self.book = session.query(Book).filter_by(pk=self.project_gutenberg_id).delete()
+            session.commit()
