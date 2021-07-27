@@ -104,6 +104,7 @@ class DublinCore (object):
     # load local language map as default
     language_map = LANGS
     inverse_language_map = {v: k for k, v in LANGS.items()}
+    comma_list_delim = re.compile(r',(?! *Jr[\., ])')
 
 
     def __init__ (self):
@@ -304,6 +305,12 @@ class DublinCore (object):
 
         name = re.sub (r'\s*\[.*?\]\s*', ' ', name) # [pseud.]
         name = name.strip ()
+
+        # lastname, firstname middlename
+        if ',' not in name:
+            m = re.match (r'^(.+?)\s+([-\'\w]+)$', name, re.I)
+            if m:
+                name = "%s, %s" % (m.group (2), m.group (1))
 
         author = Struct ()
         author.name = name
@@ -545,6 +552,7 @@ class GutenbergDublinCore (DublinCore):
             try:
                 marcrel = self.inverse_role_map[role]
             except KeyError:
+                warning('%s is not a supported marc role', role)
                 return False
 
             # replace 'and' with ',' and remove
@@ -553,8 +561,10 @@ class GutenbergDublinCore (DublinCore):
             names = re.sub (r'[,\s]+and\b',   ',', names)
             names = re.sub (r'\bet\b',    ',', names)
             names = re.sub (r'\bund\b',   ',', names)
+            # prevent authors names "Jr."
+            names = re.sub (r'[\s,]+Jr\.?(\s+|$)', ' Jr. ', names)
 
-            for name in names.split (','):
+            for name in self.comma_list_delim.split(names):
                 self.add_author (name, marcrel)
 
 
