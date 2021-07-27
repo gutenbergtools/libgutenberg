@@ -208,9 +208,12 @@ class TestDCLoader(unittest.TestCase):
         with open(self.test_fakebook, 'r') as fakebook_file:
             dc.load_from_pgheader(fakebook_file.read())
         set_title = dc.title
-        self.assertEqual(set_title, 'Fake EBook of “Testing”')
-        dc.save()
+        self.assertEqual(set_title, 'The Fake EBook of “Testing”')
+        dc.save(updatemode=1)
         dc.session.flush()
+        self.assertEqual(len(dc.book.authors), 2)
+        self.assertTrue(DBUtils.author_exists('Jr., Lorem Ipsum'))
+        self.assertTrue(DBUtils.author_exists('Hemingway, Ernest'))
         dc.load_from_database(99999)
         self.assertEqual(set_title, dc.title)
         dc.delete()
