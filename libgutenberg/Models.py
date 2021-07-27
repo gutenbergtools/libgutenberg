@@ -100,8 +100,8 @@ class Book(Base):
     bookshelves = relationship('Bookshelf', secondary='mn_books_bookshelves')
     loccs = relationship('Locc', secondary='mn_books_loccs')
     langs = relationship('Lang', secondary='mn_books_langs')
-    attributes = relationship('Attribute', order_by='Attribute.fk_attriblist')
-    authors = relationship('BookAuthor', order_by='BookAuthor.role, BookAuthor.name')
+    attributes = relationship('Attribute', order_by='Attribute.fk_attriblist', cascade="all, delete-orphan")
+    authors = relationship('BookAuthor', order_by='BookAuthor.role, BookAuthor.name', cascade="all, delete-orphan")
     files = relationship(
         'File', 
         primaryjoin='and_(File.fk_books == Book.pk, File.obsoleted == 0, File.diskstatus == 0)',
