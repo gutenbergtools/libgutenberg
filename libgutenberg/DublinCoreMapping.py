@@ -29,7 +29,7 @@ from .DBUtils import get_lang
 from .GutenbergGlobals import Struct, PG_URL
 from .Logger import info, warning, error
 from .GutenbergDatabase import DatabaseError, IntegrityError, Objectbase
-from .Models import Attribute, Book, File, Filetype
+from .Models import Alias, Attribute, Author, Book, BookAuthor, File, Filetype, Role
 
 
 class DublinCoreObject(DublinCore.GutenbergDublinCore):
@@ -252,7 +252,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             session.rollback()
 
     def save(self, updatemode=0):
-        if self.book and self.book.updatemode != updatemode:
+        if self.book and (self.book.updatemode != updatemode):
             warning("ebook #%s not updated, already in database", self.book.pk)
             return
         session = self.get_my_session()
@@ -270,39 +270,40 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             if not self.book:
                 # a new book!
                 self.book = Book(pk=self.project_gutenberg_id)
-                self.add_authors(self.book)
-                self.add_title(self.book, self.title)
-                if self.alt_title:
-                    self.add_title(self.book, self.alt_title, marc=246)
-                if self.contents:
-                    self.add_title(self.book, self.contents, marc=505)
-                for language in self.languages:
-                    lang = get_lang(language.id)
-                    if lang and lang not in self.book.languages:
-                        self.book.languages.append(lang)
-                for locc in self.loccs:
-                    locc = session.query(Locc).filter_by(locc=locc.locc).first()
-                    if locc and locc not in self.book.loccs:
-                        self.book.loccs.append(locc)
-                for subject in self.subjects:
-                    subject = session.query(Subject).filter_by(subject=subject.subject).first()
-                    if subject and subject not in self.book.subjects:
-                        self.book.subjects.append(subject)
-                if self.notes:
-                    att = session.query(Attribute).filter_by(book=book, fk_attriblist=500).first()
-                    if not att:
-                        self.book.attributes.append(Attribute(
-                            fk_attriblist=500, nonfiling=nonfiling, text=self.notes))
-                    
-                self.book.copyrighted = 1 if 'Copyrighted' in self.rights else 0
-                for category in self.categories:
-                    # It appears that this is dead code
-                    category = session.query(Category).filter_by(id=category.id).first()
-                    if category and category not in self.book.categories:
-                        self.book.categories.append(category)
-                self.book.release_date = self.release_date
+                session.add(self.book)
+            self.add_authors(self.book)
+            self.add_title(self.book, self.title)
+            if self.alt_title:
+                self.add_title(self.book, self.alt_title, marc=246)
+            if self.contents:
+                self.add_title(self.book, self.contents, marc=505)
+            for language in self.languages:
+                lang = get_lang(language.id, session=session)
+                if lang and lang not in self.book.langs:
+                    self.book.langs.append(lang)
+            for locc in self.loccs:
+                locc = session.query(Locc).filter_by(locc=locc.locc).first()
+                if locc and locc not in self.book.loccs:
+                    self.book.loccs.append(locc)
+            for subject in self.subjects:
+                subject = session.query(Subject).filter_by(subject=subject.subject).first()
+                if subject and subject not in self.book.subjects:
+                    self.book.subjects.append(subject)
+            if self.notes:
+                att = session.query(Attribute).filter_by(book=book, fk_attriblist=500).first()
+                if not att:
+                    self.book.attributes.append(Attribute(
+                        fk_attriblist=500, nonfiling=nonfiling, text=self.notes))
                 
-                self.book.updatemode = 1 # prevent non-cataloguer changes
+            self.book.copyrighted = 1 if 'Copyrighted' in self.rights else 0
+            for category in self.categories:
+                # It appears that this is dead code
+                category = session.query(Category).filter_by(id=category.id).first()
+                if category and category not in self.book.categories:
+                    self.book.categories.append(category)
+            self.book.release_date = self.release_date
+                
+            self.book.updatemode = 1 # prevent non-cataloguer changes
 
             session.commit()
                         
