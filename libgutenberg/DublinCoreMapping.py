@@ -309,15 +309,21 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                         
     def add_authors(self, book):
         if len(book.authors) > 0:
-            warning("book already has authors. Not changing it.")
-            return False
+            warning("book already has authors.")
+            if not self.authors:
+                return False
+            warning("replacing them.")
+            book.authors[:] = []
+
         session = self.get_my_session()
         for dc_author in self.authors:
-            author = get_or_create_author(dc_author.name,
-                dc_author.birthdate,
-                dc_author.deathdate,)
-            role_type = session.execute(select(Role).where(
-                Role.role == dc_author.role)).first()
+            author = self.get_or_create_author(dc_author.name)
+            if hasattr(dc_author, 'birthdate'):
+                author.birthdate = dc_author.birthdate
+            if hasattr(dc_author, 'deathdate'):
+                author.deathdate = dc_author.deathdate
+            role_type = session.query(Role).where(
+                Role.role == dc_author.role).first()
             if not role_type:
                 error("%s is not a valid role.", role_type.role)
                 continue
