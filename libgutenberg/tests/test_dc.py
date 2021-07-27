@@ -7,7 +7,7 @@ import unittest
 
 from libgutenberg.CommonOptions import Options
 from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
-from libgutenberg import DublinCoreMapping
+from libgutenberg import DBUtils, DublinCoreMapping
 
 db_exists = GutenbergDatabase.db_exists
 
@@ -211,11 +211,19 @@ class TestDCLoader(unittest.TestCase):
         self.assertEqual(set_title, 'The Fake EBook of “Testing”')
         dc.save(updatemode=1)
         dc.session.flush()
+        self.assertTrue(DBUtils.ebook_exists(99999))
         self.assertEqual(len(dc.book.authors), 2)
         self.assertTrue(DBUtils.author_exists('Jr., Lorem Ipsum'))
         self.assertTrue(DBUtils.author_exists('Hemingway, Ernest'))
         dc.load_from_database(99999)
         self.assertEqual(set_title, dc.title)
         dc.delete()
+        dc = DublinCoreMapping.DublinCoreObject()
         dc.load_from_database(99999)
         self.assertFalse(dc.book)
+        dc.session.flush()
+        self.assertFalse(DBUtils.ebook_exists(99999))
+        self.assertTrue(DBUtils.author_exists('Hemingway, Ernest'))
+        self.assertTrue(DBUtils.author_exists('Jr., Lorem Ipsum'))
+        DBUtils.remove_author('Jr., Lorem Ipsum', session=dc.session)
+        self.assertFalse(DBUtils.author_exists('Jr., Lorem Ipsum'))
