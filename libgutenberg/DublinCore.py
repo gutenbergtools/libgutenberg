@@ -104,7 +104,6 @@ class DublinCore (object):
     # load local language map as default
     language_map = LANGS
     inverse_language_map = {v: k for k, v in LANGS.items()}
-    comma_list_delim = re.compile(r',(?! *Jr[\., ])')
 
 
     def __init__ (self):
@@ -564,7 +563,6 @@ class GutenbergDublinCore (DublinCore):
             # prevent authors names "Jr."
             names = re.sub (r'[\s,]+Jr\.?(\s+|$)', ' Jr. ', names)
 
-            for name in self.comma_list_delim.split(names):
                 self.add_author (name, marcrel)
 
 
