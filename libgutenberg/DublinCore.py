@@ -99,7 +99,7 @@ class DublinCore (object):
 
     # load local role map as default
     role_map = ROLES
-    inverse_role_map = {v: k for k, v in ROLES.items()}
+    inverse_role_map = {v.lower(): k for k, v in ROLES.items()}
 
     # load local language map as default
     language_map = LANGS
