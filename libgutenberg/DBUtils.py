@@ -39,6 +39,11 @@ def remove_ebook(ebook, session=None):
     session.query(Models.Book).where(Models.Book.pk == ebook).delete()
     session.commit()
 
+def remove_author(author, session=None):
+    session = check_session(session)
+    session.query(Models.Author).where(Models.Author.name == author).delete()
+    session.commit()
+
 def author_exists(author, session=None):
     session = check_session(session)
     return session.query(Models.Author).where(Models.Author.name == author).first()
