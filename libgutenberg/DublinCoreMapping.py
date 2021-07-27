@@ -81,12 +81,15 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         if not book:
             return
         self.book = book
-        self.release_date = book.release_date
+        if not self.release_date:
+            self.release_date = book.release_date
         self.downloads = book.downloads
-        self.rights = book.rights
+        if not self.rights:
+            self.rights = book.rights
 
         # authors
-        self.authors = book.authors
+        if not self.authors:
+            self.authors = book.authors
 
         for attrib in book.attributes:
             marc = Struct()
@@ -103,20 +106,20 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 info("Title: %s", self.title)
 
         # languages (datatype)
-
-        self.languages = book.langs if book.langs else [struct(id='en', language='English')]
+        if not self.languages:
+            self.languages = book.langs if book.langs else [struct(id='en', language='English')]
 
         # subjects (vocabulary)
-
-        self.subjects = book.subjects
+        if not self.subjects:
+            self.subjects = book.subjects
 
         # bookshelves (PG private vocabulary)
-
-        self.bookshelves = book.bookshelves
+        if not self.bookshelves:
+            self.bookshelves = book.bookshelves
 
         # LoCC (vocabulary)
-
-        self.loccs = book.loccs
+        if not self.loccs:
+            self.loccs = book.loccs
 
         # categories(text, audiobook, etc)
         if book.categories:
