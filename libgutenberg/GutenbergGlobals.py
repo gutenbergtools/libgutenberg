@@ -98,7 +98,6 @@ ROLES = {
     'pro': 'Producer',
     'prg': 'Programmer',
     'pfr': 'Proofreader',
-    'pbl': 'Publisher',
     'res': 'Researcher',
     'rev': 'Reviewer',
     'sng': 'Singer',
