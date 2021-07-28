@@ -204,11 +204,12 @@ class TestDCLoader(unittest.TestCase):
 
     def test_load_from_pgheader(self):
         dc = DublinCoreMapping.DublinCoreObject()
-        dc.get_my_session()
         with open(self.test_fakebook, 'r') as fakebook_file:
             dc.load_from_pgheader(fakebook_file.read())
         set_title = dc.title
         self.assertEqual(set_title, 'The Fake EBook of “Testing”')
+        self.assertEqual(len(dc.authors), 2)
+        dc.get_my_session()
         dc.save(updatemode=1)
         dc.session.flush()
         self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))
