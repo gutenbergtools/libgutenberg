@@ -228,3 +228,19 @@ class TestDCLoader(unittest.TestCase):
         self.assertTrue(DBUtils.author_exists('Lorem Ipsum Jr.'))
         DBUtils.remove_author('Lorem Ipsum Jr.', session=dc.session)
         self.assertFalse(DBUtils.author_exists('Lorem Ipsum Jr.'))
+
+@unittest.skipIf(not db_exists, 'database not configured')
+class TestDCJson(unittest.TestCase):
+    def setUp(self):
+        self.test_fakebook = os.path.join(os.path.dirname(__file__),'99999.json')
+
+    def test_load_from_json(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+        with open(self.test_fakebook, 'r') as fakebook_file:
+            dc.load_from_pgheader(fakebook_file.read())
+        set_title = dc.title
+        self.assertEqual(set_title, 'A Sagebrush Cinderella')
+        self.assertEqual(len(dc.authors), 2)
+        self.assertEqual(len(dc.scan_urls), 2)
+        self.assertEqual(dc.pubinfo.first_year, '1920')
+        return
