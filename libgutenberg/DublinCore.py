@@ -16,6 +16,7 @@ DublinCore metadata swiss army knife.
 from __future__ import unicode_literals
 
 import datetime
+import json
 import re
 import textwrap
 from gettext import gettext as _
@@ -78,6 +79,34 @@ class _HTML_Writer (object):
         self.metadata.append (ElementMaker ().link (
                 rel = self._what (what), href = str (uri)))
 
+class PubInfo(object):
+    def __init__(self):
+        self.publisher = ''
+        self.years = []  #  list of (event_type, year)
+        self.country = ''
+    
+    def __str__(self):
+        info_str = '('
+        if self.publisher:
+            info_str += self.publisher
+        if self.country:
+            info_str += ',' + self.country
+        if self.years:
+            info_str += ',' + self.first_year
+        info_str += ')'
+        return '' if info_str == '()' else info_str
+
+    @property
+    def first_year(self):
+        if len(self.years) > 1:
+            try:
+                self.years.sort(key=lambda x: int(x[1]))
+                return self.years[0][1]
+            except ValueError:
+                pass
+        return self.years[0][1] if self.years else ''
+        
+
 
 # file extension we hope to be able to parse
 PARSEABLE_EXTENSIONS = 'txt html htm tex tei xml'.split ()
@@ -128,6 +157,8 @@ class DublinCore (object):
         self.notes = None
         self.downloads = 0
         self.score = 1
+        self.credit = ''
+        self.pubinfo = PubInfo()
 
 
     @staticmethod
@@ -399,6 +430,9 @@ class GutenbergDublinCore (DublinCore):
         self.project_gutenberg_title = None
         self.is_format_of = None
         self._project_gutenberg_id = None
+        self.request_key = ''
+        self.scan_urls = set()
+
 
 
     @property
@@ -563,6 +597,7 @@ class GutenbergDublinCore (DublinCore):
             # prevent authors names "Jr."
             names = re.sub (r'[\s,]+Jr\.?(\s+|$)', ' Jr. ', names)
 
+            for name in names.split(','):
                 self.add_author (name, marcrel)
 
 
@@ -585,11 +620,12 @@ class GutenbergDublinCore (DublinCore):
                     error ("Cannot understand date: %s", date)
 
 
-        def handle_ebook_no (self, text):
+        def handle_ebook_no (self, key, text):
             """ Scan ebook no. """
 
             m = re.search (r'#(\d+)\]', text)
-            if m:
+            m = m if m else re.match (r'(\d+)', text)
+            if m and not self.project_gutenberg_id:
                 self.project_gutenberg_id = int (m.group (1))
 
 
@@ -619,13 +655,117 @@ class GutenbergDublinCore (DublinCore):
             locc.id = None
             locc.locc = suffix
             self.loccs.append (locc)
-
+            
+        def handle_creators(self, key, value):
+            if isinstance(value, dict):
+                value = [value]
+            elif isinstance(value, list):
+                pass
+            else:
+                error('%s is not a valid creator', value)
+                return
+            for creator in value:
+                try:
+                    marcrel = self.inverse_role_map[creator['role']]
+                except KeyError:
+                    warning('%s is not a supported marc role', creator['role'])
+                    marcrel = 'cre'
+                self.add_author(creator['name'], marcrel)
+       
+        def handle_scan_urls(self, key, value):
+            if isinstance(value, str):
+                value = [value]
+            elif isinstance(value, list):
+                pass
+            else:
+                error('%s is not a valid scanurl', value)
+                return
+            for scan_url in value:
+                self.scan_urls.add(scan_url)
+        
+        def handle_pubinfo(self, key, value):
+            if key == 'publisher':
+                self.pubinfo.publisher = value
+            elif key == 'publisher_country': 
+                self.pubinfo.country = value
+            elif key == 'source_publication_years':
+                value = [value] if isinstance(value, str) else value
+                if not isinstance(value, list):
+                    warning('%s is not a list of event:year pair', value)
+                    return
+                for event_year in value:
+                    if ':' in event_year:
+                        [event, year] = event_year.split(':')
+                        self.pubinfo.years.append((event, year))
+                    elif event_year:
+                        warning('assuming %s is a copyright year', event_year)
+                        self.pubinfo.years.append(('copyright', year))
 
         def store (self, prefix, suffix):
             """ Store into attribute. """
             # debug ("store: %s %s" % (prefix, suffix))
             setattr (self, prefix, suffix)
 
+        def scan_txt(self, data):
+            last_prefix = None
+            buf = ''
+
+            for line in data.splitlines ()[:300]:
+                line = line.strip (' %') # TeX comments
+                # debug ("Line: %s" % line)
+
+                if self.project_gutenberg_id is None:
+                    handle_ebook_no (self, None, line.strip ())
+
+                if last_prefix and len (line) == 0:
+                    # debug ("Dispatching: %s => %s" % (last_prefix, buf.strip ()))
+                    dispatcher[last_prefix] (self, last_prefix, buf.strip ())
+                    last_prefix = None
+                    buf = ''
+                    continue
+
+                if re.search ('START OF', line):
+                    break
+
+                prefix, sep, suffix = line.partition (':')
+                if sep:
+                    prefix = prefix.lower ()
+                    prefix = aliases.get (prefix, prefix) # map alias
+                    if prefix in dispatcher:
+                        if last_prefix:
+                            # debug ("Dispatching: %s => %s" % (last_prefix, buf.strip ()))
+                            dispatcher[last_prefix] (self, last_prefix, buf.strip ())
+                        last_prefix = prefix
+                        buf = suffix
+                        continue
+
+                buf += '\n' + line
+
+                line = line.lower ()
+                if ('audiobooksforfree' in line or
+                    'literalsystems' in line or
+                    'librivox' in line or
+                    'human reading of an ebook' in line):
+                    if 'Sound' not in self.categories:
+                        self.categories.append ('Sound')
+
+
+                if 'copyrighted project gutenberg' in line:
+                    self.rights = 'Copyrighted.'
+
+        def scan_json(self, data):
+            try:
+                pg_json = json.loads(data)
+                record = pg_json['DATA']
+                record = record[0] if isinstance(record, list) else record
+                for key, val in record.items():
+                    key = key.lower()
+                    key = 'creator_role' if key == "contributor" else key
+                    key = aliases.get(key, key)
+                    dispatcher[key](self, key, val)
+            except ValueError:
+                raise ValueError ('This is not a valid Project Gutenberg workflow file.')
+            
 
         dispatcher = {
             'title':        store,
@@ -640,6 +780,14 @@ class GutenbergDublinCore (DublinCore):
             'encoding':     store,
             'rights':       store,
             'alt_title':    store,
+            'creator_role':  handle_creators,
+            'scans_archive_url': handle_scan_urls,
+            'credit':       store,
+            'publisher':    handle_pubinfo,
+            'publisher_country': handle_pubinfo,
+            'source_publication_years': handle_pubinfo,
+            'ebook_number': handle_ebook_no,
+            "request_key":  store,
             }
 
         aliases = {
@@ -655,60 +803,19 @@ class GutenbergDublinCore (DublinCore):
             'alternate title':        'alt_title',
             }
 
-
         for role in list(self.inverse_role_map.keys ()):
             dispatcher[role] = handle_authors
 
         self.publisher = 'Project Gutenberg'
         self.rights = 'Public Domain in the USA.'
 
-        # scan this file
+        if data[0] == '{':
+            #assume json
+            scan_json(self,data)
+        else:
+            # scan this text file
+            scan_txt(self, data)
 
-        last_prefix = None
-        buf = ''
-
-        for line in data.splitlines ()[:300]:
-            line = line.strip (' %') # TeX comments
-            # debug ("Line: %s" % line)
-
-            if self.project_gutenberg_id is None:
-                handle_ebook_no (self, line.strip ())
-
-            if last_prefix and len (line) == 0:
-                # debug ("Dispatching: %s => %s" % (last_prefix, buf.strip ()))
-                dispatcher[last_prefix] (self, last_prefix, buf.strip ())
-                last_prefix = None
-                buf = ''
-                continue
-
-            if re.search ('START OF', line):
-                break
-
-            prefix, sep, suffix = line.partition (':')
-            if sep:
-                prefix = prefix.lower ()
-                prefix = aliases.get (prefix, prefix) # map alias
-                if prefix in dispatcher:
-                    if last_prefix:
-                        # debug ("Dispatching: %s => %s" % (last_prefix, buf.strip ()))
-                        dispatcher[last_prefix] (self, last_prefix, buf.strip ())
-                    last_prefix = prefix
-                    buf = suffix
-                    continue
-
-            buf += '\n' + line
-
-            line = line.lower ()
-            if ('audiobooksforfree' in line or
-                'literalsystems' in line or
-                'librivox' in line or
-                'human reading of an ebook' in line):
-                if 'Sound' not in self.categories:
-                    self.categories.append ('Sound')
-
-
-            if 'copyrighted project gutenberg' in line:
-                self.rights = 'Copyrighted.'
 
         if self.project_gutenberg_id is None:
             raise ValueError ('This is not a Project Gutenberg ebook file.')
