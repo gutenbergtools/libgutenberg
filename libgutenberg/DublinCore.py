@@ -151,7 +151,7 @@ class DublinCore (object):
         self.loccs = []
         self.categories = []
         self.dcmitypes = [] # similar to categories but based on the DCMIType vocabulary
-        self.release_date = None
+        self.release_date = datetime.date.min  # valid date for SQL, must not test for null!
         self.edition = None
         self.contents = None
         self.encoding = None
@@ -472,7 +472,7 @@ class GutenbergDublinCore (DublinCore):
         for subject in self.subjects:
             lit('dc:subject', subject.subject, 'dcterms:LCSH')
 
-        if self.release_date:
+        if self.release_date > datetime.date.min:
             lit('dcterms:created', self.release_date.isoformat(),
                  'dcterms:W3CDTF')
         else:
@@ -620,7 +620,7 @@ class GutenbergDublinCore (DublinCore):
                     except ValueError:
                         pass
 
-                if not self.release_date:
+                if self.release_date == datetime.date.min:
                     error ("Cannot understand date: %s", date)
 
 
