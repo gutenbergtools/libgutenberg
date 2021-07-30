@@ -26,8 +26,10 @@ import lxml
 
 from lxml.builder import ElementMaker
 
+import pycountry
+
 from . import GutenbergGlobals as gg
-from .GutenbergGlobals import NS, Struct, xpath, ROLES, LANGS
+from .GutenbergGlobals import NS, Struct, xpath, ROLES
 from .Logger import error, exception
 
 
@@ -131,8 +133,7 @@ class DublinCore (object):
     inverse_role_map = {v.lower(): k for k, v in ROLES.items()}
 
     # load local language map as default
-    language_map = LANGS
-    inverse_language_map = {v: k for k, v in LANGS.items()}
+    language_map = gg.language_map
 
 
     def __init__ (self):
@@ -311,7 +312,7 @@ class DublinCore (object):
         """ Add language from language id. """
         language = Struct ()
         language.id = lang_id
-        language.language = self.language_map [lang_id].title ()
+        language.language = self.language_map.get(lang_id)
         self.languages.append (language)
 
 
@@ -637,7 +638,7 @@ class GutenbergDublinCore (DublinCore):
             for lang in text.lower ().split (','):
                 try:
                     language = Struct ()
-                    language.id = self.inverse_language_map[lang]
+                    language.id = self.language_map.inverse(lang, default='en')
                     language.language = lang.title ()
                     self.languages.append (language)
                 except KeyError:

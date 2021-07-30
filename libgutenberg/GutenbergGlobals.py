@@ -17,6 +17,8 @@ import os
 import re
 import datetime
 
+import pycountry
+
 class Struct (object):
     """ handy class to pin attributes on
 
@@ -108,68 +110,80 @@ ROLES = {
 }
 
 
-LANGS = {
-    'af': 'Afrikaans',
-    'ale': 'Aleut',
-    'arp': 'Arapaho',
-    'br': 'Breton',
-    'bg': 'Bulgarian',
-    'rmr': 'Caló',
-    'ca': 'Catalan',
-    'ceb': 'Cebuano',
-    'zh': 'Chinese',
-    'cs': 'Czech',
-    'da': 'Danish',
-    'nl': 'Dutch',
-    'en': 'English',
-    'eo': 'Esperanto',
-    'fi': 'Finnish',
-    'fr': 'French',
-    'fy': 'Frisian',
-    'fur': 'Friulian',
-    'gla': 'Gaelic, Scottish',
-    'gl': 'Galician',
-    'kld': 'Gamilaraay',
-    'de': 'German',
-    'bgi': 'Giangan',
-    'el': 'Greek',
-    'he': 'Hebrew',
-    'hu': 'Hungarian',
-    'is': 'Icelandic',
-    'ilo': 'Iloko',
-    'ia': 'Interlingua',
-    'iu': 'Inuktitut',
-    'ga': 'Irish',
-    'iro': 'Iroquoian',
-    'it': 'Italian',
-    'ja': 'Japanese',
-    'csb': 'Kashubian',
-    'kha': 'Khasi',
-    'ko': 'Korean',
-    'la': 'Latin',
-    'lt': 'Lithuanian',
-    'mi': 'Maori',
-    'myn': 'Mayan Languages',
-    'enm': 'Middle English',
-    'nah': 'Nahuatl',
-    'nap': 'Napoletano-Calabrese',
-    'nai': 'North American Indian',
-    'no': 'Norwegian',
-    'oc': 'Occitan',
-    'ang': 'Old English',
-    'pl': 'Polish',
-    'pt': 'Portuguese',
-    'ro': 'Romanian',
-    'ru': 'Russian',
-    'sa': 'Sanskrit',
-    'sr': 'Serbian',
-    'es': 'Spanish',
-    'sv': 'Swedish',
-    'tl': 'Tagalog',
-    'tr': 'Turkish',
-    'cy': 'Welsh',
-    'yi': 'Yiddish',
-}
+
+class language_map(object):
+    alt_names = {
+        'Bangla': 'bn',
+        'Bhutani': 'dz',
+        'Farsi': 'fa',
+        'Fiji': 'fj',
+        'Frisian': 'fy',
+        'Interlingua': 'ia',
+        'Inupiak': 'ik',
+        'Greenlandic': 'kl',
+        'Cambodian': 'km',
+        'Laothian': 'lo',
+        'Malay': 'ms',
+        'Nepali': 'ne',
+        'Occitan': 'oc',
+        'Oriya': 'or',
+        'Punjabi': 'pa',
+        'Pashto': 'ps',
+        'Rhaeto-Romance': 'rm',
+        'Kurundi': 'rn',
+        'Sangho': 'sg',
+        'Singhalese': 'si',
+        'Siswati': 'ss',
+        'Sesotho': 'st',
+        'Swahili': 'sw',
+        'Setswana': 'tn',
+        'Tonga': 'to',
+        'Uigur': 'ug',
+        'Volapuk': 'vo',
+        'Greek': 'el',
+        'Waray': 'war',
+        'Nahuatl': 'nah',
+        'Middle English': 'enm',
+        'Old English': 'ang',
+        'North American Indian': 'nai',
+        'Mayan Languages': 'myn',
+        'Iroquoian': 'iro',
+        'Napoletano-Calabrese': 'nap',
+        'Gaelic, Scottish': 'gla',
+        'Gaelic, Irish': 'gle',
+        'Greek, Ancient': 'grc',
+        'Ojibwa, Western': 'ojw',
+        'Bodo': 'brx',
+    }
+    
+    @classmethod
+    def get(cls, code, default=''):
+        lang = None
+        if not code:
+            return default
+        if len(code) == 2:
+            lang = pycountry.languages.get(alpha_2=code)
+        elif len(code) == 3:
+            lang = pycountry.languages.get(alpha_3=code)
+            if not lang:
+                lang = pycountry.language_families.get(alpha_3=code)
+        return lang.name if lang else default
+
+    @classmethod
+    def inverse(cls, name, default='en'):
+        lang = None
+        if not name:
+            return default
+        if name in cls.alt_names:
+            return cls.alt_names[name]
+        lang = pycountry.languages.get(name=name)
+        if lang:
+            if hasattr(lang, 'alpha_2'):
+                return lang.alpha_2
+            if hasattr(lang, 'alpha_3'):
+                return lang.alpha_3
+        return default  
+
 
 class NameSpaceClark (object):
     """ Build a tag name in Clark notation.
