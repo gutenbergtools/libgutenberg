@@ -88,14 +88,14 @@ class PubInfo(object):
         self.country = ''
     
     def __str__(self):
-        info_str = '('
-        if self.publisher:
-            info_str += self.publisher
+        info_str = ''
         if self.country:
-            info_str += ',' + self.country
+            info_str += self.country + ': '
+        if self.publisher:
+            info_str += self.publisher 
         if self.years:
-            info_str += ',' + self.first_year
-        info_str += ')'
+            info_str += ', ' + self.first_year
+        info_str = info_str.trim()
         return '' if info_str == '()' else info_str
 
     @property
@@ -107,7 +107,24 @@ class PubInfo(object):
             except ValueError:
                 pass
         return self.years[0][1] if self.years else ''
-        
+
+    def marc(self):
+        entries = []
+        subc = ''
+        if self.first_year:     #guarantees sort
+            subc += self.years[0][1]
+            for year in self.years[1:]:
+                subc += ',%s %s' % year
+        country = pycountry.countries.get(alpha_2=self.country)
+        info_str = ('$a' + country.name + ' :') if country else ''
+        if self.publisher:
+            info_str += '$b' + self.publisher + ','
+        if subc:
+            info_str += '$c' + subc
+        info_str = '##' +info_str.strip(' ,:') + '.'
+        return '' if info_str == '##.' else info_str
+            
+            
 
 
 # file extension we hope to be able to parse
