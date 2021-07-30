@@ -8,6 +8,7 @@ import unittest
 from libgutenberg.CommonOptions import Options
 from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
 from libgutenberg import DBUtils, DublinCoreMapping
+from libgutenberg.Models import Attribute
 
 db_exists = GutenbergDatabase.db_exists
 
@@ -243,4 +244,30 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(len(dc.authors), 2)
         self.assertEqual(len(dc.scan_urls), 2)
         self.assertEqual(dc.pubinfo.first_year, '1920')
-        return
+        dc.get_my_session()
+        dc.save(updatemode=1)
+        dc.session.flush()
+
+        self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))
+        self.assertEqual(len(dc.book.authors), 2)
+        dc.load_from_database(99999)
+        self.assertEqual(set_title, dc.title)
+        self.assertTrue('1920' in
+            dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=240).first().text)
+        self.assertEqual(
+            len(dc.session.query(Attribute).filter_by(book=dc.book,
+                fk_attriblist=508).first().text),
+            26)
+        self.assertEqual(
+            len(dc.session.query(Attribute).filter_by(book=dc.book,
+                fk_attriblist=904).all()),
+            2)
+        self.assertEqual(
+            dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=905).first().text,
+            '20210623194947brand')
+
+        dc.delete()
+        dc = DublinCoreMapping.DublinCoreObject()
+        dc.load_from_database(99999)
+        dc.session.flush()
+        self.assertFalse(DBUtils.ebook_exists(99999))
