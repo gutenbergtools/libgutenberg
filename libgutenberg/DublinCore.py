@@ -441,7 +441,10 @@ class GutenbergDublinCore (DublinCore):
 
     @project_gutenberg_id.setter
     def project_gutenberg_id(self, ebook):
-        self._project_gutenberg_id = int (ebook)
+        try:
+            self._project_gutenberg_id = int (ebook)
+        except ValueError:
+            self._project_gutenberg_id = 0
         self.is_format_of = str (NS.ebook) + str (ebook)
         self.canonical_url = re.sub(r'^http:', 'https:', self.is_format_of) + '/'
 
