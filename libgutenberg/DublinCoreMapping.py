@@ -290,7 +290,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 if subject and subject not in self.book.subjects:
                     self.book.subjects.append(subject)
             if self.notes:
-                att = session.query(Attribute).filter_by(book=book, fk_attriblist=500).first()
+                att = session.query(Attribute).filter_by(book=self.book, fk_attriblist=500).first()
                 if not att:
                     self.book.attributes.append(Attribute(
                         fk_attriblist=500, nonfiling=nonfiling, text=self.notes))
@@ -302,7 +302,17 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 if category and category not in self.book.categories:
                     self.book.categories.append(category)
             self.book.release_date = self.release_date
-                
+            if self.pubinfo:
+                self.add_attribute(self.book, self.pubinfo.marc(), marc=240)
+                self.add_attribute(self.book, self.pubinfo.first_year, marc=906)
+                self.add_attribute(self.book, self.pubinfo.country, marc=907)
+            if self.credit:
+                self.add_attribute(self.book, self.credit, marc=508)
+            if self.scan_urls:
+                self.add_attribute(self.book, self.scan_urls, marc=904)
+            if self.request_key:
+                self.add_attribute(self.book, self.request_key, marc=905)
+            
             self.book.updatemode = 1 # prevent non-cataloguer changes
 
             session.commit()
@@ -361,15 +371,30 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 break
         title = title.replace('--', '—')
         title = title.replace(' *_ *', '\n')
-        session = self.get_my_session()
-        att = session.query(Attribute).filter_by(book=book, fk_attriblist=marc).first()
-        if att:
-            att.nonfiling=nonfiling
-            att.text=title
-        else:
-            self.book.attributes.append(Attribute(
-                fk_attriblist=marc, nonfiling=nonfiling, text=title))
+        self.add_attribute(book, title, nonfiling=nonfiling, marc=marc)
         
+    def add_attribute(self, book, attr, nonfiling=0, marc=0):
+        session = self.get_my_session()
+        attq = session.query(Attribute).filter_by(book=book, fk_attriblist=marc)
+        if isinstance(attr, set):
+            attr = list(attr)
+        if isinstance(attr, list):
+            # append instead of replace
+            for text_item in attr:
+                for att in attq.all():
+                    if att.text == text_item:
+                        return
+                book.attributes.append(Attribute(
+                    fk_attriblist=marc, nonfiling=nonfiling, text=text_item)) 
+        else:
+            att = attq.first()
+            if att:
+                att.nonfiling=nonfiling
+                att.text=attr
+            else:
+                book.attributes.append(Attribute(
+                    fk_attriblist=marc, nonfiling=nonfiling, text=attr))
+
     def delete(self):
         """ only delete the book! """
         session = self.get_my_session()
