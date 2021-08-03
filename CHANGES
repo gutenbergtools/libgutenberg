@@ -42,7 +42,7 @@ To support the new publication workflows, we have added a new way to do the init
 - changed default value for DublinCore.release_date to datetime.date.min because otherwise the ORMs autocommits fail as release_date has a NOT_NULL constraint
 - added DublinCore.PGDCObject so that ebookmaker can load an object that works with or without a backing database. Note that ebookmaker was broken with 0.7.2 without the database
 - tests now check if the database is connected before running (and failing) tests of the database and issue appropriate warnings
-
+- delint
 
 0.7.2 (July 19, 2021)
 - test_orm now tests the orm
