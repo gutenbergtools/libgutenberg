@@ -5,15 +5,26 @@ import datetime
 import os
 import unittest
 
+import psycopg2
+
 from libgutenberg.CommonOptions import Options
 from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
 from libgutenberg import DBUtils, DublinCoreMapping
+from libgutenberg.Logger import warning
 from libgutenberg.Models import Attribute
 
-db_exists = GutenbergDatabase.db_exists
+global db_exists
 
+db_exists = GutenbergDatabase.db_exists
 options = Options()
 options.config = None
+if db_exists:
+    try:
+        GutenbergDatabase.Database().connect()
+    except psycopg2.OperationalError:
+        db_exists = False
+        Warning("can't connect to database")
+
 
 @unittest.skipIf(not db_exists, 'database not configured')
 class TestDC(unittest.TestCase):
