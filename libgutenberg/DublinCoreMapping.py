@@ -303,7 +303,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                     self.book.categories.append(category)
             self.book.release_date = self.release_date
             if self.pubinfo:
-                self.add_attribute(self.book, self.pubinfo.marc(), marc=240)
+                self.add_attribute(self.book, self.pubinfo.marc(), marc=260)
                 self.add_attribute(self.book, self.pubinfo.first_year, marc=906)
                 self.add_attribute(self.book, self.pubinfo.country, marc=907)
             if self.credit:

@@ -252,8 +252,11 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(len(dc.book.authors), 2)
         dc.load_from_database(99999)
         self.assertEqual(set_title, dc.title)
-        self.assertTrue('1920' in
-            dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=240).first().text)
+        marc260 = dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=260).first().text
+        self.assertTrue('1920' in marc260)
+        self.assertEqual(
+            '##$aUnited States :$bFrank A. Munsey Company,$c1920,reprint 1955,reprint 1972.',
+            marc260)
         self.assertEqual(
             len(dc.session.query(Attribute).filter_by(book=dc.book,
                 fk_attriblist=508).first().text),

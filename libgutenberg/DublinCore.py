@@ -116,7 +116,8 @@ class PubInfo(object):
             for year in self.years[1:]:
                 subc += ',%s %s' % year
         country = pycountry.countries.get(alpha_2=self.country)
-        info_str = ('$a' + country.name + ' :') if country else ''
+        country = country.name if country else self.country
+        info_str = ('$a' + country + ' :') if country else ''
         if self.publisher:
             info_str += '$b' + self.publisher + ','
         if subc:
