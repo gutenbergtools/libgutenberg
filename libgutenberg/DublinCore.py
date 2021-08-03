@@ -98,6 +98,9 @@ class PubInfo(object):
         info_str = info_str.trim()
         return '' if info_str == '()' else info_str
 
+    def __bool__(self):
+        return False #self.publisher or self.years or self.country
+
     @property
     def first_year(self):
         if len(self.years) > 1:
