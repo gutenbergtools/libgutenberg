@@ -23,14 +23,14 @@ from gettext import gettext as _
 
 import six
 import lxml
-
 from lxml.builder import ElementMaker
 
 import pycountry
 
 from . import GutenbergGlobals as gg
 from .GutenbergGlobals import NS, Struct, xpath, ROLES
-from .Logger import error, exception
+from .Logger import error, exception, warning
+
 
 
 DCMITYPES = [
@@ -86,13 +86,13 @@ class PubInfo(object):
         self.publisher = ''
         self.years = []  #  list of (event_type, year)
         self.country = ''
-    
+
     def __str__(self):
         info_str = ''
         if self.country:
             info_str += self.country + ': '
         if self.publisher:
-            info_str += self.publisher 
+            info_str += self.publisher
         if self.years:
             info_str += ', ' + self.first_year
         info_str = info_str.trim()
@@ -127,8 +127,8 @@ class PubInfo(object):
             info_str += '$c' + subc
         info_str = '##' +info_str.strip(' ,:') + '.'
         return '' if info_str == '##.' else info_str
-            
-            
+
+
 
 
 # file extension we hope to be able to parse
@@ -433,13 +433,13 @@ class DublinCore (object):
                 creators.append (author)
         if num_auths == 1:
             return DublinCore.make_pretty_name (creators[0].name)
-        elif num_auths == 2:
+        if num_auths == 2:
             names = "%s and %s" % (
                 DublinCore.make_pretty_name (creators[0].name),
                 DublinCore.make_pretty_name (creators[1].name)
             )
             return names
-        elif num_auths > 2:
+        if num_auths > 2:
             return "%s et al." % DublinCore.make_pretty_name (creators[0].name)
         return ''
 
@@ -471,7 +471,6 @@ class GutenbergDublinCore (DublinCore):
         self.canonical_url = re.sub(r'^http:', 'https:', self.is_format_of) + '/'
 
 
-
     def feed_to_writer(self, writer):
         """ Pipe metadata into writer. """
 
@@ -493,7 +492,7 @@ class GutenbergDublinCore (DublinCore):
         for subject in self.subjects:
             lit('dc:subject', subject.subject, 'dcterms:LCSH')
 
-        if self.release_date > datetime.date.min:
+        if self.release_date != datetime.date.min:
             lit('dcterms:created', self.release_date.isoformat(),
                  'dcterms:W3CDTF')
         else:
@@ -643,6 +642,7 @@ class GutenbergDublinCore (DublinCore):
 
                 if self.release_date == datetime.date.min:
                     error ("Cannot understand date: %s", date)
+            print(self.release_date)
 
 
         def handle_ebook_no (self, key, text):
@@ -680,7 +680,7 @@ class GutenbergDublinCore (DublinCore):
             locc.id = None
             locc.locc = suffix
             self.loccs.append (locc)
-            
+
         def handle_creators(self, key, value):
             if isinstance(value, dict):
                 value = [value]
@@ -696,7 +696,7 @@ class GutenbergDublinCore (DublinCore):
                     warning('%s is not a supported marc role', creator['role'])
                     marcrel = 'cre'
                 self.add_author(creator['name'], marcrel)
-       
+
         def handle_scan_urls(self, key, value):
             if isinstance(value, str):
                 value = [value]
@@ -707,11 +707,11 @@ class GutenbergDublinCore (DublinCore):
                 return
             for scan_url in value:
                 self.scan_urls.add(scan_url)
-        
+
         def handle_pubinfo(self, key, value):
             if key == 'publisher':
                 self.pubinfo.publisher = value
-            elif key == 'publisher_country': 
+            elif key == 'publisher_country':
                 self.pubinfo.country = value
             elif key == 'source_publication_years':
                 value = [value] if isinstance(value, str) else value
@@ -790,7 +790,7 @@ class GutenbergDublinCore (DublinCore):
                     dispatcher[key](self, key, val)
             except ValueError:
                 raise ValueError ('This is not a valid Project Gutenberg workflow file.')
-            
+
 
         dispatcher = {
             'title':        store,
