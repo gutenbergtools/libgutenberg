@@ -27,15 +27,15 @@ from .GutenbergDatabase import xl, DatabaseError, IntegrityError
 
 RE_FIRST_AZ = re.compile (r"^[a-z]")
 
-class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
+class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
     """ Augment GutenbergDublinCore class. """
 
-    def __init__ (self, pool):
-        DublinCore.GutenbergDublinCore.__init__ (self)
+    def __init__(self, pool):
+        DublinCore.GutenbergDublinCore.__init__(self)
 
         self.new_filesystem = False
-        self.mediatypes = set ()
-        self.filetypes = set ()
+        self.mediatypes = set()
+        self.filetypes = set()
         self.files = []
         self.generated_files = []
 
@@ -43,36 +43,36 @@ class GutenbergDatabaseDublinCore (DublinCore.GutenbergDublinCore):
         self.marcs = []
 
 
-    def has_images (self):
+    def has_images(self):
         """ Return True if this book has images. """
 
         for file_ in self.files:
-            if file_.filetype and file_.filetype.find ('.images') > -1:
+            if file_.filetype and file_.filetype.find('.images') > -1:
                 return True
         return False
 
 
-    def load_from_database (self, ebook):
+    def load_from_database(self, ebook):
         """ Load DublinCore from PG database.
 
         Best method if direct database connection available.
 
         """
 
-        conn = self.pool.connect ()
-        c  = conn.cursor ()
-        c2 = conn.cursor ()
+        conn = self.pool.connect()
+        c  = conn.cursor()
+        c2 = conn.cursor()
 
         # id, copyright and release date
 
         self.project_gutenberg_id = id_ = ebook
 
-        c.execute ("""
+        c.execute("""
 select copyrighted, release_date, downloads from books where pk = %(ebook)s""",
                    {'ebook': id_})
 
-        for row in c.fetchall ():
-            row = xl (c, row)
+        for row in c.fetchall():
+            row = xl(c, row)
             self.release_date = row.release_date
             self.rights = ('Copyrighted. Read the copyright notice inside this book for details.'
                            if row.copyrighted
@@ -84,7 +84,7 @@ select copyrighted, release_date, downloads from books where pk = %(ebook)s""",
         # for a list of relator codes see:
         # http://www.loc.gov/loc.terms/relators/
 
-        c.execute ("""
+        c.execute("""
 SELECT authors.pk as pk, author, born_floor, born_ceil, died_floor, died_ceil, fk_roles, role
    FROM mn_books_authors
    JOIN authors ON mn_books_authors.fk_authors = authors.pk
@@ -92,10 +92,10 @@ SELECT authors.pk as pk, author, born_floor, born_ceil, died_floor, died_ceil, f
 WHERE mn_books_authors.fk_books = %(ebook)s
 ORDER BY role, author""", {'ebook': id_})
 
-        for row in c.fetchall ():
-            row = xl (c, row)
+        for row in c.fetchall():
+            row = xl(c, row)
 
-            author = Struct ()
+            author = Struct()
             author.id             = row.pk
             author.name           = row.author
             author.marcrel        = row.fk_roles
@@ -108,36 +108,36 @@ ORDER BY role, author""", {'ebook': id_})
             author.webpages       = []
 
             author.name_and_dates = \
-                DublinCore.GutenbergDublinCore.format_author_date (author)
+                DublinCore.GutenbergDublinCore.format_author_date(author)
 
             # used to link to authorlists on new PG site
-            first_let_match = RE_FIRST_AZ.search (author.name_and_dates.lower ())
-            author.first_lettter = first_let_match.group (0) if first_let_match  else  'other'
+            first_let_match = RE_FIRST_AZ.search(author.name_and_dates.lower())
+            author.first_lettter = first_let_match.group(0) if first_let_match  else  'other'
 
-            c2.execute ("SELECT alias, alias_heading from aliases where fk_authors = %d"
+            c2.execute("SELECT alias, alias_heading from aliases where fk_authors = %d"
                         % row.pk)
-            for row2 in c2.fetchall ():
-                row2 = xl (c2, row2)
-                alias = Struct ()
+            for row2 in c2.fetchall():
+                row2 = xl(c2, row2)
+                alias = Struct()
                 alias.alias = row2.alias
                 alias.heading = row2.alias_heading
-                author.aliases.append (alias)
+                author.aliases.append(alias)
 
-            c2.execute ("""
+            c2.execute("""
 SELECT description, url from author_urls where fk_authors = %d""" % row.pk)
-            for row2 in c2.fetchall ():
-                row2 = xl (c2, row2)
-                webpage = Struct ()
+            for row2 in c2.fetchall():
+                row2 = xl(c2, row2)
+                webpage = Struct()
                 webpage.description = row2.description
                 webpage.url = row2.url
-                author.webpages.append (webpage)
+                author.webpages.append(webpage)
 
-            self.authors.append (author)
+            self.authors.append(author)
 
 
         # titles, notes
 
-        c.execute ("""
+        c.execute("""
 select attributes.text, attributes.nonfiling,
        attriblist.name, attriblist.caption
   from attributes, attriblist
@@ -145,110 +145,110 @@ select attributes.text, attributes.nonfiling,
    and attributes.fk_attriblist = attriblist.pk
  order by attriblist.name""", {'ebook': id_})
 
-        for row in c.fetchall ():
-            row = xl (c, row)
+        for row in c.fetchall():
+            row = xl(c, row)
 
-            marc = Struct ()
-            marc.code = row.name.split (' ')[0]
-            marc.text = self.strip_marc_subfields (row.text)
+            marc = Struct()
+            marc.code = row.name.split(' ')[0]
+            marc.text = self.strip_marc_subfields(row.text)
             marc.caption = row.caption
-            self.marcs.append (marc)
+            self.marcs.append(marc)
 
             if marc.code == '245':
                 self.title = marc.text
                 self.title_file_as = marc.text[row.nonfiling:]
-                self.title_file_as = self.title_file_as[0].upper () + self.title_file_as[1:]
-                info ("Title: %s", self.title)
+                self.title_file_as = self.title_file_as[0].upper() + self.title_file_as[1:]
+                info("Title: %s", self.title)
 
 
         # languages (datatype)
 
-        c.execute ("""
+        c.execute("""
 select pk, lang from langs, mn_books_langs
   where langs.pk = mn_books_langs.fk_langs
     and mn_books_langs.fk_books = %(ebook)s""", {'ebook': id_})
 
-        rows = c.fetchall ()
+        rows = c.fetchall()
 
         if not rows:
-            rows.append ( ('en', 'English' ) )
+            rows.append(('en', 'English' ) )
 
         for row in rows:
-            row = xl (c, row)
-            language = Struct ()
+            row = xl(c, row)
+            language = Struct()
             language.id = row.pk
             language.language = row.lang
-            self.languages.append (language)
+            self.languages.append(language)
 
 
         # subjects (vocabulary)
 
-        c.execute ("""
+        c.execute("""
 select pk, subject from subjects, mn_books_subjects
   where subjects.pk = mn_books_subjects.fk_subjects
     and mn_books_subjects.fk_books = %(ebook)s""", {'ebook': id_})
 
-        for row in c.fetchall ():
-            row = xl (c, row)
-            subject = Struct ()
+        for row in c.fetchall():
+            row = xl(c, row)
+            subject = Struct()
             subject.id = row.pk
             subject.subject = row.subject
-            self.subjects.append (subject)
+            self.subjects.append(subject)
 
 
         # bookshelves (PG private vocabulary)
 
-        c.execute ("""
+        c.execute("""
 select pk, bookshelf from bookshelves, mn_books_bookshelves
   where bookshelves.pk = mn_books_bookshelves.fk_bookshelves
     and mn_books_bookshelves.fk_books = %(ebook)s""", {'ebook': id_})
 
-        for row in c.fetchall ():
-            row = xl (c, row)
-            bookshelf = Struct ()
+        for row in c.fetchall():
+            row = xl(c, row)
+            bookshelf = Struct()
             bookshelf.id = row.pk
             bookshelf.bookshelf = row.bookshelf
-            self.bookshelves.append (bookshelf)
+            self.bookshelves.append(bookshelf)
 
 
         # LoCC (vocabulary)
 
-        c.execute ("""
+        c.execute("""
 select pk, locc from loccs, mn_books_loccs
   where loccs.pk = mn_books_loccs.fk_loccs
     and mn_books_loccs.fk_books = %(ebook)s""", {'ebook': id_})
 
-        for row in c.fetchall ():
-            row = xl (c, row)
-            locc = Struct ()
+        for row in c.fetchall():
+            row = xl(c, row)
+            locc = Struct()
             locc.id = row.pk
             locc.locc = row.locc
-            self.loccs.append (locc)
+            self.loccs.append(locc)
 
 
         # categories (vocabulary)
 
-        c.execute ("""
+        c.execute("""
 select dcmitype, description from dcmitypes, mn_books_categories
   where dcmitypes.pk = mn_books_categories.fk_categories
     and fk_books = %(ebook)s""", {'ebook': id_})
-        rows = c.fetchall ()
+        rows = c.fetchall()
 
         if not rows:
-            rows.append ( ('Text', 'Text') )
+            rows.append(('Text', 'Text') )
 
         for row in rows:
-            row = xl (c, row)
-            self.categories.append (row.dcmitype)
-            dcmitype = Struct ()
+            row = xl(c, row)
+            self.categories.append(row.dcmitype)
+            dcmitype = Struct()
             dcmitype.id = row.dcmitype
             dcmitype.description = row.description
-            self.dcmitypes.append (dcmitype)
+            self.dcmitypes.append(dcmitype)
 
-        self.load_files_from_database (ebook)
+        self.load_files_from_database(ebook)
 
 
-    def load_files_from_database (self, id_):
+    def load_files_from_database(self, id_):
         """ Load files from PG database.
 
         Files are not in DublinCore but useful to have here.
@@ -256,17 +256,17 @@ select dcmitype, description from dcmitypes, mn_books_categories
         """
 
         self.new_filesystem = False
-        self.mediatypes = set ()
-        self.filetypes = set ()
+        self.mediatypes = set()
+        self.filetypes = set()
         self.files = []
         self.generated_files = []
 
-        conn = self.pool.connect ()
-        c  = conn.cursor ()
+        conn = self.pool.connect()
+        c  = conn.cursor()
 
         # files (not strictly DublinCore but useful)
 
-        c.execute (
+        c.execute(
 """select files.pk as pk, filename, filetype, mediatype, filesize, filemtime,
           fk_filetypes, fk_encodings, fk_compressions, generated
 from files
@@ -278,28 +278,28 @@ where fk_books = %(ebook)s
 order by filetypes.sortorder, encodings.sortorder, fk_filetypes,
          fk_encodings, fk_compressions, filename""",  {'ebook': id_})
 
-        for row in c.fetchall ():
-            row = xl (c, row)
+        for row in c.fetchall():
+            row = xl(c, row)
 
-            file_ = Struct ()
+            file_ = Struct()
             fn = row.filename
             file_.archive_path = fn
 
-            adir = gg.archive_dir (id_)
-            if fn.startswith (adir):
-                fn = fn.replace (adir, 'files/%d' % id_)
+            adir = gg.archive_dir(id_)
+            if fn.startswith(adir):
+                fn = fn.replace(adir, 'files/%d' % id_)
                 self.new_filesystem = True
-            ## elif fn.startswith ('dirs/%s' % adir):
-            ##     fn = fn.replace ('dirs/%s' % adir, 'files/%d' % id_)
+            ## elif fn.startswith('dirs/%s' % adir):
+            ##     fn = fn.replace('dirs/%s' % adir, 'files/%d' % id_)
             ##     self.new_filesystem = True
-            elif fn.startswith ('etext'):
+            elif fn.startswith('etext'):
                 fn = 'dirs/' + fn
 
             file_.filename    = fn
             file_.url         = PG_URL + fn
             file_.id          = row.pk
             file_.extent      = row.filesize
-            file_.hr_extent   = self.human_readable_size (row.filesize)
+            file_.hr_extent   = self.human_readable_size(row.filesize)
             file_.modified    = row.filemtime
             file_.filetype    = row.fk_filetypes
             file_.hr_filetype = row.filetype
@@ -308,52 +308,52 @@ order by filetypes.sortorder, encodings.sortorder, fk_filetypes,
             file_.generated   = row.generated
 
             if row.filetype:
-                self.filetypes.add (row.filetype)
+                self.filetypes.add(row.filetype)
 
             # internet media type (vocabulary)
 
-            file_.mediatypes = [gg.DCIMT (row.mediatype, row.fk_encodings)]
+            file_.mediatypes = [gg.DCIMT(row.mediatype, row.fk_encodings)]
             if file_.compression == 'zip':
-                file_.mediatypes.append (gg.DCIMT ('application/zip'))
+                file_.mediatypes.append(gg.DCIMT('application/zip'))
 
-            if file_.generated and not row.fk_filetypes.startswith ('cover.'):
+            if file_.generated and not row.fk_filetypes.startswith('cover.'):
                 file_.url = "%sebooks/%d.%s" % (PG_URL, id_, row.fk_filetypes)
 
-            self.files.append (file_)
+            self.files.append(file_)
 
             if row.mediatype:
-                self.mediatypes.add (row.mediatype)
+                self.mediatypes.add(row.mediatype)
 
 
-    def remove_filetype_from_database (self, id_, type_):
+    def remove_filetype_from_database(self, id_, type_):
         """ Remove filetype from PG database. """
 
-        conn = self.pool.connect ()
-        c  = conn.cursor ()
+        conn = self.pool.connect()
+        c  = conn.cursor()
 
-        c.execute ('start transaction')
-        c.execute ("""delete from files where
+        c.execute('start transaction')
+        c.execute("""delete from files where
 fk_books = %(id)s and
 fk_filetypes = %(fk_filetypes)s and
 filename ~ '^cache'""",
                    { 'id': id_,
                      'fk_filetypes': type_ })
-        c.execute ('commit')
+        c.execute('commit')
 
 
-    def remove_file_from_database (self, filename):
+    def remove_file_from_database(self, filename):
         """ Remove file from PG database. """
 
-        conn = self.pool.connect ()
-        c  = conn.cursor ()
+        conn = self.pool.connect()
+        c  = conn.cursor()
 
-        c.execute ('start transaction')
-        c.execute ("delete from files where filename = %(filename)s",
+        c.execute('start transaction')
+        c.execute("delete from files where filename = %(filename)s",
                    { 'filename': filename })
-        c.execute ('commit')
+        c.execute('commit')
 
 
-    def store_file_in_database (self, id_, filename, type_):
+    def store_file_in_database(self, id_, filename, type_):
         """ Store file in PG database. """
 
         encoding = None
@@ -362,28 +362,28 @@ filename ~ '^cache'""",
             encoding = 'utf-8'
 
         try:
-            statinfo = os.stat (filename)
+            statinfo = os.stat(filename)
 
-            filename = re.sub ('^.*/cache/', 'cache/', filename)
+            filename = re.sub('^.*/cache/', 'cache/', filename)
 
-            conn = self.pool.connect ()
-            c  = conn.cursor ()
+            conn = self.pool.connect()
+            c  = conn.cursor()
 
-            c.execute ('start transaction')
-            c.execute ("select * from filetypes where pk = %(type)s", {'type': type_} )
+            c.execute('start transaction')
+            c.execute("select * from filetypes where pk = %(type)s", {'type': type_} )
 
-            for dummy_row in c.fetchall (): # if type_ found
+            for dummy_row in c.fetchall(): # if type_ found
                 diskstatus = 0
-                #if type_.startswith ('cover'):
+                #if type_.startswith('cover'):
                 #    diskstatus = 1
 
-                c.execute ("""
+                c.execute("""
 delete from files where filename = %(filename)s""",
                            { 'filename': filename,
                              'id': id_,
                              'fk_filetypes': type_ })
 
-                c.execute ("""
+                c.execute("""
 insert into files (fk_books, filename, filesize, filemtime,
                    fk_filetypes, fk_encodings, fk_compressions, diskstatus)
   values (%(ebook)s, %(filename)s, %(filesize)s, %(filemtime)s,
@@ -391,41 +391,41 @@ insert into files (fk_books, filename, filesize, filemtime,
                            {'ebook':        id_,
                             'filename':     filename,
                             'filesize':     statinfo.st_size,
-                            'filemtime':    datetime.datetime.fromtimestamp (
-                                statinfo.st_mtime).isoformat (),
+                            'filemtime':    datetime.datetime.fromtimestamp(
+                                statinfo.st_mtime).isoformat(),
                             'fk_encodings': encoding,
                             'fk_filetypes': type_,
                             'diskstatus':   diskstatus})
 
-            c.execute ('commit')
+            c.execute('commit')
 
         except OSError:
-            error ("Cannot stat %s", filename)
+            error("Cannot stat %s", filename)
 
         except IntegrityError:
-            error ("Book number %s is not in database.", id_)
-            c.execute ('rollback')
+            error("Book number %s is not in database.", id_)
+            c.execute('rollback')
 
 
-    def register_coverpage (self, id_, url, code = 901):
+    def register_coverpage(self, id_, url, code = 901):
         """ Register a coverpage for this ebook. """
 
-        conn = self.pool.connect ()
-        c  = conn.cursor ()
-        c.execute ('commit')
+        conn = self.pool.connect()
+        c  = conn.cursor()
+        c.execute('commit')
 
         try:
-            c.execute ('start transaction')
+            c.execute('start transaction')
 
-            c.execute ("""
+            c.execute("""
 insert into attributes (fk_books, fk_attriblist, text) values (%(ebook)s, %(code)s, %(url)s)""",
-                       {'ebook': id_, 'code': code, 'url': gg.archive2files (id_, url)})
+                       {'ebook': id_, 'code': code, 'url': gg.archive2files(id_, url)})
 
-            c.execute ('commit')
+            c.execute('commit')
 
         except IntegrityError: # Duplicate key
-            c.execute ('rollback')
+            c.execute('rollback')
 
         except DatabaseError as what:
-            warning ("Error updating coverpage in database: %s.", what)
-            c.execute ('rollback')
+            warning("Error updating coverpage in database: %s.", what)
+            c.execute('rollback')
