@@ -99,7 +99,7 @@ class PubInfo(object):
         return '' if info_str == '()' else info_str
 
     def __bool__(self):
-        return False #self.publisher or self.years or self.country
+        return bool(self.publisher or self.years or self.country)
 
     @property
     def first_year(self):
