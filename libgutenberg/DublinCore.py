@@ -642,7 +642,6 @@ class GutenbergDublinCore (DublinCore):
 
                 if self.release_date == datetime.date.min:
                     error ("Cannot understand date: %s", date)
-            print(self.release_date)
 
 
         def handle_ebook_no (self, key, text):
