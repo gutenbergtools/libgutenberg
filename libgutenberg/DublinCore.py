@@ -29,7 +29,7 @@ import pycountry
 
 from . import GutenbergGlobals as gg
 from .GutenbergGlobals import NS, Struct, xpath, ROLES
-from .Logger import error, exception, warning
+from .Logger import error, exception, info, warning
 
 
 
@@ -596,6 +596,16 @@ class GutenbergDublinCore (DublinCore):
 
         """
 
+        def handle_subtitle (self, key, value):
+            self.title = self.title_no_subtitle + ': ' + value        
+        
+        def handle_title (self, key, value):
+            if self.subtitle:
+                self.title = value + ': ' + self.subtitle
+            else:
+                self.title = value
+                
+
         def handle_authors (self, role, names):
             """ Handle Author:, Illustrator: etc. line
 
@@ -725,6 +735,9 @@ class GutenbergDublinCore (DublinCore):
                         warning('assuming %s is a copyright year', event_year)
                         self.pubinfo.years.append(('copyright', year))
 
+        def nothandled(self, key, value):
+            info('key %s, value %s not handled', key, value)
+
         def store (self, prefix, suffix):
             """ Store into attribute. """
             # debug ("store: %s %s" % (prefix, suffix))
@@ -786,13 +799,14 @@ class GutenbergDublinCore (DublinCore):
                     key = key.lower()
                     key = 'creator_role' if key == "contributor" else key
                     key = aliases.get(key, key)
-                    dispatcher[key](self, key, val)
+                    dispatcher.get(key, nothandled)(self, key, val)
             except ValueError:
                 raise ValueError ('This is not a valid Project Gutenberg workflow file.')
 
 
         dispatcher = {
-            'title':        store,
+            'title':        handle_title,
+            'subtitle':     handle_subtitle,
             'author':       handle_authors,
             'release date': handle_release_date,
             'languages':    handle_languages,
