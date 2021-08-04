@@ -67,7 +67,7 @@ NSMAP = {
     'xslfo':      'http://www.w3.org/1999/XSL/Format',
 }
 
-NONFILINGS = {'The ', 'A ', 'An ', 'Der ', 'Die ', 'Das ', 'Eine ', 'Ein ', 
+NONFILINGS = {'The ', 'A ', 'An ', 'Der ', 'Die ', 'Das ', 'Eine ', 'Ein ',
 		      'La ', 'Le ', 'Les ', 'L\'', 'El '}
 ROLES = {
     'adp': 'Adapter',
@@ -155,7 +155,7 @@ class language_map(object):
         'Ojibwa, Western': 'ojw',
         'Bodo': 'brx',
     }
-    
+
     @classmethod
     def get(cls, code, default=''):
         lang = None
@@ -182,7 +182,7 @@ class language_map(object):
                 return lang.alpha_2
             if hasattr(lang, 'alpha_3'):
                 return lang.alpha_3
-        return default  
+        return default
 
 
 class NameSpaceClark (object):

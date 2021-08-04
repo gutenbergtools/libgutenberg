@@ -597,14 +597,11 @@ class GutenbergDublinCore (DublinCore):
         """
 
         def handle_subtitle (self, key, value):
-            self.title = self.title_no_subtitle + ': ' + value        
-        
-        def handle_title (self, key, value):
+            self.title = self.title_no_subtitle + ': ' + value        def handle_title (self, key, value):
             if self.subtitle:
                 self.title = value + ': ' + self.subtitle
             else:
                 self.title = value
-                
 
         def handle_authors (self, role, names):
             """ Handle Author:, Illustrator: etc. line
@@ -849,7 +846,7 @@ class GutenbergDublinCore (DublinCore):
 
         if data[0] == '{':
             #assume json
-            scan_json(self,data)
+            scan_json(self, data)
         else:
             # scan this text file
             scan_txt(self, data)
