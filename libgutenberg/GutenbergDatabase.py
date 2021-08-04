@@ -19,12 +19,12 @@ import os
 from .CommonOptions import Options
 from .Logger import warning, debug, critical
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool.impl import QueuePool, NullPool
 try:
     import psycopg2
     import psycopg2.extensions
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-    from sqlalchemy.pool.impl import QueuePool, NullPool
 
     psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
     psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
