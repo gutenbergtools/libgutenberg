@@ -82,7 +82,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         if not book:
             return
         self.book = book
-        if not self.release_date:
+        if self.release_date == datetime.date.min:
             self.release_date = book.release_date
         self.downloads = book.downloads
         if not self.rights:
