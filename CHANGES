@@ -1,4 +1,11 @@
 CHANGES
+0.8.1 (August 4, 2021)
+Bugfixes - 0.8.0 tagged but never released.
+- removed debugging code
+- fixed PibInfo.__bool__
+- fixed another release_date null test
+- added subtitle handling
+
 0.8.0 (August 3, 2021)
 To be able to use ORM for EbookConverter, we needed to add code code that saves the DublinCoreObject to the database. most of the functions of "autocat.php" which used a text pipe from FileInfo to capture metadata from the dc loaders, are now handled by DublinCoreObject
 
