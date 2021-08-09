@@ -792,6 +792,7 @@ class GutenbergDublinCore (DublinCore):
                 pg_json = json.loads(data)
                 record = pg_json['DATA']
                 record = record[0] if isinstance(record, list) else record
+                store(self, 'encoding', 'utf-8')
                 for key, val in record.items():
                     key = key.lower()
                     key = 'creator_role' if key == "contributor" else key
