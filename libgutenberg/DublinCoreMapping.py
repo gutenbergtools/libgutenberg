@@ -18,18 +18,17 @@ pooled=True and be sure to close the session when done with a thread.
 from __future__ import unicode_literals
 
 import datetime
-import os
-import re
 from sqlalchemy.exc import DBAPIError
 
 from . import DublinCore
 from . import GutenbergGlobals as gg
 from . import GutenbergDatabase
+from . import GutenbergFiles
 from .DBUtils import get_lang
 from .GutenbergGlobals import Struct, PG_URL
 from .Logger import info, warning, error
 from .GutenbergDatabase import DatabaseError, IntegrityError, Objectbase
-from .Models import (Alias, Attribute, Author, Book, BookAuthor, Category, File, Filetype, Locc,
+from .Models import (Alias, Attribute, Author, Book, BookAuthor, Category, File, Locc,
     Role, Subject)
 
 
@@ -190,51 +189,12 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
     def remove_file_from_database(self, filename):
         """ Remove file from PG database. """
         session = self.get_my_session()
-        with session.begin_nested():
-            session.query(File).filter(File.archive_path == filename).\
-                                delete(synchronize_session='fetch')
-        session.commit()
+        GutenbergFiles.remove_file_from_database(filename, session=session)
 
     def store_file_in_database(self, id_, filename, type_):
         """ Store file in PG database. """
         session = self.get_my_session()
-        encoding = None
-        if type_ == 'txt':
-            type_ = 'txt.utf-8'
-            encoding = 'utf-8'
-
-        try:
-            statinfo = os.stat(filename)
-
-            # check good filetype
-            if not session.query(Filetype).filter(Filetype.pk == type_).count():
-                warning("%s is not a valid filetype, didn't store %s", type_, filename)
-                return
-
-            # this introduces a restriction on CACHELOC; should consider deriving the pattern
-            filename = re.sub(r'^.*/cache\d?/', 'cache/', filename)
-            diskstatus = 0
-
-            # delete existing filename record
-            session.query(File).filter(File.archive_path == filename).\
-                                delete(synchronize_session='fetch')
-            newfile = File(
-                fk_books=id_, archive_path=filename,
-                extent=statinfo.st_size,
-                modified=datetime.datetime.fromtimestamp(statinfo.st_mtime).isoformat(),
-                fk_filetypes=type_, fk_encodings=encoding,
-                compression=None, diskstatus=diskstatus
-            )
-            session.add(newfile)
-            session.commit()
-
-        except OSError:
-            error("Cannot stat %s", filename)
-
-        except IntegrityError:
-            error("Book number %s is not in database.", id_)
-            self.session.rollback()
-
+        GutenbergFiles.store_file_in_database(id_, filename, type_, session=session)
 
     def register_coverpage(self, id_, url, code=901):
         """ Register a coverpage for this ebook. """

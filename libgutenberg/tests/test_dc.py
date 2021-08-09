@@ -173,7 +173,7 @@ class TestDC(unittest.TestCase):
         dc.store_file_in_database(self.ebook2, fn, 'txt') # test over-writing
         dc.load_files_from_database(self.ebook2)
         for file_ in dc.files:
-            if file_.archive_path == fn:
+            if file_.archive_path.endswith(fn):
                 saved = True
                 break
         self.assertTrue(saved)
