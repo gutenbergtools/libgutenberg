@@ -597,7 +597,9 @@ class GutenbergDublinCore (DublinCore):
         """
 
         def handle_subtitle (self, key, value):
-            self.title = self.title_no_subtitle + ': ' + value        def handle_title (self, key, value):
+            self.title = self.title_no_subtitle + ': ' + value
+
+        def handle_title (self, key, value):
             if self.subtitle:
                 self.title = value + ': ' + self.subtitle
             else:
