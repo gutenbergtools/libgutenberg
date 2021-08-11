@@ -1,10 +1,22 @@
 CHANGES
-0.8.1 (August 4, 2021)
+0.8.1 (August 11, 2021)
 Bugfixes - 0.8.0 tagged but never released.
 - removed debugging code
-- fixed PibInfo.__bool__
+- fixed PubInfo.__bool__
 - fixed another release_date null test
 - added subtitle handling
+- workflow means files are all always utf8
+- orm-based support for putting files in the database has been refactored out of DublinCoreMapping; libgutenberg is now used for non-generated files (from ebookconverter/FileInfo.py) , too
+- to remove an ebook with files need to remove files first, because of CASCADE settings in db schema
+- added metadata updates. 
+    - update notes are applied only after more than 28 days (can be changed) after release date
+    - update notes are stored as marc 508 attribute along with production notes
+    - if a note is supplied in the CREDIT field of the workflow metadata, it is used as the text of the note, without an added date, so WW should enter date if desired.
+    - if no CREDIT note, then then the note will be "Updated: TODA-YS-DT"
+    - should also note that there on initial entry, the CREDIT note is sved without additions.
+    - and that for updates, the only other data currently looked at is the NOTIFY field; all the notify entries are stored in a non-public json file.
+- added count_files - handy for tests
+
 
 0.8.0 (August 3, 2021)
 To be able to use ORM for EbookConverter, we needed to add code code that saves the DublinCoreObject to the database. most of the functions of "autocat.php" which used a text pipe from FileInfo to capture metadata from the dc loaders, are now handled by DublinCoreObject
