@@ -214,14 +214,14 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
     def save(self, updatemode=0):
         session = self.get_my_session()
-        if self.book and (self.book.updatemode != updatemode): 
+        if self.book and (self.book.updatemode != updatemode):
             warning("ebook #%s already in database", self.book.pk)
             if datetime.date.today() - self.book.release_date < datetime.timedelta(days=28):
                 if self.credit:
                     credit_message = self.credit
                 else:
                     credit_message = 'Updated: ' + str(datetime.date.today())
-                self.add_attribute(self.book, [self.credit_message], marc=508)
+                self.add_attribute(self.book, [credit_message], marc=508)
 
         elif not self.book and self.project_gutenberg_id:
             # this has not been loaded from a database so get a book Objectbase
@@ -276,7 +276,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                     self.book.categories.append(category)
 
             if self.book.release_date == datetime.date.min:
-                # new release without release_date set; should not happen 
+                # new release without release_date set; should not happen
                 self.book.release_date = datetime.date.today()
 
             if self.pubinfo:

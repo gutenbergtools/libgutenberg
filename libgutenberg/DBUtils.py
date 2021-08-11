@@ -25,9 +25,8 @@ def ebook_exists(ebook, session=None):
 
     if in_db:
         return True
-    else:
-        info("No ebook #%d in database.", ebook)
-        return False
+    info("No ebook #%d in database.", ebook)
+    return False
 
 def is_not_text(ebook, session=None):
     session = check_session(session)
@@ -60,7 +59,6 @@ def filetype_books(filetype, session=None):
 def get_lang(language, session=None):
     """ get language object from db from Struct or str """
     session = check_session(session)
-    lang_id = language if isinstance(language, str) else language.id
     language = language if isinstance(language, str) else language.language
 
     lang = session.get(Models.Lang, language)

@@ -342,7 +342,7 @@ class DublinCore (object):
         try:
             role = self.role_map[marcrel]
         except KeyError:
-            return False
+            return
 
         # debug ("%s: %s" % (role, names))
 
@@ -587,6 +587,7 @@ class GutenbergDublinCore (DublinCore):
 
         if self.project_gutenberg_id is None:
             raise ValueError('This is not a Project Gutenberg RST file.')
+        return True
 
 
     def load_from_pgheader(self, data):
@@ -619,7 +620,7 @@ class GutenbergDublinCore (DublinCore):
                 marcrel = self.inverse_role_map[role]
             except KeyError:
                 warning('%s is not a supported marc role', role)
-                return False
+                return
 
             # replace 'and' with ',' and remove
             # superfluous white space around ','
@@ -635,7 +636,8 @@ class GutenbergDublinCore (DublinCore):
 
 
         def handle_release_date (self, dummy_prefix, date):
-            """ Scan Release date: line. """
+            """ Scan Release date: line. 
+            NOTE this field is now ignored; """
 
             m = re.match (r'^(.*?)\s*\[', date)
             if m:
