@@ -213,39 +213,51 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             session.rollback()
 
     def save(self, updatemode=0):
-        if self.book and (self.book.updatemode != updatemode):
-            warning("ebook #%s not updated, already in database", self.book.pk)
-            return
         session = self.get_my_session()
-        if not self.book and self.project_gutenberg_id:
+        if self.book and (self.book.updatemode != updatemode): 
+            warning("ebook #%s already in database", self.book.pk)
+            if datetime.date.today() - self.book.release_date < datetime.timedelta(days=28):
+                if self.credit:
+                    credit_message = self.credit
+                else:
+                    credit_message = 'Updated: ' + str(datetime.date.today())
+                self.add_attribute(self.book, [self.credit_message], marc=508)
+
+        elif not self.book and self.project_gutenberg_id:
             # this has not been loaded from a database so get a book Objectbase
             self.book = session.query(Book).filter_by(pk=self.project_gutenberg_id).first()
 
-            # if updatemode is 1, assume cataloguer knows what they're doing
             if self.book:
                 if self.book.updatemode != updatemode:
                     warning("ebook #%s not updated, already in database", self.project_gutenberg_id)
                     return
+                # either 0=0 for fresh book updatemode or 1=1 for re-editing old book
                 self.load_from_database(self.project_gutenberg_id)
 
             if not self.book:
-                # a new book!
+                # book not in db; should not happen.
+                warning("adding ebook #%s to database", self.project_gutenberg_id)
                 self.book = Book(pk=self.project_gutenberg_id)
                 session.add(self.book)
+
             self.add_authors(self.book)
             self.add_title(self.book, self.title)
             if self.alt_title:
                 self.add_title(self.book, self.alt_title, marc=246)
+
             if self.contents:
                 self.add_title(self.book, self.contents, marc=505)
+
             for language in self.languages:
                 lang = get_lang(language.id, session=session)
                 if lang and lang not in self.book.langs:
                     self.book.langs.append(lang)
+
             for locc in self.loccs:
                 locc = session.query(Locc).filter_by(locc=locc.locc).first()
                 if locc and locc not in self.book.loccs:
                     self.book.loccs.append(locc)
+
             for subject in self.subjects:
                 subject = session.query(Subject).filter_by(subject=subject.subject).first()
                 if subject and subject not in self.book.subjects:
@@ -256,26 +268,34 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                     self.book.attributes.append(Attribute(fk_attriblist=500, text=self.notes))
 
             self.book.copyrighted = 1 if 'Copyrighted' in self.rights else 0
+
             for category in self.categories:
                 # It appears that this is dead code
                 category = session.query(Category).filter_by(id=category.id).first()
                 if category and category not in self.book.categories:
                     self.book.categories.append(category)
-            self.book.release_date = self.release_date
+
+            if self.book.release_date == datetime.date.min:
+                # new release without release_date set; should not happen 
+                self.book.release_date = datetime.date.today()
+
             if self.pubinfo:
                 self.add_attribute(self.book, self.pubinfo.marc(), marc=260)
                 self.add_attribute(self.book, self.pubinfo.first_year, marc=906)
                 self.add_attribute(self.book, self.pubinfo.country, marc=907)
+
             if self.credit:
-                self.add_attribute(self.book, self.credit, marc=508)
+                self.add_attribute(self.book, [self.credit], marc=508)
+
             if self.scan_urls:
                 self.add_attribute(self.book, self.scan_urls, marc=904)
+
             if self.request_key:
                 self.add_attribute(self.book, self.request_key, marc=905)
 
             self.book.updatemode = 1 # prevent non-cataloguer changes
 
-            session.commit()
+        session.commit()
 
 
     def add_authors(self, book):
