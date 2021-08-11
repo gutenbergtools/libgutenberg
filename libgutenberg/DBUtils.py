@@ -36,6 +36,8 @@ def is_not_text(ebook, session=None):
 def remove_ebook(ebook, session=None):
     session = check_session(session)
     ebook = int(ebook)
+    # need to explicitly delete its files because of ON DELETE = 'restrict'
+    session.query(Models.File).where(Models.File.fk_books == ebook).delete()
     session.query(Models.Book).where(Models.Book.pk == ebook).delete()
     session.commit()
 
