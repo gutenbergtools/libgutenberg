@@ -181,3 +181,10 @@ def store_file_in_database(id_, filename, type_, encoding=None, session=None):
     except IntegrityError:
         error("Book number %s is not in database.", id_)
         session.rollback()
+
+
+def count_files(id_, session=None):
+    """ count files in PG database. """
+    session = DBUtils.check_session(session)
+    return session.query(File.id).filter_by(fk_books=id_).count()
+    
