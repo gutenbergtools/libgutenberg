@@ -21,6 +21,7 @@ from logging import debug, info, warning, error, critical, exception # pylint: d
 LOGFORMAT = '%(asctime)s %(levelname)-8s  #%(ebook)-5d %(message)s'
 
 ebook = 0 # global
+notifier = None # a callable with signature ebook, message
 
 class CustomFormatter (logging.Formatter):
     """ A custom formatter that adds ebook no. """
@@ -35,7 +36,17 @@ class CustomFormatter (logging.Formatter):
         return logging.Formatter.format (self, record)
 
 
-def setup (logformat, logfile = None):
+def q_message(record):
+    ''' To activate message queueing, start log message with "Notify:" 
+        and set a q_er callable in setup.
+    '''
+    if notifier and ebook and record.msg.startswith('Notify:'):
+        message = CustomFormatter(LOGFORMAT).format(record)
+        notifier(ebook, message)
+    return 1
+
+
+def setup (logformat, logfile=None):
     """ Setup logger. """
 
     # StreamHandler defaults to sys.stderr
@@ -43,6 +54,7 @@ def setup (logformat, logfile = None):
     file_handler.setFormatter (CustomFormatter (logformat))
     logging.getLogger ().addHandler (file_handler)
     logging.getLogger ().setLevel (logging.INFO)
+    logging.getLogger ().addFilter (q_message)
 
 
 def set_log_level (level):
