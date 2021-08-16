@@ -1,5 +1,5 @@
 CHANGES
-0.8.1 (August 12, 2021)
+0.8.1 (August 16, 2021)
 Bugfixes - 0.8.0 tagged but never released.
 - removed debugging code
 - fixed PubInfo.__bool__
@@ -19,7 +19,7 @@ Bugfixes - 0.8.0 tagged but never released.
 - removed support for old file structure and bitcollider
 - switched to using refactored GutenbergFiles code for file/db work
 - stop cataloging dot files
-- added a way to plug a notification filter into the Logger. Set the filter method as the notifier attribute, and either configure using the setup method or add the q_message filter to your log handler.
+- added a way to plug a notification handler keyed on the 'critical' loglevel into the Logger. 
 
 0.8.0 (August 3, 2021)
 To be able to use ORM for EbookConverter, we needed to add code code that saves the DublinCoreObject to the database. most of the functions of "autocat.php" which used a text pipe from FileInfo to capture metadata from the dc loaders, are now handled by DublinCoreObject

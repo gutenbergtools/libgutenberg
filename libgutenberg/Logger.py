@@ -21,48 +21,57 @@ from logging import debug, info, warning, error, critical, exception # pylint: d
 LOGFORMAT = '%(asctime)s %(levelname)-8s  #%(ebook)-5d %(message)s'
 
 ebook = 0 # global
-notifier = None # a callable with signature ebook, message
 
-class CustomFormatter (logging.Formatter):
+class CustomFormatter(logging.Formatter):
     """ A custom formatter that adds ebook no. """
 
-    def format (self, record):
+    def format(self, record):
         """ Add ebook no. to string format params. """
         try:
-            myebook = int (ebook)
+            myebook = int(ebook)
         except ValueError:
             myebook = 0
         record.ebook = myebook
-        return logging.Formatter.format (self, record)
+        return logging.Formatter.format(self, record)
+
+class NotificationHandler(logging.Handler):
+    """ notifier is a callable with signature ebook, message"""
+
+    def __init__(self, notifier=None):
+        super(logging.Handler, self).__init__()
+        self.setLevel(logging.CRITICAL)
+        self.notifier =  notifier
+        
+    def emit(record):
+        ''' To activate message queueing, 
+            and set a notifier callable in setup.
+        '''
+        if notifier :
+            message = CustomFormatter(LOGFORMAT).format(record)
+            notifier(ebook, message)
 
 
-def q_message(record):
-    ''' To activate message queueing, start log message with "Notify:" 
-        and set a q_er callable in setup.
-    '''
-    if notifier and ebook and record.msg.startswith('Notify:'):
-        message = CustomFormatter(LOGFORMAT).format(record)
-        notifier(ebook, message)
-    return 1
 
-
-def setup (logformat, logfile=None):
+def setup(logformat, logfile=None, loglevel=logging.INFO, notifier=None):
     """ Setup logger. """
 
     # StreamHandler defaults to sys.stderr
-    file_handler = logging.FileHandler (logfile) if logfile else logging.StreamHandler ()
-    file_handler.setFormatter (CustomFormatter (logformat))
-    logging.getLogger ().addHandler (file_handler)
-    logging.getLogger ().setLevel (logging.INFO)
-    logging.getLogger ().addFilter (q_message)
+    file_handler = logging.FileHandler(logfile) if logfile else logging.StreamHandler()
+    file_handler.setFormatter(CustomFormatter(logformat))
+    notify_handler = NotificationHandler(notifier=notifier)
+    logger = logging.getLogger()
+    logger.addHandler(file_handler)
+    logger.addHandler(notify_handler)
+    logger.setLevel(loglevel)
+    return file_handler
 
 
-def set_log_level (level):
+def set_log_level(level):
     """ Set log level. """
     if level >= 1:
-        logging.getLogger ().setLevel (logging.INFO)
+        logging.getLogger().setLevel(logging.INFO)
     if level >= 2:
-        logging.getLogger ().setLevel (logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
 
 
-__all__ = 'debug info warning error critical exception'.split ()
+__all__ = 'debug info warning error critical exception'.split()
