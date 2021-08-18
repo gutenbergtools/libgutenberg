@@ -40,15 +40,15 @@ class NotificationHandler(logging.Handler):
     def __init__(self, notifier=None):
         super(logging.Handler, self).__init__()
         self.setLevel(logging.CRITICAL)
-        self.notifier =  notifier
+        self.notifier = notifier
         
-    def emit(record):
+    def handle(self, record):
         ''' To activate message queueing, 
             and set a notifier callable in setup.
         '''
-        if notifier :
+        if self.notifier :
             message = CustomFormatter(LOGFORMAT).format(record)
-            notifier(ebook, message)
+            self.notifier(ebook, message)
 
 
 
