@@ -1,5 +1,5 @@
 CHANGES
-0.8.1 (August 16, 2021)
+0.8.1 (August 18, 2021)
 Bugfixes - 0.8.0 tagged but never released.
 - removed debugging code
 - fixed PubInfo.__bool__
@@ -20,6 +20,8 @@ Bugfixes - 0.8.0 tagged but never released.
 - switched to using refactored GutenbergFiles code for file/db work
 - stop cataloging dot files
 - added a way to plug a notification handler keyed on the 'critical' loglevel into the Logger. 
+- added the DublinCore.PGDCObject which can be used without a database for non-database DC stuff
+- added a notification handler that sends CRITICAL log entries to a configurable callable
 
 0.8.0 (August 3, 2021)
 To be able to use ORM for EbookConverter, we needed to add code code that saves the DublinCoreObject to the database. most of the functions of "autocat.php" which used a text pipe from FileInfo to capture metadata from the dc loaders, are now handled by DublinCoreObject
