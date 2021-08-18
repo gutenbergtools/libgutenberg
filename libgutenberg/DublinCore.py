@@ -862,7 +862,7 @@ class GutenbergDublinCore (DublinCore):
 
 # use PGDCObject if you want a DublinCoreObject that uses a database if available
 try:
-    from .DublinCoreMapping import DublicCoreObject as PGDCObject
+    from .DublinCoreMapping import DublinCoreObject as PGDCObject
 except ImportError:
     # no database
     PGDCObject = GutenbergDublinCore
