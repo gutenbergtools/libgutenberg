@@ -26,7 +26,7 @@ from . import GutenbergDatabase
 from . import GutenbergFiles
 from .DBUtils import get_lang
 from .GutenbergGlobals import Struct, PG_URL
-from .Logger import info, warning, error
+from .Logger import debug, error, info, warning
 from .GutenbergDatabase import DatabaseError, IntegrityError, Objectbase
 from .Models import (Alias, Attribute, Author, Book, BookAuthor, Category, File, Locc,
     Role, Subject)
@@ -66,21 +66,27 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 return True
         return False
 
+    def load_book(self, ebook):
+        self.project_gutenberg_id = ebook
+        session = self.get_my_session()
+        book = session.query(Book).filter_by(pk=ebook).first()
+        if not book:
+            return
+        self.book = book
+
+
     def load_from_database(self, ebook, load_files=True):
+        """ loads book, then configure dc to match the legacy DublinCore API """
         def struct(**args):
             s = Struct()
             for key in args:
                 setattr(s, key, args[key])
             return s
+        
+        self.load_book(ebook)
 
         # Load DublinCore from PG database.
         session = self.get_my_session()
-        self.project_gutenberg_id = ebook
-
-        book = session.query(Book).filter_by(pk=ebook).first()
-        if not book:
-            return
-        self.book = book
         if self.release_date == datetime.date.min:
             self.release_date = book.release_date
         self.downloads = book.downloads
@@ -216,7 +222,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         session = self.get_my_session()
         if self.book and (self.book.updatemode != updatemode):
             warning("ebook #%s already in database", self.book.pk)
-            if datetime.date.today() - self.book.release_date < datetime.timedelta(days=28):
+            if datetime.date.today() - self.book.release_date > datetime.timedelta(days=14):
                 if self.credit:
                     credit_message = self.credit
                 else:
