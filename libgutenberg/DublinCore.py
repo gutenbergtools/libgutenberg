@@ -29,7 +29,7 @@ import pycountry
 
 from . import GutenbergGlobals as gg
 from .GutenbergGlobals import NS, Struct, xpath, ROLES
-from .Logger import error, exception, info, warning
+from .Logger import critical, debug, error, exception, info, warning
 
 
 
@@ -803,7 +803,7 @@ class GutenbergDublinCore (DublinCore):
                     key = aliases.get(key, key)
                     dispatcher.get(key, nothandled)(self, key, val)
             except ValueError:
-                raise ValueError ('This is not a valid Project Gutenberg workflow file.')
+                critical ('This is not a valid Project Gutenberg workflow file: %s' % data)
 
 
         dispatcher = {
