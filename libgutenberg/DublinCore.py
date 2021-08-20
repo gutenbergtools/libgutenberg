@@ -45,9 +45,9 @@ DCMITYPES = [
     ("Dataset","Data Set"),
     ("Collection","Collection")
 ]
-title_splitter = re.compile (r'[\r\n:]+', flags=re.M)
+title_splitter = re.compile(r'[\r\n:]+', flags=re.M)
 
-class _HTML_Writer (object):
+class _HTML_Writer(object):
     """ Write metadata suitable for inclusion in HTML.
 
     Build a <meta> or <link> element and
@@ -55,31 +55,31 @@ class _HTML_Writer (object):
 
     """
 
-    def __init__ (self):
+    def __init__(self):
         self.metadata = []
 
     @staticmethod
-    def _what (what):
+    def _what(what):
         """ Transform dcterms:title to DCTERMS.title. """
-        what = str (what).split (':')
-        what[0] = what[0].upper ()
-        return '.'.join (what)
+        what = str(what).split(':')
+        what[0] = what[0].upper()
+        return '.'.join(what)
 
-    def literal (self, what, literal, scheme = None):
+    def literal(self, what, literal, scheme = None):
         """ Write <meta name=what content=literal scheme=scheme> """
         if literal is None:
             return
-        params = {'name' : self._what (what), 'content': literal}
+        params = {'name' : self._what(what), 'content': literal}
         if scheme:
-            params['scheme'] = self._what (scheme)
-        self.metadata.append (ElementMaker ().meta (**params))
+            params['scheme'] = self._what(scheme)
+        self.metadata.append(ElementMaker().meta(**params))
 
-    def uri (self, what, uri):
+    def uri(self, what, uri):
         """ Write <link rel=what href=uri> """
         if uri is None:
             return
-        self.metadata.append (ElementMaker ().link (
-                rel = self._what (what), href = str (uri)))
+        self.metadata.append(ElementMaker().link(
+                rel = self._what(what), href = str(uri)))
 
 class PubInfo(object):
     def __init__(self):
@@ -132,11 +132,11 @@ class PubInfo(object):
 
 
 # file extension we hope to be able to parse
-PARSEABLE_EXTENSIONS = 'txt html htm tex tei xml'.split ()
+PARSEABLE_EXTENSIONS = 'txt html htm tex tei xml'.split()
 
-RE_MARC_SUBFIELD = re.compile (r"\$[a-z]\b")
+RE_MARC_SUBFIELD = re.compile(r"\$[a-z]\b")
 
-class DublinCore (object):
+class DublinCore(object):
     """ Hold DublinCore attributes.
 
     Read and output them in various formats.
@@ -157,7 +157,7 @@ class DublinCore (object):
     language_map = gg.language_map
 
 
-    def __init__ (self):
+    def __init__(self):
         self.title = 'No title'
         self.alt_title = None
         self.title_file_as = self.title
@@ -184,30 +184,30 @@ class DublinCore (object):
 
 
     @staticmethod
-    def format_author_date (author):
+    def format_author_date(author):
         """ Format: Twain, Mark, 1835-1910 """
 
-        def format_dates (d1, d2):
+        def format_dates(d1, d2):
             """ Format dates """
             # Hack to display 9999? if only d2 is set
             if d2 and not d1:
                 if d2 < 0:
-                    return "%d? BCE" % abs (d2)
+                    return "%d? BCE" % abs(d2)
                 return "%d?" % d2
             if not d1:
                 return ''
             if d2 and d1 != d2:
-                d3 = max (d1, d2)
+                d3 = max(d1, d2)
                 if d3 < 0:
-                    return "%d? BCE" % abs (d3)
+                    return "%d? BCE" % abs(d3)
                 return "%d?" % d3
             if d1 < 0:
-                return "%d BCE" % abs (d1)
-            return str (d1)
+                return "%d BCE" % abs(d1)
+            return str(d1)
 
-        born = format_dates (author.birthdate, author.birthdate2)
-        died = format_dates (author.deathdate, author.deathdate2)
-        name = gg.normalize (author.name)
+        born = format_dates(author.birthdate, author.birthdate2)
+        died = format_dates(author.deathdate, author.deathdate2)
+        name = gg.normalize(author.name)
 
         if born or died:
             return "%s, %s-%s" % (name, born, died)
@@ -216,211 +216,211 @@ class DublinCore (object):
 
 
     @staticmethod
-    def format_author_date_role (author):
+    def format_author_date_role(author):
         """ Format: Twain, Mark, 1835-1910 [Editor] """
-        name = DublinCore.format_author_date (author)
+        name = DublinCore.format_author_date(author)
         if author.marcrel != "cre" and author.marcrel != 'aut':
             return "%s [%s]" % (name, _(author.role))
         return name
 
 
     @staticmethod
-    def strip_marc_subfields (s):
+    def strip_marc_subfields(s):
         """ Strip MARC subfield markers. """
-        return RE_MARC_SUBFIELD.sub ('', s)
+        return RE_MARC_SUBFIELD.sub('', s)
 
 
 
     @staticmethod
-    def make_pretty_name (name):
+    def make_pretty_name(name):
         """ Reverse author name components """
-        rev = ' '.join (reversed (name.split (', ')))
-        rev = re.sub (r'\(.*\)', '', rev)
-        rev = re.sub (r'\s+', ' ', rev)
-        return rev.strip ()
+        rev = ' '.join(reversed(name.split(', ')))
+        rev = re.sub(r'\(.*\)', '', rev)
+        rev = re.sub(r'\s+', ' ', rev)
+        return rev.strip()
 
 
     @staticmethod
-    def strunk (list_):
+    def strunk(list_):
         """ Join a list of terms with appropriate use of ',' and 'and'.
 
         Tom, Dick, and Harry
 
         """
-        if len (list_) > 2:
-            list_ = (', '.join (list_[:-1]) + ',', list_[-1])
-        return _(' and ').join (list_)
+        if len(list_) > 2:
+            list_ = (', '.join(list_[:-1]) + ',', list_[-1])
+        return _(' and ').join(list_)
 
 
-    def human_readable_size (self, size):
+    def human_readable_size(self, size):
         """ Return human readable string of filesize. """
         if size < 0:
             return ''
         for (threshold, format_string) in self.SI_prefixes:
             if size >= threshold:
-                return format_string % (float (size) / threshold)
+                return format_string % (float(size) / threshold)
         return '%d B' % size
 
 
-    def make_pretty_title (self, size = 80, cut_nonfiling = False):
+    def make_pretty_title(self, size = 80, cut_nonfiling = False):
         """ Generate a pretty title for ebook. """
 
-        def cutoff (title, size):
+        def cutoff(title, size):
             """ Cut string off after size characters. """
-            return textwrap.wrap (title, size)[0]
+            return textwrap.wrap(title, size)[0]
 
         title = self.title_file_as if cut_nonfiling else self.title
 
-        title = title.splitlines ()[0]
-        title = re.sub (r'\s*\$[a-z].*', '', title) # cut before first MARC subfield
+        title = title.splitlines()[0]
+        title = re.sub(r'\s*\$[a-z].*', '', title) # cut before first MARC subfield
 
-        title_len = len (title)
+        title_len = len(title)
         if title_len > size or not self.authors:
-            return cutoff (title, size)
+            return cutoff(title, size)
 
         creators = [author for author in self.authors if author.marcrel in ('aut', 'cre')]
         if not creators:
             creators = [author for author in self.authors]
         if not creators:
-            return cutoff (title, size)
+            return cutoff(title, size)
 
-        fullnames = [self.make_pretty_name (author.name) for author in creators]
-        surnames  = [author.name.split (', ')[0] for author in creators]
+        fullnames = [self.make_pretty_name(author.name) for author in creators]
+        surnames  = [author.name.split(', ')[0] for author in creators]
 
-        for tail in (self.strunk (fullnames), self.strunk (surnames)):
-            if len (tail) + title_len < size:
-                return _('{title} by {authors}').format (title = title, authors = tail)
+        for tail in (self.strunk(fullnames), self.strunk(surnames)):
+            if len(tail) + title_len < size:
+                return _('{title} by {authors}').format(title = title, authors = tail)
 
         for tail in (fullnames[0], surnames[0]):
-            if len (tail) + title_len < size:
-                return _('{title} by {authors} et al.').format (title = title, authors = tail)
+            if len(tail) + title_len < size:
+                return _('{title} by {authors} et al.').format(title = title, authors = tail)
 
-        return cutoff (title, size)
+        return cutoff(title, size)
 
 
-    def feed_to_writer (self, writer):
+    def feed_to_writer(self, writer):
         """ Pipe metadata into writer. """
         lit = writer.literal
         # uri = writer.uri
 
-        lit ('dc:title',      self.title)
+        lit('dc:title',      self.title)
 
         for language in self.languages:
-            lit ('dc:language', language.id, 'dcterms:RFC4646')
+            lit('dc:language', language.id, 'dcterms:RFC4646')
 
-        lit ('dcterms:source',     self.source)
-        lit ('dcterms:modified',
-             datetime.datetime.now (gg.UTC ()).isoformat (),
+        lit('dcterms:source',     self.source)
+        lit('dcterms:modified',
+             datetime.datetime.now(gg.UTC()).isoformat(),
              'dcterms:W3CDTF')
 
 
-    def to_html (self):
+    def to_html(self):
         """ Return a <html:head> element with DC metadata. """
 
-        w = _HTML_Writer ()
-        self.feed_to_writer (w)
+        w = _HTML_Writer()
+        self.feed_to_writer(w)
 
-        e = ElementMaker ()
+        e = ElementMaker()
 
-        head = e.head (
+        head = e.head(
             *w.metadata
             )
 
         return head
 
 
-    def add_lang_id (self, lang_id):
+    def add_lang_id(self, lang_id):
         """ Add language from language id. """
-        language = Struct ()
+        language = Struct()
         language.id = lang_id
         language.language = self.language_map.get(lang_id)
-        self.languages.append (language)
+        self.languages.append(language)
 
 
-    def add_author (self, name, marcrel = 'cre'):
+    def add_author(self, name, marcrel = 'cre'):
         """ Add author. """
         try:
             role = self.role_map[marcrel]
         except KeyError:
             return
 
-        # debug ("%s: %s" % (role, names))
+        # debug("%s: %s" % (role, names))
 
         # lowercase De Le La
-        for i in 'De Le La'.split ():
-            name = re.sub (r'\b%s\b' % i, i.lower (), name)
+        for i in 'De Le La'.split():
+            name = re.sub(r'\b%s\b' % i, i.lower(), name)
 
-        name = name.replace ('\\', '')   # remove \ (escape char in RST)
-        name = re.sub (r'\s*,\s*,',  ',', name)
-        name = re.sub (r',+',        ',', name)
-        name = name.replace (',M.D.', '')
+        name = name.replace('\\', '')   # remove \ (escape char in RST)
+        name = re.sub(r'\s*,\s*,',  ',', name)
+        name = re.sub(r',+',        ',', name)
+        name = name.replace(',M.D.', '')
 
-        name = re.sub (r'\s*\[.*?\]\s*', ' ', name) # [pseud.]
-        name = name.strip ()
+        name = re.sub(r'\s*\[.*?\]\s*', ' ', name) # [pseud.]
+        name = name.strip()
 
         # lastname, firstname middlename
         if ',' not in name:
-            m = re.match (r'^(.+?)\s+([-\'\w]+)$', name, re.I)
+            m = re.match(r'^(.+?)\s+([-\'\w]+)$', name, re.I)
             if m:
-                name = "%s, %s" % (m.group (2), m.group (1))
+                name = "%s, %s" % (m.group(2), m.group(1))
 
-        author = Struct ()
+        author = Struct()
         author.name = name
         author.marcrel = marcrel
         author.role = role
         author.name_and_dates = name
-        self.authors.append (author)
+        self.authors.append(author)
 
 
-    def load_from_parser (self, parser):
+    def load_from_parser(self, parser):
         """ Load Dublincore from html header. """
 
-        # print (lxml.etree.tostring (parser.xhtml))
+        # print(lxml.etree.tostring(parser.xhtml))
         try:
-            for meta in xpath (parser.xhtml, "//xhtml:meta[@name='DC.Creator']"):
-                author = Struct ()
-                author.name = gg.normalize (meta.get ('content'))
+            for meta in xpath(parser.xhtml, "//xhtml:meta[@name='DC.Creator']"):
+                author = Struct()
+                author.name = gg.normalize(meta.get('content'))
                 author.marcrel = 'cre'
                 author.role = 'creator'
                 author.name_and_dates = author.name
-                self.authors.append (author)
+                self.authors.append(author)
 
-            for meta in xpath (parser.xhtml, "//xhtml:meta[@name='DC.Contributor']"):
-                author = Struct ()
-                author.name = gg.normalize (meta.get ('content'))
+            for meta in xpath(parser.xhtml, "//xhtml:meta[@name='DC.Contributor']"):
+                author = Struct()
+                author.name = gg.normalize(meta.get('content'))
                 author.marcrel = 'ctb'
                 author.role = 'contributor'
                 author.name_and_dates = author.name
-                self.authors.append (author)
+                self.authors.append(author)
 
-            for title in xpath (parser.xhtml, "//xhtml:title"):
-                self.title = self.title_file_as = gg.normalize (title.text)
+            for title in xpath(parser.xhtml, "//xhtml:title"):
+                self.title = self.title_file_as = gg.normalize(title.text)
 
             # DC.Title overrides <title>
-            for meta in xpath (parser.xhtml, "//xhtml:meta[@name='DC.Title']"):
-                self.title = self.title_file_as = gg.normalize (meta.get ('content'))
+            for meta in xpath(parser.xhtml, "//xhtml:meta[@name='DC.Title']"):
+                self.title = self.title_file_as = gg.normalize(meta.get('content'))
 
-            for elem in xpath (parser.xhtml, "/xhtml:html[@xml:lang]"):
-                self.add_lang_id (elem.get (NS.xml.lang))
+            for elem in xpath(parser.xhtml, "/xhtml:html[@xml:lang]"):
+                self.add_lang_id(elem.get(NS.xml.lang))
 
-            for meta in xpath (parser.xhtml, "//xhtml:meta[@name='DC.Created']"):
-                self.created = gg.normalize (meta.get ('content'))
+            for meta in xpath(parser.xhtml, "//xhtml:meta[@name='DC.Created']"):
+                self.created = gg.normalize(meta.get('content'))
 
         except Exception as what:
-            exception (what)
+            exception(what)
 
-    def split_title (self):
+    def split_title(self):
         if not self.title:
             return ['', '']
-        title = title_splitter.split (self.title, maxsplit=1)
+        title = title_splitter.split(self.title, maxsplit=1)
         return title if len(title) > 1 else [title[0], '']
 
     @property
-    def subtitle (self):
+    def subtitle(self):
         return self.split_title()[1]
 
     @property
-    def title_no_subtitle (self):
+    def title_no_subtitle(self):
         return self.split_title()[0]
 
     # as you'd expect to see the names on a cover, last names last.
@@ -430,25 +430,25 @@ class DublinCore (object):
         for author in self.authors:
             if author.marcrel in ('aut', 'cre', 'edt'):
                 num_auths += 1
-                creators.append (author)
+                creators.append(author)
         if num_auths == 1:
-            return DublinCore.make_pretty_name (creators[0].name)
+            return DublinCore.make_pretty_name(creators[0].name)
         if num_auths == 2:
             names = "%s and %s" % (
-                DublinCore.make_pretty_name (creators[0].name),
-                DublinCore.make_pretty_name (creators[1].name)
+                DublinCore.make_pretty_name(creators[0].name),
+                DublinCore.make_pretty_name(creators[1].name)
             )
             return names
         if num_auths > 2:
-            return "%s et al." % DublinCore.make_pretty_name (creators[0].name)
+            return "%s et al." % DublinCore.make_pretty_name(creators[0].name)
         return ''
 
 
-class GutenbergDublinCore (DublinCore):
+class GutenbergDublinCore(DublinCore):
     """ Parse from PG files. """
 
-    def __init__ (self):
-        DublinCore.__init__ (self)
+    def __init__(self):
+        DublinCore.__init__(self)
         self.project_gutenberg_title = None
         self.is_format_of = None
         self._project_gutenberg_id = None
@@ -464,10 +464,10 @@ class GutenbergDublinCore (DublinCore):
     @project_gutenberg_id.setter
     def project_gutenberg_id(self, ebook):
         try:
-            self._project_gutenberg_id = int (ebook)
+            self._project_gutenberg_id = int(ebook)
         except ValueError:
             self._project_gutenberg_id = 0
-        self.is_format_of = str (NS.ebook) + str (ebook)
+        self.is_format_of = str(NS.ebook) + str(ebook)
         self.canonical_url = re.sub(r'^http:', 'https:', self.is_format_of) + '/'
 
 
@@ -533,7 +533,7 @@ class GutenbergDublinCore (DublinCore):
 
             if name and (m is not None or m2 is not None):
                 contents = contents.strip()
-                # debug ("Outputting: %s.%s => %s" % (schema, name, contents))
+                # debug("Outputting: %s.%s => %s" % (schema, name, contents))
 
                 if schema == 'pg':
                     if name == 'id':
@@ -597,16 +597,16 @@ class GutenbergDublinCore (DublinCore):
 
         """
 
-        def handle_subtitle (self, key, value):
+        def handle_subtitle(self, key, value):
             self.title = self.title_no_subtitle + ': ' + value
 
-        def handle_title (self, key, value):
+        def handle_title(self, key, value):
             if self.subtitle:
                 self.title = value + ': ' + self.subtitle
             else:
                 self.title = value
 
-        def handle_authors (self, role, names):
+        def handle_authors(self, role, names):
             """ Handle Author:, Illustrator: etc. line
 
             Examples of lines we handle are:
@@ -624,72 +624,72 @@ class GutenbergDublinCore (DublinCore):
 
             # replace 'and' with ',' and remove
             # superfluous white space around ','
-            names = re.sub (r'\s*\n\s*',  ',', names)
-            names = re.sub (r'[,\s]+and\b',   ',', names)
-            names = re.sub (r'\bet\b',    ',', names)
-            names = re.sub (r'\bund\b',   ',', names)
+            names = re.sub(r'\s*\n\s*',  ',', names)
+            names = re.sub(r'[,\s]+and\b',   ',', names)
+            names = re.sub(r'\bet\b',    ',', names)
+            names = re.sub(r'\bund\b',   ',', names)
             # prevent authors names "Jr."
-            names = re.sub (r'[\s,]+Jr\.?(\s+|$)', ' Jr. ', names)
+            names = re.sub(r'[\s,]+Jr\.?(\s+|$)', ' Jr. ', names)
 
             for name in names.split(','):
-                self.add_author (name, marcrel)
+                self.add_author(name, marcrel)
 
 
-        def handle_release_date (self, dummy_prefix, date):
-            """ Scan Release date: line. 
+        def handle_release_date(self, dummy_prefix, date):
+            """ Scan Release date: line.
             NOTE this field is now ignored; """
 
-            m = re.match (r'^(.*?)\s*\[', date)
+            m = re.match(r'^(.*?)\s*\[', date)
             if m:
-                date = m.group (1)
-                date = date.strip ()
-                date = re.sub (r'[,\s]+', ' ', date)
+                date = m.group(1)
+                date = date.strip()
+                date = re.sub(r'[,\s]+', ' ', date)
                 for f in ('%B %d %Y', '%B %Y', '%b %d %Y', '%b %Y', '%Y-%m-%d'):
                     try:
-                        self.release_date = datetime.datetime.strptime (date, f).date ()
+                        self.release_date = datetime.datetime.strptime(date, f).date()
                         break
                     except ValueError:
                         pass
 
                 if self.release_date == datetime.date.min:
-                    error ("Cannot understand date: %s", date)
+                    error("Cannot understand date: %s", date)
 
 
-        def handle_ebook_no (self, key, text):
+        def handle_ebook_no(self, key, text):
             """ Scan ebook no. """
 
-            m = re.search (r'#(\d+)\]', text)
-            m = m if m else re.match (r'(\d+)', text)
+            m = re.search(r'#(\d+)\]', text)
+            m = m if m else re.match(r'(\d+)', text)
             if m and not self.project_gutenberg_id:
-                self.project_gutenberg_id = int (m.group (1))
+                self.project_gutenberg_id = int(m.group(1))
 
 
-        def handle_languages (self, dummy_prefix, text):
+        def handle_languages(self, dummy_prefix, text):
             """ Scan Language: line """
-            for lang in text.lower ().split (','):
+            for lang in text.lower().split(','):
                 try:
-                    language = Struct ()
+                    language = Struct()
                     language.id = self.language_map.inverse(lang, default='en')
-                    language.language = lang.title ()
-                    self.languages.append (language)
+                    language.language = lang.title()
+                    self.languages.append(language)
                 except KeyError:
                     pass
 
 
-        def handle_subject (self, dummy_prefix, suffix):
+        def handle_subject(self, dummy_prefix, suffix):
             """ Handle subject. """
-            subject = Struct ()
+            subject = Struct()
             subject.id = None
             subject.subject = suffix
-            self.subjects.append (subject)
+            self.subjects.append(subject)
 
 
-        def handle_locc (self, dummy_prefix, suffix):
+        def handle_locc(self, dummy_prefix, suffix):
             """ Handle locc. """
-            locc = Struct ()
+            locc = Struct()
             locc.id = None
             locc.locc = suffix
-            self.loccs.append (locc)
+            self.loccs.append(locc)
 
         def handle_creators(self, key, value):
             if isinstance(value, dict):
@@ -739,53 +739,53 @@ class GutenbergDublinCore (DublinCore):
         def nothandled(self, key, value):
             info('key %s, value %s not handled', key, value)
 
-        def store (self, prefix, suffix):
+        def store(self, prefix, suffix):
             """ Store into attribute. """
-            # debug ("store: %s %s" % (prefix, suffix))
-            setattr (self, prefix, suffix)
+            # debug("store: %s %s" % (prefix, suffix))
+            setattr(self, prefix, suffix)
 
         def scan_txt(self, data):
             last_prefix = None
             buf = ''
 
-            for line in data.splitlines ()[:300]:
-                line = line.strip (' %') # TeX comments
-                # debug ("Line: %s" % line)
+            for line in data.splitlines()[:300]:
+                line = line.strip(' %') # TeX comments
+                # debug("Line: %s" % line)
 
                 if self.project_gutenberg_id is None:
-                    handle_ebook_no (self, None, line.strip ())
+                    handle_ebook_no(self, None, line.strip())
 
-                if last_prefix and len (line) == 0:
-                    # debug ("Dispatching: %s => %s" % (last_prefix, buf.strip ()))
-                    dispatcher[last_prefix] (self, last_prefix, buf.strip ())
+                if last_prefix and len(line) == 0:
+                    # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
+                    dispatcher[last_prefix](self, last_prefix, buf.strip())
                     last_prefix = None
                     buf = ''
                     continue
 
-                if re.search ('START OF', line):
+                if re.search('START OF', line):
                     break
 
-                prefix, sep, suffix = line.partition (':')
+                prefix, sep, suffix = line.partition(':')
                 if sep:
-                    prefix = prefix.lower ()
-                    prefix = aliases.get (prefix, prefix) # map alias
+                    prefix = prefix.lower()
+                    prefix = aliases.get(prefix, prefix) # map alias
                     if prefix in dispatcher:
                         if last_prefix:
-                            # debug ("Dispatching: %s => %s" % (last_prefix, buf.strip ()))
-                            dispatcher[last_prefix] (self, last_prefix, buf.strip ())
+                            # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
+                            dispatcher[last_prefix](self, last_prefix, buf.strip())
                         last_prefix = prefix
                         buf = suffix
                         continue
 
                 buf += '\n' + line
 
-                line = line.lower ()
+                line = line.lower()
                 if ('audiobooksforfree' in line or
                     'literalsystems' in line or
                     'librivox' in line or
                     'human reading of an ebook' in line):
                     if 'Sound' not in self.categories:
-                        self.categories.append ('Sound')
+                        self.categories.append('Sound')
 
 
                 if 'copyrighted project gutenberg' in line:
@@ -803,7 +803,7 @@ class GutenbergDublinCore (DublinCore):
                     key = aliases.get(key, key)
                     dispatcher.get(key, nothandled)(self, key, val)
             except ValueError:
-                critical ('This is not a valid Project Gutenberg workflow file: %s' % data)
+                critical('This is not a valid Project Gutenberg workflow file: %s' % data)
 
 
         dispatcher = {
@@ -843,7 +843,7 @@ class GutenbergDublinCore (DublinCore):
             'alternate title':        'alt_title',
             }
 
-        for role in list(self.inverse_role_map.keys ()):
+        for role in list(self.inverse_role_map.keys()):
             dispatcher[role] = handle_authors
 
         self.publisher = 'Project Gutenberg'
@@ -858,7 +858,7 @@ class GutenbergDublinCore (DublinCore):
 
 
         if self.project_gutenberg_id is None:
-            raise ValueError ('This is not a Project Gutenberg ebook file.')
+            raise ValueError('This is not a Project Gutenberg ebook file.')
 
 # use PGDCObject if you want a DublinCoreObject that uses a database if available
 try:
