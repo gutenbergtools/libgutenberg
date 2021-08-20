@@ -1,4 +1,11 @@
 CHANGES
+0.8.2 (August 20, 2021)
+- bugfix for db loading after file parsing
+- bugfix update date
+- silent update window changed to 14 days from 28
+- bad json logging escalated to critical
+- delint
+
 0.8.1 (August 18, 2021)
 Bugfixes - 0.8.0 tagged but never released.
 - removed debugging code
