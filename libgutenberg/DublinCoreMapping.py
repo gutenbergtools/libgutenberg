@@ -70,9 +70,10 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         self.project_gutenberg_id = ebook
         session = self.get_my_session()
         book = session.query(Book).filter_by(pk=ebook).first()
-        if not book:
-            return
         self.book = book
+        if not book:
+            warning('no book for %s', ebook)
+        return book
 
 
     def load_from_database(self, ebook, load_files=True):
@@ -83,7 +84,9 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 setattr(s, key, args[key])
             return s
         
-        self.load_book(ebook)
+        book = self.load_book(ebook)
+        if not book:
+            return
 
         # Load DublinCore from PG database.
         session = self.get_my_session()
@@ -238,7 +241,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                     warning("ebook #%s not updated, already in database", self.project_gutenberg_id)
                     return
                 # either 0=0 for fresh book updatemode or 1=1 for re-editing old book
-                self.load_from_database(self.project_gutenberg_id)
+                self.load_book(self.project_gutenberg_id)
 
             if not self.book:
                 # book not in db; should not happen.
