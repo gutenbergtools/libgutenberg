@@ -1,4 +1,8 @@
 CHANGES
+0.8.3 (August 20, 2021)
+- fixed problem with guess_encoding. In reproducing the regexes I didn't realize that re.match != php's regexp match.
+- the handling of updatemode was backwards. While correcting this, I made the logic in save() much clearer
+
 0.8.2 (August 20, 2021)
 - bugfix for db loading after file parsing
 - bugfix update date
