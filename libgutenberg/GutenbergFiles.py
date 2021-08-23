@@ -48,28 +48,30 @@ def guess_filetype(filename):
     base =  ext = ""
     base_after_hyphen = ""
 
-    matches = re.match(r'^(.*)\.(.*)$', filename)
+    matches = re.search(r'^(.*)\.(.*)$', filename)
     if matches:
         base = matches.group(1).lower()
         ext  = matches.group(2).lower()
 
-    post10k = re.match(r'^\d{5}(-|$)', base)
-    matches = re.match("-(.*)$", base)
+    post10k = re.search(r'^\d{5}(-|$)', base)
+    print(post10k)
+    matches = re.search(r"-(.*)$", base)
     if matches:
         base_after_hyphen = matches.group(1)
+    print(base, base_after_hyphen, ext)
 
     # guess filetype from file extension
     ext = EXTENSION_ALIASES.get(ext, ext)
 
     if ext in get_filetypes():
         filetype = ext
-    if re.match(r'[-_]index\.html?$', filename, flags=re.I):
+    if re.search(r'[-_]index\.html?$', filename, flags=re.I):
         filetype = "index"
-    if re.match(r'readme\.txt$', filename, flags=re.I):
+    if re.search(r'readme\.txt$', filename, flags=re.I):
         filetype = "readme"
-    if re.match(r'license\.txt$', filename, flags=re.I):
+    if re.search(r'license\.txt$', filename, flags=re.I):
         filetype = "license"
-    if re.match(r'page-images', filename, flags=re.I):
+    if re.search(r'page-images', filename, flags=re.I):
         filetype = "pageimages"
 
     # guess encoding from file name
@@ -78,9 +80,9 @@ def guess_filetype(filename):
             enc = ENC_CASES.get(base_after_hyphen, enc)
         if enc is None:
             enc = "us-ascii"
-            if re.match(r'^8\w.+\d\da?$', base):
+            if re.search(r'^8\w.+\d\da?$', base):
                 enc = "iso-8859-1"
-            if re.match(r'^8\w.+\d\du$', base):
+            if re.search(r'^8\w.+\d\du$', base):
                 enc = "utf-8"
     return filetype, enc
 
@@ -104,14 +106,14 @@ def get_compression(filename):
     """ compression from filename.ext.zip """
     compression = 'none'
 
-    compression_match = re.match(r"^(.*)\.(.*)$", filename)
+    compression_match = re.search(r"^(.*)\.(.*)$", filename)
     if compression_match and (compression_match.group(2).lower() in get_compressions()):
         compression = compression_match.group(2).lower()
     return compression
 
 
 def get_obsoleted(filedir):
-    return 1 if re.match("old(/|$)", filedir) else 0
+    return 1 if re.search("old(/|$)", filedir) else 0
 
 
 def remove_file_from_database(filename, session=None):
