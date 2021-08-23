@@ -222,7 +222,7 @@ class TestDCLoader(unittest.TestCase):
         self.assertEqual(set_title, 'The Fake EBook of “Testing”')
         self.assertEqual(len(dc.authors), 2)
         dc.get_my_session()
-        dc.save(updatemode=1)
+        dc.save(updatemode=0)
         dc.session.flush()
         self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))
         self.assertEqual(len(dc.book.authors), 2)
@@ -256,7 +256,7 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(len(dc.scan_urls), 2)
         self.assertEqual(dc.pubinfo.first_year, '1920')
         dc.get_my_session()
-        dc.save(updatemode=1)
+        dc.save(updatemode=0)
         dc.session.flush()
 
         self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))

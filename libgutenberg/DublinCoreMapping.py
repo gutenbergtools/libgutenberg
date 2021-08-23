@@ -75,6 +75,14 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             warning('no book for %s', ebook)
         return book
 
+    def load_or_create_book(self, ebook):
+        self.project_gutenberg_id = ebook
+        if not self.load_book(ebook):
+            session = self.get_my_session()
+            self.book = Book(pk=ebook)
+            session.add(self.book)
+            session.commit()
+        return self.book
 
     def load_from_database(self, ebook, load_files=True):
         """ loads book, then configure dc to match the legacy DublinCore API """
@@ -222,87 +230,90 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             session.rollback()
 
     def save(self, updatemode=0):
+        """ 
+            updatemode = 0 : initial metadata creation; won't change an existing book
+            updatemode = 1 : change metadata for an existing book
+        """
+        if not self.project_gutenberg_id:
+            error("can't save without a project gutenberg id")
+            return
+
+        if not self.book:
+            # this has not been loaded from a database or pre-assigned an id
+            # should not happen
+            warning("loading book for project gutenberg id %s", self.project_gutenberg_id)
+            self.load_or_create_book(self.project_gutenberg_id)
+            
+
         session = self.get_my_session()
-        if self.book and (self.book.updatemode != updatemode):
-            warning("ebook #%s already in database", self.book.pk)
+        if self.book.updatemode != updatemode:
+            # updated files, mostly don't change metadata
+            info("ebook #%s already in database, marking update.", self.book.pk)
             if datetime.date.today() - self.book.release_date > datetime.timedelta(days=14):
                 if self.credit:
                     credit_message = self.credit
                 else:
                     credit_message = 'Updated: ' + str(datetime.date.today())
                 self.add_attribute(self.book, [credit_message], marc=508)
+                session.commit()
+            return
 
-        elif not self.book and self.project_gutenberg_id:
-            # this has not been loaded from a database so get a book Objectbase
-            self.book = session.query(Book).filter_by(pk=self.project_gutenberg_id).first()
+        # either 0=0 for fresh book updatemode or 1=1 for re-editing old book
 
-            if self.book:
-                if self.book.updatemode != updatemode:
-                    warning("ebook #%s not updated, already in database", self.project_gutenberg_id)
-                    return
-                # either 0=0 for fresh book updatemode or 1=1 for re-editing old book
-                self.load_book(self.project_gutenberg_id)
+        self.add_authors(self.book)
+        self.add_title(self.book, self.title)
+        if self.alt_title:
+            self.add_title(self.book, self.alt_title, marc=246)
 
-            if not self.book:
-                # book not in db; should not happen.
-                warning("adding ebook #%s to database", self.project_gutenberg_id)
-                self.book = Book(pk=self.project_gutenberg_id)
-                session.add(self.book)
+        if self.contents:
+            self.add_title(self.book, self.contents, marc=505)
 
-            self.add_authors(self.book)
-            self.add_title(self.book, self.title)
-            if self.alt_title:
-                self.add_title(self.book, self.alt_title, marc=246)
+        for language in self.languages:
+            lang = get_lang(language.id, session=session)
+            if lang and lang not in self.book.langs:
+                self.book.langs.append(lang)
 
-            if self.contents:
-                self.add_title(self.book, self.contents, marc=505)
+        for locc in self.loccs:
+            locc = session.query(Locc).filter_by(locc=locc.locc).first()
+            if locc and locc not in self.book.loccs:
+                self.book.loccs.append(locc)
 
-            for language in self.languages:
-                lang = get_lang(language.id, session=session)
-                if lang and lang not in self.book.langs:
-                    self.book.langs.append(lang)
+        for subject in self.subjects:
+            subject = session.query(Subject).filter_by(subject=subject.subject).first()
+            if subject and subject not in self.book.subjects:
+                self.book.subjects.append(subject)
+        if self.notes:
+            att = session.query(Attribute).filter_by(book=self.book, fk_attriblist=500).first()
+            if not att:
+                self.book.attributes.append(Attribute(fk_attriblist=500, text=self.notes))
 
-            for locc in self.loccs:
-                locc = session.query(Locc).filter_by(locc=locc.locc).first()
-                if locc and locc not in self.book.loccs:
-                    self.book.loccs.append(locc)
+        self.book.copyrighted = 1 if 'Copyrighted' in self.rights else 0
 
-            for subject in self.subjects:
-                subject = session.query(Subject).filter_by(subject=subject.subject).first()
-                if subject and subject not in self.book.subjects:
-                    self.book.subjects.append(subject)
-            if self.notes:
-                att = session.query(Attribute).filter_by(book=self.book, fk_attriblist=500).first()
-                if not att:
-                    self.book.attributes.append(Attribute(fk_attriblist=500, text=self.notes))
+        for category in self.categories:
+            # It appears that this is dead code
+            category = session.query(Category).filter_by(id=category.id).first()
+            if category and category not in self.book.categories:
+                self.book.categories.append(category)
 
-            self.book.copyrighted = 1 if 'Copyrighted' in self.rights else 0
+        if self.book.release_date == datetime.date.min:
+            # new release without release_date set; should not happen
+            self.book.release_date = datetime.date.today()
 
-            for category in self.categories:
-                # It appears that this is dead code
-                category = session.query(Category).filter_by(id=category.id).first()
-                if category and category not in self.book.categories:
-                    self.book.categories.append(category)
+        if self.pubinfo:
+            self.add_attribute(self.book, self.pubinfo.marc(), marc=260)
+            self.add_attribute(self.book, self.pubinfo.first_year, marc=906)
+            self.add_attribute(self.book, self.pubinfo.country, marc=907)
 
-            if self.book.release_date == datetime.date.min:
-                # new release without release_date set; should not happen
-                self.book.release_date = datetime.date.today()
+        if self.credit:
+            self.add_attribute(self.book, [self.credit], marc=508)
 
-            if self.pubinfo:
-                self.add_attribute(self.book, self.pubinfo.marc(), marc=260)
-                self.add_attribute(self.book, self.pubinfo.first_year, marc=906)
-                self.add_attribute(self.book, self.pubinfo.country, marc=907)
+        if self.scan_urls:
+            self.add_attribute(self.book, self.scan_urls, marc=904)
 
-            if self.credit:
-                self.add_attribute(self.book, [self.credit], marc=508)
+        if self.request_key:
+            self.add_attribute(self.book, self.request_key, marc=905)
 
-            if self.scan_urls:
-                self.add_attribute(self.book, self.scan_urls, marc=904)
-
-            if self.request_key:
-                self.add_attribute(self.book, self.request_key, marc=905)
-
-            self.book.updatemode = 1 # prevent non-cataloguer changes
+        self.book.updatemode = 1 # prevent non-cataloguer changes
 
         session.commit()
 
