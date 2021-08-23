@@ -54,11 +54,9 @@ def guess_filetype(filename):
         ext  = matches.group(2).lower()
 
     post10k = re.search(r'^\d{5}(-|$)', base)
-    print(post10k)
     matches = re.search(r"-(.*)$", base)
     if matches:
         base_after_hyphen = matches.group(1)
-    print(base, base_after_hyphen, ext)
 
     # guess filetype from file extension
     ext = EXTENSION_ALIASES.get(ext, ext)
