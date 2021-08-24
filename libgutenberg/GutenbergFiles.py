@@ -144,16 +144,17 @@ def store_file_in_database(id_, filename, type_, encoding=None, session=None):
     if type_ == 'txt' and encoding is None:
         type_ = 'txt.utf-8'
         encoding = 'utf-8'
+        check_type = False
     else:
         guess_type, guess_enc = guess_filetype(filename)
-        type_ = type_ if type_ else guess_type
+        type_, check_type = type_, True if type_ else guess_type, False
         encoding = encoding if encoding else guess_enc
 
     try:
         statinfo = os.stat(filename)
 
-        # check good filetype
-        if not session.query(Filetype).filter(Filetype.pk == type_).count():
+        # check good filetype if not from guesser
+        if check_type and not session.query(Filetype).filter(Filetype.pk == type_).count():
             warning("%s is not a valid filetype, didn't store %s", type_, filename)
             return
 
