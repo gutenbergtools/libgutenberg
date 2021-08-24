@@ -11,7 +11,7 @@ from libgutenberg.CommonOptions import Options
 from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
 from libgutenberg import DBUtils, DublinCoreMapping
 from libgutenberg.Logger import warning
-from libgutenberg.Models import Attribute
+from libgutenberg.Models import Attribute, Book
 
 global db_exists
 
@@ -241,6 +241,13 @@ class TestDCLoader(unittest.TestCase):
         DBUtils.remove_author('Lorem Ipsum Jr.', session=dc.session)
         self.assertFalse(DBUtils.author_exists('Lorem Ipsum Jr.'))
 
+    def tearDown(self):
+        session = DBUtils.check_session(None)
+        DBUtils.remove_author('Lorem Ipsum Jr.', session=session)
+        session.query(Book).filter(Book.pk == 99999).delete()
+        session.commit()
+        
+
 @unittest.skipIf(not db_exists, 'database not configured')
 class TestDCJson(unittest.TestCase):
     def setUp(self):
@@ -285,3 +292,9 @@ class TestDCJson(unittest.TestCase):
         dc.load_from_database(99999)
         dc.session.flush()
         self.assertFalse(DBUtils.ebook_exists(99999))
+
+    def tearDown(self):
+        session = DBUtils.check_session(None)
+        DBUtils.remove_author('Lorem Ipsum Jr.', session=session)
+        session.query(Book).filter(Book.pk == 99999).delete()
+        session.commit()

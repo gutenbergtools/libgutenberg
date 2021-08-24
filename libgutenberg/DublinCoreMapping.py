@@ -239,9 +239,8 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             return
 
         if not self.book:
-            # this has not been loaded from a database or pre-assigned an id
-            # should not happen
-            warning("loading book for project gutenberg id %s", self.project_gutenberg_id)
+            # this has not yet been loaded from a database or pre-assigned an id
+            info("loading book for project gutenberg id %s", self.project_gutenberg_id)
             self.load_or_create_book(self.project_gutenberg_id)
             
 
