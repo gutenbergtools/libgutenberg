@@ -23,17 +23,17 @@ COMPRESSIONS = []
 
 def get_filetypes(session=None):
     global FILETYPES
-    if FILETYPES:
-        return FILETYPES
-    session = DBUtils.check_session(session)
-    return [ft.pk for ft in session.query(Filetype.pk)]
+    if not FILETYPES:
+        session = DBUtils.check_session(session)
+        FILETYPES = [ft.pk for ft in session.query(Filetype.pk)]
+    return FILETYPES
 
 def get_compressions(session=None):
     global COMPRESSIONS
-    if COMPRESSIONS:
-        return COMPRESSIONS
-    session = DBUtils.check_session(session)
-    return [comp.pk for comp in session.query(Compression.pk)]
+    if not COMPRESSIONS:
+        session = DBUtils.check_session(session)
+        COMPRESSIONS = [comp.pk for comp in session.query(Compression.pk)]
+    return COMPRESSIONS
 
 
 def guess_filetype(filename):
