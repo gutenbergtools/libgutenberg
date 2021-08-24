@@ -147,7 +147,7 @@ def store_file_in_database(id_, filename, type_, encoding=None, session=None):
         check_type = False
     else:
         guess_type, guess_enc = guess_filetype(filename)
-        type_, check_type = type_, True if type_ else guess_type, False
+        type_, check_type = (type_, True) if type_ else (guess_type, False)
         encoding = encoding if encoding else guess_enc
 
     try:
