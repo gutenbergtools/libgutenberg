@@ -1,4 +1,10 @@
 CHANGES
+0.8.4 (August 24, 2021)
+- don't skip zip files
+- remove debugging statements
+- cache the filetypes and compressions loaded from db
+- improved test cleanup
+
 0.8.3 (August 23, 2021)
 - fixed problem with guess_encoding. In reproducing the regexes I didn't realize that re.match != php's regexp match.
 - the handling of updatemode was backwards. While correcting this, I made the logic in save() much clearer
