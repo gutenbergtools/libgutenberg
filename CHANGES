@@ -1,4 +1,7 @@
 CHANGES
+0.8.6 (August 25, 2021)
+- fix formatting of MARC attributes. Previously the marc formatter assumed a word boundary after the subfield indicator, but that's not aligned with the rest of the world. We have a few attribute fields with dollar amounts, but in every case the char after the $ is a digit. also # means [space] in the MARC docs. Ignore that $ means \1F in MARC docs, we'll just use $, until we make real MARC files.
+
 0.8.5 (August 24, 2021)
 - don't skip zip files
 - remove debugging statements
