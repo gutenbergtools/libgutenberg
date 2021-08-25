@@ -125,8 +125,8 @@ class PubInfo(object):
             info_str += '$b' + self.publisher + ','
         if subc:
             info_str += '$c' + subc
-        info_str = '##' +info_str.strip(' ,:') + '.'
-        return '' if info_str == '##.' else info_str
+        info_str = '  ' + info_str.strip(' ,:') + '.'
+        return '' if info_str == '  .' else info_str
 
 
 
@@ -134,7 +134,8 @@ class PubInfo(object):
 # file extension we hope to be able to parse
 PARSEABLE_EXTENSIONS = 'txt html htm tex tei xml'.split()
 
-RE_MARC_SUBFIELD = re.compile(r"\$[a-z]\b")
+RE_MARC_SUBFIELD = re.compile(r"\$[a-z]")
+
 
 class DublinCore(object):
     """ Hold DublinCore attributes.
@@ -226,8 +227,9 @@ class DublinCore(object):
 
     @staticmethod
     def strip_marc_subfields(s):
-        """ Strip MARC subfield markers. """
-        return RE_MARC_SUBFIELD.sub('', s)
+        """ Strip MARC subfield markers. ($b) etc. """
+        s = RE_MARC_SUBFIELD.sub('', s)
+        return s.strip()
 
 
 

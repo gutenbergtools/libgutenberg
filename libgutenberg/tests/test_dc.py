@@ -273,8 +273,11 @@ class TestDCJson(unittest.TestCase):
         marc260 = dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=260).first().text
         self.assertTrue('1920' in marc260)
         self.assertEqual(
-            '##$aUnited States :$bFrank A. Munsey Company,$c1920,reprint 1955,reprint 1972.',
+            '  $aUnited States :$bFrank A. Munsey Company,$c1920,reprint 1955,reprint 1972.',
             marc260)
+        self.assertEqual(
+            'United States :Frank A. Munsey Company,1920,reprint 1955,reprint 1972.',
+            dc.strip_marc_subfields(marc260))
         self.assertEqual(
             len(dc.session.query(Attribute).filter_by(book=dc.book,
                 fk_attriblist=508).first().text),
