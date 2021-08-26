@@ -1,4 +1,109 @@
 CHANGES
+0.8.6 (August 25, 2021)
+- fix formatting of MARC attributes. Previously the marc formatter assumed a word boundary after the subfield indicator, but that's not aligned with the rest of the world. We have a few attribute fields with dollar amounts, but in every case the char after the $ is a digit. also # means [space] in the MARC docs. Ignore that $ means \1F in MARC docs, we'll just use $, until we make real MARC files.
+
+0.8.5 (August 24, 2021)
+- don't skip zip files
+- remove debugging statements
+- cache the filetypes and compressions loaded from db
+- improved test cleanup
+
+0.8.3 (August 23, 2021)
+- fixed problem with guess_encoding. In reproducing the regexes I didn't realize that re.match != php's regexp match.
+- the handling of updatemode was backwards. While correcting this, I made the logic in save() much clearer
+
+0.8.2 (August 20, 2021)
+- bugfix for db loading after file parsing
+- bugfix update date
+- silent update window changed to 14 days from 28
+- bad json logging escalated to critical
+- delint
+
+0.8.1 (August 18, 2021)
+Bugfixes - 0.8.0 tagged but never released.
+- removed debugging code
+- fixed PubInfo.__bool__
+- fixed another release_date null test
+- added subtitle handling
+- workflow means files are all always utf8
+- orm-based support for putting files in the database has been refactored out of DublinCoreMapping; libgutenberg is now used for non-generated files (from ebookconverter/FileInfo.py) , too
+- to remove an ebook with files need to remove files first, because of CASCADE settings in db schema
+- added metadata updates. 
+    - update notes are applied only after more than 28 days (can be changed) after release date
+    - update notes are stored as marc 508 attribute along with production notes
+    - if a note is supplied in the CREDIT field of the workflow metadata, it is used as the text of the note, without an added date, so WW should enter date if desired.
+    - if no CREDIT note, then then the note will be "Updated: TODA-YS-DT"
+    - should also note that there on initial entry, the CREDIT note is sved without additions.
+    - and that for updates, the only other data currently looked at is the NOTIFY field; all the notify entries are stored in a non-public json file.
+- added count_files - handy for tests
+- removed support for old file structure and bitcollider
+- switched to using refactored GutenbergFiles code for file/db work
+- stop cataloging dot files
+- added a way to plug a notification handler keyed on the 'critical' loglevel into the Logger. 
+- added the DublinCore.PGDCObject which can be used without a database for non-database DC stuff
+- added a notification handler that sends CRITICAL log entries to a configurable callable
+
+0.8.0 (August 3, 2021)
+To be able to use ORM for EbookConverter, we needed to add code code that saves the DublinCoreObject to the database. most of the functions of "autocat.php" which used a text pipe from FileInfo to capture metadata from the dc loaders, are now handled by DublinCoreObject
+
+To support the new publication workflows, we have added a new way to do the initial ingest of metadata from a json file created by the workflow tool. An example json file can be found in the tests directory.
+
+- added a test for the dc header loader, saver, and deleter
+- refactored ROLES and LANGS into GutenbergGlobals and made them dicts
+- added 'alt_title' attribute to DublinCore objects as this is already handled by autocat.php
+- added utility functions for ORM objects in the new DBUtils module. these methods support an optional session param
+    - ebook_exists(ebook)
+    - is_not_text(ebook)
+    - remove_ebook(ebook)
+    - author_exists(author)
+    - remove_author(author)
+    - filetype_books(filetype)
+    - get_lang(language)
+    - last_ebook()
+    - recent_books(interval)
+    - top_books()
+- added save() and delete() methods to DublinCoreObjects. This work was done primarily mostly by the autocat.php script, which interfaced awkwardly with python.
+- improve authorname ingest- ", Jr." no longer causes a spurious author
+- fixed deletion cascade in m2m book relations
+- dc.load_from_database no longer overwrites data loaded from headers and metadata files
+- added the following attributes to Dublin Core objects to support ingest from workflow
+    - pubinfo - an object with publisher name, year and country
+    - credit - the producer credit line
+- added the following attributes to Gutenberg Dublin Core objects to support ingest from workflow
+    - scan_urls - a list of archive urls
+    - request_key - key for linking to clearance db
+- added save methods for new information items from workflow
+    - credit - uses the existing 508 attribute (Creation / Production Credits Note)
+    - scan_urls - uses the newly defined (repeatable) local attribute 904 (Archived Scan URL).
+    - request_key - uses the local attribute 905 (PGLAF Clearance Number).
+    - pubinfo 
+        - enters a MARC subfielded string in the 240 field
+        - adds the first year in the local attribute 906 (First Publication Year)
+        - adds the 2-letter country code to the local attribute 907 (Publication Country)
+- removed publisher from contributor roles because they should go in pubinfo
+- fixed a bug which caused ebookmaker to choke when not connected to PG database
+- start using pycountry so we have up-to-date language and country codes
+- changed default value for DublinCore.release_date to datetime.date.min because otherwise the ORMs autocommits fail as release_date has a NOT_NULL constraint
+- added DublinCore.PGDCObject so that ebookmaker can load an object that works with or without a backing database. Note that ebookmaker was broken with 0.7.2 without the database
+- tests now check if the database is connected before running (and failing) tests of the database and issue appropriate warnings
+- delint
+
+0.7.2 (July 19, 2021)
+- test_orm now tests the orm
+- removed stray savepoint that caused file addition to fail
+- added tests for ORM add/delete file
+- added a setter for dc.project_gutenberg_id to populate dc.canonical_url and dc.is_format_of
+- added warning for bad filetypes
+- updated logger syntax
+- accommodate output dirs to be named cache1, cache2, etc for saving in db
+- delint
+
+
+0.7.1 (May 25, 2021)
+- added GutenbergDublinCore.canonical_url to support https canonical urls distinct from the http URIs we're keeping so as not to break RDF links.
+- updated RDFa style in html head elements from archaic to less archaic (DOCTYPE and schema declarations)
+- use dublin core elements instead of dcterms where appropriate for modern metadata.
+
 0.7.0 (April 13, 2021)
 - fixed a spelling mistake
 - added an is_audiobook method

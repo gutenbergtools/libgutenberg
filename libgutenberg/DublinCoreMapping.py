@@ -18,17 +18,18 @@ pooled=True and be sure to close the session when done with a thread.
 from __future__ import unicode_literals
 
 import datetime
-import os
-import re
 from sqlalchemy.exc import DBAPIError
 
 from . import DublinCore
 from . import GutenbergGlobals as gg
 from . import GutenbergDatabase
+from . import GutenbergFiles
+from .DBUtils import get_lang
 from .GutenbergGlobals import Struct, PG_URL
-from .Logger import info, warning, error
+from .Logger import debug, error, info, warning
 from .GutenbergDatabase import DatabaseError, IntegrityError, Objectbase
-from .Models import Attribute, Book, Encoding, File, Filetype
+from .Models import (Alias, Attribute, Author, Book, BookAuthor, Category, File, Locc,
+    Role, Subject)
 
 
 class DublinCoreObject(DublinCore.GutenbergDublinCore):
@@ -65,27 +66,47 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 return True
         return False
 
+    def load_book(self, ebook):
+        self.project_gutenberg_id = ebook
+        session = self.get_my_session()
+        book = session.query(Book).filter_by(pk=ebook).first()
+        self.book = book
+        if not book:
+            warning('no book for %s', ebook)
+        return book
+
+    def load_or_create_book(self, ebook):
+        self.project_gutenberg_id = ebook
+        if not self.load_book(ebook):
+            session = self.get_my_session()
+            self.book = Book(pk=ebook)
+            session.add(self.book)
+            session.commit()
+        return self.book
+
     def load_from_database(self, ebook, load_files=True):
+        """ loads book, then configure dc to match the legacy DublinCore API """
         def struct(**args):
             s = Struct()
             for key in args:
                 setattr(s, key, args[key])
             return s
-
-        """ Load DublinCore from PG database."""
-        session = self.get_my_session()
-        self.project_gutenberg_id = ebook
-
-        book = session.query(Book).filter_by(pk=ebook).first()
+        
+        book = self.load_book(ebook)
         if not book:
             return
-        self.book = book
-        self.release_date = book.release_date
+
+        # Load DublinCore from PG database.
+        session = self.get_my_session()
+        if self.release_date == datetime.date.min:
+            self.release_date = book.release_date
         self.downloads = book.downloads
-        self.rights = book.rights
+        if not self.rights:
+            self.rights = book.rights
 
         # authors
-        self.authors = book.authors
+        if not self.authors:
+            self.authors = book.authors
 
         for attrib in book.attributes:
             marc = Struct()
@@ -99,23 +120,23 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 self.title_file_as = marc.text[attrib.nonfiling:]
                 self.title_file_as = self.title_file_as[0].upper() +\
                     self.title_file_as[1:]
-                info("Title: %s" % self.title)
+                info("Title: %s", self.title)
 
         # languages (datatype)
-
-        self.languages = book.langs if book.langs else [struct(id='en', language='English')]
+        if not self.languages:
+            self.languages = book.langs if book.langs else [struct(id='en', language='English')]
 
         # subjects (vocabulary)
-
-        self.subjects = book.subjects
+        if not self.subjects:
+            self.subjects = book.subjects
 
         # bookshelves (PG private vocabulary)
-
-        self.bookshelves = book.bookshelves
+        if not self.bookshelves:
+            self.bookshelves = book.bookshelves
 
         # LoCC (vocabulary)
-
-        self.loccs = book.loccs
+        if not self.loccs:
+            self.loccs = book.loccs
 
         # categories(text, audiobook, etc)
         if book.categories:
@@ -143,7 +164,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         session = self.get_my_session()
 
         # files(not strictly DublinCore but useful)
-        if self.book: 
+        if self.book:
             self.files = self.book.files
         else:
             #only files wanted
@@ -185,49 +206,12 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
     def remove_file_from_database(self, filename):
         """ Remove file from PG database. """
         session = self.get_my_session()
-        with session.begin_nested():
-            session.query(File).filter(File.archive_path == filename).\
-                                delete(synchronize_session='fetch')
-        session.commit()
+        GutenbergFiles.remove_file_from_database(filename, session=session)
 
     def store_file_in_database(self, id_, filename, type_):
         """ Store file in PG database. """
         session = self.get_my_session()
-        encoding = None
-        if type_ == 'txt':
-            type_ = 'txt.utf-8'
-            encoding = 'utf-8'
-
-        try:
-            statinfo = os.stat(filename)
-
-            # check good filetype
-            if not session.query(Filetype).filter(Filetype.pk == type_).count():
-                return
-
-            filename = re.sub('^.*/cache/', 'cache/', filename)
-            diskstatus = 0
-            session.begin_nested()
-            # delete existing filename record
-            session.query(File).filter(File.archive_path == filename).\
-                                delete(synchronize_session='fetch')
-            newfile = File(
-                fk_books=id_, archive_path=filename,
-                extent=statinfo.st_size,
-                modified=datetime.datetime.fromtimestamp(statinfo.st_mtime).isoformat(),
-                fk_filetypes=type_, fk_encodings=encoding,
-                compression=None, diskstatus=diskstatus
-            )
-            session.add(newfile)
-            session.commit()
-
-        except OSError:
-            error("Cannot stat %s" % filename)
-
-        except IntegrityError:
-            error("Book number %s is not in database." % id_)
-            self.session.rollback()
-
+        GutenbergFiles.store_file_in_database(id_, filename, type_, session=session)
 
     def register_coverpage(self, id_, url, code=901):
         """ Register a coverpage for this ebook. """
@@ -242,5 +226,181 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             session.rollback()
 
         except (DatabaseError, DBAPIError) as what:
-            warning("Error updating coverpage in database: %s." % what)
+            warning("Error updating coverpage in database: %s.", what)
             session.rollback()
+
+    def save(self, updatemode=0):
+        """ 
+            updatemode = 0 : initial metadata creation; won't change an existing book
+            updatemode = 1 : change metadata for an existing book
+        """
+        if not self.project_gutenberg_id:
+            error("can't save without a project gutenberg id")
+            return
+
+        if not self.book:
+            # this has not yet been loaded from a database or pre-assigned an id
+            info("loading book for project gutenberg id %s", self.project_gutenberg_id)
+            self.load_or_create_book(self.project_gutenberg_id)
+            
+
+        session = self.get_my_session()
+        if self.book.updatemode != updatemode:
+            # updated files, mostly don't change metadata
+            info("ebook #%s already in database, marking update.", self.book.pk)
+            if datetime.date.today() - self.book.release_date > datetime.timedelta(days=14):
+                if self.credit:
+                    credit_message = self.credit
+                else:
+                    credit_message = 'Updated: ' + str(datetime.date.today())
+                self.add_attribute(self.book, [credit_message], marc=508)
+                session.commit()
+            return
+
+        # either 0=0 for fresh book updatemode or 1=1 for re-editing old book
+
+        self.add_authors(self.book)
+        self.add_title(self.book, self.title)
+        if self.alt_title:
+            self.add_title(self.book, self.alt_title, marc=246)
+
+        if self.contents:
+            self.add_title(self.book, self.contents, marc=505)
+
+        for language in self.languages:
+            lang = get_lang(language.id, session=session)
+            if lang and lang not in self.book.langs:
+                self.book.langs.append(lang)
+
+        for locc in self.loccs:
+            locc = session.query(Locc).filter_by(locc=locc.locc).first()
+            if locc and locc not in self.book.loccs:
+                self.book.loccs.append(locc)
+
+        for subject in self.subjects:
+            subject = session.query(Subject).filter_by(subject=subject.subject).first()
+            if subject and subject not in self.book.subjects:
+                self.book.subjects.append(subject)
+        if self.notes:
+            att = session.query(Attribute).filter_by(book=self.book, fk_attriblist=500).first()
+            if not att:
+                self.book.attributes.append(Attribute(fk_attriblist=500, text=self.notes))
+
+        self.book.copyrighted = 1 if 'Copyrighted' in self.rights else 0
+
+        for category in self.categories:
+            # It appears that this is dead code
+            category = session.query(Category).filter_by(id=category.id).first()
+            if category and category not in self.book.categories:
+                self.book.categories.append(category)
+
+        if self.book.release_date == datetime.date.min:
+            # new release without release_date set; should not happen
+            self.book.release_date = datetime.date.today()
+
+        if self.pubinfo:
+            self.add_attribute(self.book, self.pubinfo.marc(), marc=260)
+            self.add_attribute(self.book, self.pubinfo.first_year, marc=906)
+            self.add_attribute(self.book, self.pubinfo.country, marc=907)
+
+        if self.credit:
+            self.add_attribute(self.book, [self.credit], marc=508)
+
+        if self.scan_urls:
+            self.add_attribute(self.book, self.scan_urls, marc=904)
+
+        if self.request_key:
+            self.add_attribute(self.book, self.request_key, marc=905)
+
+        self.book.updatemode = 1 # prevent non-cataloguer changes
+
+        session.commit()
+
+
+    def add_authors(self, book):
+        if len(book.authors) > 0:
+            warning("book already has authors.")
+            if not self.authors:
+                return False
+            warning("replacing them.")
+            book.authors[:] = []
+
+        session = self.get_my_session()
+        for dc_author in self.authors:
+            author = self.get_or_create_author(dc_author.name)
+            if hasattr(dc_author, 'birthdate'):
+                author.birthdate = dc_author.birthdate
+            if hasattr(dc_author, 'deathdate'):
+                author.deathdate = dc_author.deathdate
+            role_type = session.query(Role).where(
+                Role.role == dc_author.role).first()
+            if not role_type:
+                error("%s is not a valid role.", role_type.role)
+                continue
+            book.authors.append(BookAuthor(author=author, role_type=role_type))
+        return True
+
+
+    def get_or_create_author(self, name, birthdate=None, deathdate=None):
+        session = self.get_my_session()
+        like_author = '%%%s%%' % name
+        # get an author by matching name
+        author = session.query(Author).where(
+            Author.name.ilike(like_author)).order_by(Author.id).first()
+        if not author:
+            author = session.query(Author).join(Alias.author).where(
+                Alias.alias.ilike(like_author)).order_by(Alias.fk_authors).first()
+        if not author:
+            author = Author(name=name, birthdate=birthdate, deathdate=deathdate)
+            session.add(author)
+        return author
+
+
+    def add_title(self, book, title, marc=245):
+        """ set the appropriate marc attribute.
+        book.title gets generated by a database function. """
+
+        if not title:
+            error("no title %s found for etext#%s", marc, self.project_gutenberg_id)
+            return
+        nonfiling = 0
+        for nonfiling_str in gg.NONFILINGS:
+            if title.startswith(nonfiling_str):
+                nonfiling = len(nonfiling_str)
+                break
+        title = title.replace('--', '—')
+        title = title.replace(' *_ *', '\n')
+        self.add_attribute(book, title, nonfiling=nonfiling, marc=marc)
+
+    def add_attribute(self, book, attr, nonfiling=0, marc=0):
+        session = self.get_my_session()
+        attq = session.query(Attribute).filter_by(book=book, fk_attriblist=marc)
+        if isinstance(attr, set):
+            attr = list(attr)
+        if isinstance(attr, list):
+            # append instead of replace
+            for text_item in attr:
+                for att in attq.all():
+                    if att.text == text_item:
+                        return
+                book.attributes.append(Attribute(
+                    fk_attriblist=marc, nonfiling=nonfiling, text=text_item))
+        else:
+            att = attq.first()
+            if att:
+                att.nonfiling=nonfiling
+                att.text=attr
+            else:
+                book.attributes.append(Attribute(
+                    fk_attriblist=marc, nonfiling=nonfiling, text=attr))
+
+    def delete(self):
+        """ only delete the book! """
+        session = self.get_my_session()
+        if self.book:
+            session.delete(self.book)
+            session.commit()
+            return
+        if self.project_gutenberg_id:
+            self.book = session.query(Book).filter_by(pk=self.project_gutenberg_id).delete()
+            session.commit()

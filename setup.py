@@ -3,7 +3,7 @@
 # libgutenberg setup.py
 #
 
-__version__ = '0.7.0'
+__version__ = '0.8.6'
 
 from setuptools import setup
 
@@ -17,6 +17,7 @@ setup (
 
     install_requires = [
         'lxml>=4.6.3',
+        'pycountry',
         'six>=1.4.1',
         'sqlalchemy>=1.4.0',
     ],

@@ -4,13 +4,10 @@
 """
 GutenbergGlobals.py
 
-Copyright 2009 by Marcello Perathoner
+Copyright 2009-2021 by Marcello Perathoner, and Project Gutenberg
 
 Distributable under the GNU General Public License Version 3 or newer.
 
-This module has sadly decayed into a repository for all sorts of cruft.
-
-FIXME: refactor this module
 
 """
 
@@ -19,6 +16,8 @@ from __future__ import unicode_literals
 import os
 import re
 import datetime
+
+import pycountry
 
 class Struct (object):
     """ handy class to pin attributes on
@@ -67,6 +66,123 @@ NSMAP = {
     'xsi':        'http://www.w3.org/2001/XMLSchema-instance',
     'xslfo':      'http://www.w3.org/1999/XSL/Format',
 }
+
+NONFILINGS = {'The ', 'A ', 'An ', 'Der ', 'Die ', 'Das ', 'Eine ', 'Ein ',
+		      'La ', 'Le ', 'Les ', 'L\'', 'El '}
+ROLES = {
+    'adp': 'Adapter',
+    'ann': 'Annotator',
+    'arr': 'Arranger',
+    'art': 'Artist',
+    'aut': 'Author',
+    'aft': 'Author of afterword, colophon, etc.',
+    'aui': 'Author of introduction, etc.',
+    'clb': 'Collaborator',
+    'cmm': 'Commentator',
+    'com': 'Compiler',
+    'cmp': 'Composer',
+    'cnd': 'Conductor',
+    'ctb': 'Contributor',
+    'cre': 'Creator',
+    'dub': 'Dubious author',
+    'edt': 'Editor',
+    'egr': 'Engraver',
+    'frg': 'Forger',
+    'ill': 'Illustrator',
+    'lbt': 'Librettist',
+    'mrk': 'Markup editor',
+    'mus': 'Musician',
+    'oth': 'Other',
+    'pat': 'Patron',
+    'prf': 'Performer',
+    'pht': 'Photographer',
+    'prt': 'Printer',
+    'pro': 'Producer',
+    'prg': 'Programmer',
+    'pfr': 'Proofreader',
+    'res': 'Researcher',
+    'rev': 'Reviewer',
+    'sng': 'Singer',
+    'spk': 'Speaker',
+    'trc': 'Transcriber',
+    'trl': 'Translator',
+    'unk': 'Unknown role',
+}
+
+
+
+class language_map(object):
+    alt_names = {
+        'Bangla': 'bn',
+        'Bhutani': 'dz',
+        'Farsi': 'fa',
+        'Fiji': 'fj',
+        'Frisian': 'fy',
+        'Interlingua': 'ia',
+        'Inupiak': 'ik',
+        'Greenlandic': 'kl',
+        'Cambodian': 'km',
+        'Laothian': 'lo',
+        'Malay': 'ms',
+        'Nepali': 'ne',
+        'Occitan': 'oc',
+        'Oriya': 'or',
+        'Punjabi': 'pa',
+        'Pashto': 'ps',
+        'Rhaeto-Romance': 'rm',
+        'Kurundi': 'rn',
+        'Sangho': 'sg',
+        'Singhalese': 'si',
+        'Siswati': 'ss',
+        'Sesotho': 'st',
+        'Swahili': 'sw',
+        'Setswana': 'tn',
+        'Tonga': 'to',
+        'Uigur': 'ug',
+        'Volapuk': 'vo',
+        'Greek': 'el',
+        'Waray': 'war',
+        'Nahuatl': 'nah',
+        'Middle English': 'enm',
+        'Old English': 'ang',
+        'North American Indian': 'nai',
+        'Mayan Languages': 'myn',
+        'Iroquoian': 'iro',
+        'Napoletano-Calabrese': 'nap',
+        'Gaelic, Scottish': 'gla',
+        'Gaelic, Irish': 'gle',
+        'Greek, Ancient': 'grc',
+        'Ojibwa, Western': 'ojw',
+        'Bodo': 'brx',
+    }
+
+    @classmethod
+    def get(cls, code, default=''):
+        lang = None
+        if not code:
+            return default
+        if len(code) == 2:
+            lang = pycountry.languages.get(alpha_2=code)
+        elif len(code) == 3:
+            lang = pycountry.languages.get(alpha_3=code)
+            if not lang:
+                lang = pycountry.language_families.get(alpha_3=code)
+        return lang.name if lang else default
+
+    @classmethod
+    def inverse(cls, name, default='en'):
+        lang = None
+        if not name:
+            return default
+        if name in cls.alt_names:
+            return cls.alt_names[name]
+        lang = pycountry.languages.get(name=name)
+        if lang:
+            if hasattr(lang, 'alpha_2'):
+                return lang.alpha_2
+            if hasattr(lang, 'alpha_3'):
+                return lang.alpha_3
+        return default
 
 
 class NameSpaceClark (object):
@@ -147,8 +263,8 @@ XHTML_DOCTYPE   = ("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.1//EN' " +
 XHTML1_DOCTYPE   = ("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' " +
                    "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>")
 
-XHTML_RDFa_DOCTYPE = ("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML+RDFa 1.0//EN' " +
-                      "'http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd'>")
+XHTML_RDFa_DOCTYPE = ("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML+RDFa 1.1//EN' " +
+                      "'http://www.w3.org/MarkUp/DTD/xhtml-rdfa-2.dtd'>")
 
 NCX_DOCTYPE = ("<!DOCTYPE ncx PUBLIC '-//NISO//DTD ncx 2005-1//EN' " +
                "'http://www.daisy.org/z3986/2005/ncx-2005-1.dtd'>")

@@ -2,16 +2,29 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import os
 import unittest
+
+import psycopg2
 
 from libgutenberg.CommonOptions import Options
 from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
-from libgutenberg import DublinCoreMapping
+from libgutenberg import DBUtils, DublinCoreMapping
+from libgutenberg.Logger import warning
+from libgutenberg.Models import Attribute, Book
+
+global db_exists
 
 db_exists = GutenbergDatabase.db_exists
-
 options = Options()
 options.config = None
+if db_exists:
+    try:
+        GutenbergDatabase.Database().connect()
+    except psycopg2.OperationalError:
+        db_exists = False
+        Warning("can't connect to database")
+
 
 @unittest.skipIf(not db_exists, 'database not configured')
 class TestDC(unittest.TestCase):
@@ -143,24 +156,30 @@ class TestDC(unittest.TestCase):
         end_time = datetime.datetime.now()
         print(' Finished 1000 orm_dc tests. Total time: %s' % (end_time - start_time))
 
-    def test_add_delete_files(self):
+    def test_add_delete(self):
+        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
+        self.add_delete_files(dc)
+
+    def test_add_delete_orm(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+        self.add_delete_files(dc)
+
+    def add_delete_files(self, dc):
         fn = 'README.md'
         saved = False
-        dc2 = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
-        dc2.load_files_from_database(self.ebook2)
-        numfiles = len(dc2.files)
-        dc2.store_file_in_database(self.ebook2, fn, 'txt')
-        dc2.store_file_in_database(self.ebook2, fn, 'txt') # test over-writing
-        dc2.load_files_from_database(2600)
-        for file_ in dc2.files:
-            if file_.archive_path == fn:
+        dc.load_files_from_database(self.ebook2)
+        numfiles = len(dc.files)
+        dc.store_file_in_database(self.ebook2, fn, 'txt')
+        dc.store_file_in_database(self.ebook2, fn, 'txt') # test over-writing
+        dc.load_files_from_database(self.ebook2)
+        for file_ in dc.files:
+            if file_.archive_path.endswith(fn):
                 saved = True
                 break
         self.assertTrue(saved)
-        dc2.remove_file_from_database(fn) # filenames are unique!
-        dc2.load_files_from_database(self.ebook2)
-        self.assertEqual(numfiles, len(dc2.files))
-        
+        dc.remove_file_from_database(fn) # filenames are unique!
+        dc.load_files_from_database(self.ebook2)
+        self.assertEqual(numfiles, len(dc.files))        
 
     def test_delete_types(self):
         fn = 'cache_for_test'  # command only remove filenames starting with 'cache'
@@ -189,3 +208,96 @@ class TestDC(unittest.TestCase):
         
     def tearDown(self):
         pass
+
+@unittest.skipIf(not db_exists, 'database not configured')
+class TestDCLoader(unittest.TestCase):
+    def setUp(self):
+        self.test_fakebook = os.path.join(os.path.dirname(__file__),'99999-h.htm')
+
+    def test_load_from_pgheader(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+        with open(self.test_fakebook, 'r') as fakebook_file:
+            dc.load_from_pgheader(fakebook_file.read())
+        set_title = dc.title
+        self.assertEqual(set_title, 'The Fake EBook of “Testing”')
+        self.assertEqual(len(dc.authors), 2)
+        dc.get_my_session()
+        dc.save(updatemode=0)
+        dc.session.flush()
+        self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))
+        self.assertEqual(len(dc.book.authors), 2)
+        self.assertTrue(DBUtils.author_exists('Lorem Ipsum Jr.', session=dc.session))
+        self.assertTrue(DBUtils.author_exists('Hemingway, Ernest', session=dc.session))
+        dc.load_from_database(99999)
+        self.assertEqual(set_title, dc.title)
+        dc.delete()
+        dc = DublinCoreMapping.DublinCoreObject()
+        dc.load_from_database(99999)
+        self.assertFalse(dc.book)
+        dc.session.flush()
+        self.assertFalse(DBUtils.ebook_exists(99999))
+        self.assertTrue(DBUtils.author_exists('Hemingway, Ernest'))
+        self.assertTrue(DBUtils.author_exists('Lorem Ipsum Jr.'))
+        DBUtils.remove_author('Lorem Ipsum Jr.', session=dc.session)
+        self.assertFalse(DBUtils.author_exists('Lorem Ipsum Jr.'))
+
+    def tearDown(self):
+        session = DBUtils.check_session(None)
+        DBUtils.remove_author('Lorem Ipsum Jr.', session=session)
+        session.query(Book).filter(Book.pk == 99999).delete()
+        session.commit()
+        
+
+@unittest.skipIf(not db_exists, 'database not configured')
+class TestDCJson(unittest.TestCase):
+    def setUp(self):
+        self.test_fakebook = os.path.join(os.path.dirname(__file__),'99999.json')
+
+    def test_load_from_json(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+        with open(self.test_fakebook, 'r') as fakebook_file:
+            dc.load_from_pgheader(fakebook_file.read())
+        set_title = dc.title
+        self.assertEqual(set_title, 'A Sagebrush Cinderella: a true story')
+        self.assertEqual(len(dc.authors), 2)
+        self.assertEqual(len(dc.scan_urls), 2)
+        self.assertEqual(dc.pubinfo.first_year, '1920')
+        dc.get_my_session()
+        dc.save(updatemode=0)
+        dc.session.flush()
+
+        self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))
+        self.assertEqual(len(dc.book.authors), 2)
+        dc.load_from_database(99999)
+        self.assertEqual(set_title, dc.title)
+        marc260 = dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=260).first().text
+        self.assertTrue('1920' in marc260)
+        self.assertEqual(
+            '  $aUnited States :$bFrank A. Munsey Company,$c1920,reprint 1955,reprint 1972.',
+            marc260)
+        self.assertEqual(
+            'United States :Frank A. Munsey Company,1920,reprint 1955,reprint 1972.',
+            dc.strip_marc_subfields(marc260))
+        self.assertEqual(
+            len(dc.session.query(Attribute).filter_by(book=dc.book,
+                fk_attriblist=508).first().text),
+            26)
+        self.assertEqual(
+            len(dc.session.query(Attribute).filter_by(book=dc.book,
+                fk_attriblist=904).all()),
+            2)
+        self.assertEqual(
+            dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=905).first().text,
+            '20210623194947brand')
+
+        dc.delete()
+        dc = DublinCoreMapping.DublinCoreObject()
+        dc.load_from_database(99999)
+        dc.session.flush()
+        self.assertFalse(DBUtils.ebook_exists(99999))
+
+    def tearDown(self):
+        session = DBUtils.check_session(None)
+        DBUtils.remove_author('Lorem Ipsum Jr.', session=session)
+        session.query(Book).filter(Book.pk == 99999).delete()
+        session.commit()
