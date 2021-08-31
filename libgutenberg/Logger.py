@@ -58,10 +58,13 @@ def setup(logformat, logfile=None, loglevel=logging.INFO, notifier=None):
     # StreamHandler defaults to sys.stderr
     file_handler = logging.FileHandler(logfile) if logfile else logging.StreamHandler()
     file_handler.setFormatter(CustomFormatter(logformat))
-    notify_handler = NotificationHandler(notifier=notifier)
     logger = logging.getLogger()
+    if logger.hasHandlers():
+        logger.handlers.clear()        
     logger.addHandler(file_handler)
-    logger.addHandler(notify_handler)
+    if notifier:
+        notify_handler = NotificationHandler(notifier=notifier)
+        logger.addHandler(notify_handler)
     logger.setLevel(loglevel)
     return file_handler
 
