@@ -40,7 +40,7 @@ except ImportError:
         pass
     class IntegrityError(Exception):
         pass
-    warning('Gutenberg Database is inactive because psycopg2 not installed')
+    info('Gutenberg Database is inactive because psycopg2 not installed')
 
 
 options = Options()
