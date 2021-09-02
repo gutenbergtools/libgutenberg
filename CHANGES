@@ -1,6 +1,6 @@
 CHANGES
 0.8.7 (September 2, 2021)
-- abandoning xhtml/RDFa style meta elements in dc.to_html()min favor of HTML5 style meta elements.
+- change xhtml/RDFa style meta elements in dc.to_html()min to of HTML5 style meta elements.
 - change psycopg2 WARNING to an INFO
 - deleted redundant log handler. Log messages were printing twice
 - set encoding for python files to UTF8; this was causing an encoding error in data sent to db.
