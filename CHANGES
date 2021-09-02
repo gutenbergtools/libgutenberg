@@ -1,4 +1,11 @@
 CHANGES
+0.8.7 (September 2, 2021)
+- abandoning xhtml/RDFa style meta elements in dc.to_html()min favor of HTML5 style meta elements.
+- change psycopg2 WARNING to an INFO
+- deleted redundant log handler. Log messages were printing twice
+- set encoding for python files to UTF8; this was causing an encoding error in data sent to db.
+- fixed bug in is_same_path
+
 0.8.6 (August 25, 2021)
 - fix formatting of MARC attributes. Previously the marc formatter assumed a word boundary after the subfield indicator, but that's not aligned with the rest of the world. We have a few attribute fields with dollar amounts, but in every case the char after the $ is a digit. also # means [space] in the MARC docs. Ignore that $ means \1F in MARC docs, we'll just use $, until we make real MARC files.
 
