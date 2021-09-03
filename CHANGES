@@ -1,4 +1,7 @@
 CHANGES
+0.8.9 (September 3, 2021)
+- added a session management decorator to DBUtils so that functions that get a new session also close them. Rebuilds were failing after 75 books.
+
 0.8.8 (September 3, 2021)
 - fixed missing log method
 - fixed import failures when psycopg2 not present
