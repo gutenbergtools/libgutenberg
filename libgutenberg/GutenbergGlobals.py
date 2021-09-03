@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#  -*- mode: python; indent-tabs-mode: nil; -*- coding: iso-8859-1 -*-
+#  -*- mode: python; indent-tabs-mode: nil; -*- coding: UTF8 -*-
 
 """
 GutenbergGlobals.py
@@ -348,7 +348,7 @@ def normalize_path (path):
 
 def is_same_path (path1, path2):
     """ Does path1 point to the same file as path2? """
-    return os.path.realpath (normalize (path1)) == os.path.realpath (normalize (path2))
+    return os.path.realpath (normalize_path (path1)) == os.path.realpath (normalize_path (path2))
 
 
 def string_to_filename (fn):

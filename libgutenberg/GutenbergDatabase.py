@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#  -*- mode: python; indent-tabs-mode: nil; -*- coding: iso-8859-1 -*-
+#  -*- mode: python; indent-tabs-mode: nil; -*- coding: UTF8 -*-
 
 """
 GutenbergDatabase.py
@@ -40,7 +40,7 @@ except ImportError:
         pass
     class IntegrityError(Exception):
         pass
-    warning('Gutenberg Database is inactive because psycopg2 not installed')
+    info('Gutenberg Database is inactive because psycopg2 not installed')
 
 
 options = Options()

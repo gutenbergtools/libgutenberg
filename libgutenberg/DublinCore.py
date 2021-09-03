@@ -56,13 +56,16 @@ class _HTML_Writer(object):
     """
 
     def __init__(self):
-        self.metadata = []
+        self.metadata = [
+            ElementMaker().link(rel="schema.dc", href="http://purl.org/dc/elements/1.1/"),
+            ElementMaker().link(rel="schema.dcterms", href="http://purl.org/dc/terms/"),
+        ]        
 
     @staticmethod
     def _what(what):
-        """ Transform dcterms:title to DCTERMS.title. """
+        """ Transform DCTERMS:title to dcterms.title. """
         what = str(what).split(':')
-        what[0] = what[0].upper()
+        what[0] = what[0].lower()
         return '.'.join(what)
 
     def literal(self, what, literal, scheme = None):
@@ -70,8 +73,6 @@ class _HTML_Writer(object):
         if literal is None:
             return
         params = {'name' : self._what(what), 'content': literal}
-        if scheme:
-            params['scheme'] = self._what(scheme)
         self.metadata.append(ElementMaker().meta(**params))
 
     def uri(self, what, uri):
