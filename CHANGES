@@ -1,4 +1,9 @@
 CHANGES
+0.8.8 (September 3, 2021)
+- fixed missing log method
+- fixed import failures when psycopg2 not present
+- skip more tests when psycopg2 not present
+
 0.8.7 (September 2, 2021)
 - change xhtml/RDFa style meta elements in dc.to_html()min to of HTML5 style meta elements.
 - change psycopg2 WARNING to an INFO
