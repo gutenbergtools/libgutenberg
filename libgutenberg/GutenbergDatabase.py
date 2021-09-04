@@ -17,7 +17,7 @@ import os
 
 
 from .CommonOptions import Options
-from .Logger import warning, debug, critical
+from .Logger import critical, debug, info, warning
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

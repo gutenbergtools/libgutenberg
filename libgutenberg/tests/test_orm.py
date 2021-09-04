@@ -6,7 +6,6 @@ import unittest
 from sqlalchemy import select
 from sqlalchemy.sql import func
 
-import psycopg2
 
 
 from libgutenberg import GutenbergDatabase
@@ -20,6 +19,7 @@ db_exists = GutenbergDatabase.db_exists
 options = Options()
 options.config = None
 if db_exists:
+    import psycopg2
     try:
         GutenbergDatabase.Database().connect()
     except psycopg2.OperationalError:

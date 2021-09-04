@@ -5,7 +5,6 @@ import datetime
 import os
 import unittest
 
-import psycopg2
 
 from libgutenberg.CommonOptions import Options
 from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
@@ -19,6 +18,7 @@ db_exists = GutenbergDatabase.db_exists
 options = Options()
 options.config = None
 if db_exists:
+    import psycopg2
     try:
         GutenbergDatabase.Database().connect()
     except psycopg2.OperationalError:
