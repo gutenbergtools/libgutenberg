@@ -1,4 +1,8 @@
 CHANGES
+0.8.10 (September 7, 2021)
+- fixed bug where dc.project_gutenberg_id(ebook) was not handling null ebook
+- added session management decorator to methods in GutenbergFiles 
+
 0.8.9 (September 3, 2021)
 - added a session management decorator to DBUtils so that functions that get a new session also close them. Rebuilds were failing after 75 books.
 
