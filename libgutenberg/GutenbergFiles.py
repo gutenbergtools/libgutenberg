@@ -22,17 +22,21 @@ ENC_CASES = {"": "us-ascii", "8": "iso-8859-1", "0": "utf-8", "5": "big5"}
 COMPRESSIONS = []
 
 def get_filetypes(session=None):
+    @DBUtils.managed_session
+    def fts(session=None):
+        return [ft.pk for ft in session.query(Filetype.pk)]
     global FILETYPES
     if not FILETYPES:
-        session = DBUtils.check_session(session)
-        FILETYPES = [ft.pk for ft in session.query(Filetype.pk)]
+        FILETYPES = fts(session=session)
     return FILETYPES
 
 def get_compressions(session=None):
+    @DBUtils.managed_session
+    def comps(session=None):
+        return [comp.pk for comp in session.query(Compression.pk)]
     global COMPRESSIONS
     if not COMPRESSIONS:
-        session = DBUtils.check_session(session)
-        COMPRESSIONS = [comp.pk for comp in session.query(Compression.pk)]
+        COMPRESSIONS = comps(session=session)
     return COMPRESSIONS
 
 
@@ -114,6 +118,7 @@ def get_obsoleted(filedir):
     return 1 if re.search("old(/|$)", filedir) else 0
 
 
+@DBUtils.managed_session
 def remove_file_from_database(filename, session=None):
     """ Remove file from PG database. """
     filedir, filename_nopath, archivepath = parse_filename(filename)
@@ -123,6 +128,7 @@ def remove_file_from_database(filename, session=None):
         session.query(File).filter(File.archive_path == archivepath).\
                             delete(synchronize_session='fetch')
     session.commit()
+
 
 def parse_filename(filename):
     filedir, filename_nopath = os.path.split(filename)
@@ -134,10 +140,9 @@ def parse_filename(filename):
     return filedir, filename_nopath, archive_path
 
 
+@DBUtils.managed_session
 def store_file_in_database(id_, filename, type_, encoding=None, session=None):
     """ Store file in PG database. filename is a file system uri"""
-    session = DBUtils.check_session(session)
-
 
     filedir, filename_nopath, archive_path = parse_filename(filename)
 
@@ -184,8 +189,8 @@ def store_file_in_database(id_, filename, type_, encoding=None, session=None):
         session.rollback()
 
 
+@DBUtils.managed_session
 def count_files(id_, session=None):
     """ count files in PG database. """
-    session = DBUtils.check_session(session)
     return session.query(File.id).filter_by(fk_books=id_).count()
     
