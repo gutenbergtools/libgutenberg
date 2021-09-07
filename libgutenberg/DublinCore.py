@@ -468,7 +468,7 @@ class GutenbergDublinCore(DublinCore):
     def project_gutenberg_id(self, ebook):
         try:
             self._project_gutenberg_id = int(ebook)
-        except ValueError:
+        except (ValueError, TypeError):
             self._project_gutenberg_id = 0
         self.is_format_of = str(NS.ebook) + str(ebook)
         self.canonical_url = re.sub(r'^http:', 'https:', self.is_format_of) + '/'
