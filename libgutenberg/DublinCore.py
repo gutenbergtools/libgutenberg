@@ -511,10 +511,13 @@ class GutenbergDublinCore(DublinCore):
     def load_from_parser(self, parser):
         """ Load DublinCore from Project Gutenberg ebook.
 
-        Worst method. Use as last resort only.
-
         """
 
+        super(GutenbergDublinCore, self).load_from_parser(parser)
+        
+        ## Worst method. Use as last resort only.
+        ## first strip markup, leaving only text
+        
         for body in xpath(parser.xhtml, "//xhtml:body"):
             self.load_from_pgheader(lxml.etree.tostring(body,
                                                           encoding = six.text_type,
