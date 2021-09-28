@@ -19,10 +19,10 @@ import datetime
 
 import pycountry
 
-class Struct (object):
+class Struct(object):
     """ handy class to pin attributes on
 
-    usage: c = Struct ()
+    usage: c = Struct()
            c.something = 1
 
     """
@@ -185,10 +185,10 @@ class language_map(object):
         return default
 
 
-class NameSpaceClark (object):
+class NameSpaceClark(object):
     """ Build a tag name in Clark notation.
 
-    ns = NameSpaceClark ("http://example.com/")
+    ns = NameSpaceClark("http://example.com/")
     >>> ns.foo
     '{http://example.com/}foo'
     >>> ns['bar']
@@ -196,23 +196,23 @@ class NameSpaceClark (object):
 
     """
 
-    def __init__ (self, root):
+    def __init__(self, root):
         self.root = root
 
-    def __getitem__ (self, local):
+    def __getitem__(self, local):
         return "{%s}%s" % (self.root, local)
 
-    def __getattr__ (self, local):
+    def __getattr__(self, local):
         return "{%s}%s" % (self.root, local)
 
-    def __str__ (self):
+    def __str__(self):
         return self.root
 
 
-class NameSpaceURI (object):
+class NameSpaceURI(object):
     """ Build a URI.
 
-    ns = NameSpaceURI ("http://example.com/")
+    ns = NameSpaceURI("http://example.com/")
     >>> ns.foo
     'http://example.com/foo'
     >>> ns['bar']
@@ -220,26 +220,26 @@ class NameSpaceURI (object):
 
     """
 
-    def __init__ (self, root):
+    def __init__(self, root):
         self.root = root
 
-    def __getitem__ (self, local):
+    def __getitem__(self, local):
         return "%s%s" % (self.root, local)
 
-    def __getattr__ (self, local):
+    def __getattr__(self, local):
         return "%s%s" % (self.root, local)
 
-    def __str__ (self):
+    def __str__(self):
         return self.root
 
 
-def build_nsmap (prefixes = None):
+def build_nsmap(prefixes = None):
     """ build a nsmap containing all namespaces for prefixes """
 
     if prefixes is None:
-        prefixes = list(NSMAP.keys ())
-    if isinstance (prefixes, str):
-        prefixes = prefixes.split () # pylint: disable=maybe-no-member
+        prefixes = list(NSMAP.keys())
+    if isinstance(prefixes, str):
+        prefixes = prefixes.split() # pylint: disable=maybe-no-member
 
     ns = {}
     for prefix_ in prefixes:
@@ -248,12 +248,12 @@ def build_nsmap (prefixes = None):
     return ns
 
 
-NS = Struct ()
-NSURI = Struct ()
+NS = Struct()
+NSURI = Struct()
 
-for prefix, uri in list(NSMAP.items ()):
-    setattr (NS, prefix, NameSpaceClark (uri))
-    setattr (NSURI, prefix, NameSpaceURI (uri))
+for prefix, uri in list(NSMAP.items()):
+    setattr(NS, prefix, NameSpaceClark(uri))
+    setattr(NSURI, prefix, NameSpaceURI(uri))
 
 XML_DECLARATION = """<?xml version='1.0' encoding='UTF-8'?>"""
 
@@ -270,143 +270,144 @@ NCX_DOCTYPE = ("<!DOCTYPE ncx PUBLIC '-//NISO//DTD ncx 2005-1//EN' " +
                "'http://www.daisy.org/z3986/2005/ncx-2005-1.dtd'>")
 
 
-def xmlspecialchars (s):
+def xmlspecialchars(s):
     """ Replace xml special chars & < > with escapes. """
-    return (s.replace ('&',  '&amp;')
-             .replace ('<',  '&lt;')
-             .replace ('>',  '&gt;'))
+    return (s.replace('&',  '&amp;')
+             .replace('<',  '&lt;')
+             .replace('>',  '&gt;'))
 
-def insert_breaks (s):
+def insert_breaks(s):
     """ Replace newlines with <br/>. """
-    return s.replace ('\n',  '<br />')
+    return s.replace('\n',  '<br />')
 
-RE_NORMALIZE    = re.compile (r"\s+")
+RE_NORMALIZE    = re.compile(r"\s+")
 
-def normalize (s):
+def normalize(s):
     """ Replace consecutive whitespace with one space. """
-    s = RE_NORMALIZE.sub (' ', s)
-    return s.strip ()
+    s = RE_NORMALIZE.sub(' ', s)
+    return s.strip()
 
 
-def cut_at_newline (text):
+def cut_at_newline(text):
     """ Cut the text at the first newline. """
-    i = text.find ('\n')
+    i = text.find('\n')
     if i > -1:
         return text[:i]
     return text
 
-def archive_dir (ebook):
+def archive_dir(ebook):
     """ build 1/2/3/4/12345 for 12345 """
-    ebook = str (ebook)
+    ebook = str(ebook)
     if len(ebook) == 1:
         return '0/' + ebook
     a = []
     for c in ebook:
-        a.append (c)
+        a.append(c)
     a[-1] = ebook
-    return "/".join (a)
+    return "/".join(a)
 
-def archive2files (ebook, path):
+def archive2files(ebook, path):
     """ Replace dirs/1/2/3 with files/123. """
-    adir = archive_dir (ebook)
-    return path.replace ('dirs/' + adir, 'files/%d' % ebook)
+    adir = archive_dir(ebook)
+    return path.replace('dirs/' + adir, 'files/%d' % ebook)
 
 
-def xpath (node, path, **kwargs):
+def xpath(node, path, **kwargs):
     """ xpath helper """
-    return node.xpath (path, namespaces = NSMAP, **kwargs)
+    return node.xpath(path, namespaces = NSMAP, **kwargs)
 
 
-def mkdir_for_filename (fn):
+def mkdir_for_filename(fn):
     """ Make sure the directory for this file is present. """
 
     try:
-        os.makedirs (os.path.dirname (fn))
+        os.makedirs(os.path.dirname(fn))
     except os.error:
         pass
 
 
-def make_url_relative (base_url, url):
+def make_url_relative(base_url, url):
     """ Make absolute url relative to base_url if possible. """
 
-    if url.startswith (base_url):
-        return url[len (base_url):]
+    if url.startswith(base_url):
+        return url[len(base_url):]
 
-    base_url = os.path.dirname (base_url) + '/'
+    base_url = os.path.dirname(base_url) + '/'
 
-    if url.startswith (base_url):
-        return url[len (base_url):]
+    if url.startswith(base_url):
+        return url[len(base_url):]
 
     return url
 
 
-def normalize_path (path):
+def normalize_path(path):
     """ Normalize a file path. """
-    if path.startswith ('file://'):
+    if path.startswith('file://'):
         path = path[7:]
     if re.search(r'^/[a-zA-Z]:', path):
         path = path[1:]
     return path
 
-def is_same_path (path1, path2):
+
+def is_same_path(path1, path2):
     """ Does path1 point to the same file as path2? """
-    return os.path.realpath (normalize_path (path1)) == os.path.realpath (normalize_path (path2))
+    return os.path.realpath(normalize_path(path1)) == os.path.realpath(normalize_path(path2))
 
 
-def string_to_filename (fn):
+def string_to_filename(fn):
     """ Sanitize string so it can do as filename. """
 
-    def escape (matchobj):
+    def escape(matchobj):
         """ Escape a char. """
-        return '@%x' % ord (matchobj.group (0))
+        return '@%x' % ord(matchobj.group(0))
 
-    fn = os.path.normpath (fn)
-    fn = normalize (fn)
-    fn = fn.replace (os.sep, '@')
+    fn = os.path.normpath(fn)
+    fn = normalize(fn)
+    fn = fn.replace(os.sep, '@')
     if os.altsep:
-        fn = fn.replace (os.altsep, '@')
-    fn = re.sub (r'[\|/:?"*<>\u0000-\u001F]', escape, fn)
+        fn = fn.replace(os.altsep, '@')
+    fn = re.sub(r'[\|/:?"*<>\u0000-\u001F]', escape, fn)
 
     return fn
 
 
-class DCIMT (object):
+class DCIMT(object):
     """ encapsulates one dcterms internet mimetype
 
     """
 
-    def __init__ (self, mime, enc = None):
+    def __init__(self, mime, enc = None):
         if mime is None:
             self.mimetype = 'application/octet-stream'
-        elif enc is not None and mime.startswith ('text/'):
+        elif enc is not None and mime.startswith('text/'):
             self.mimetype = "%s; charset=%s" % (mime, enc)
         else:
             self.mimetype = mime
 
-    def __str__ (self):
+    def __str__(self):
         return self.mimetype
 
 
-class UTC (datetime.tzinfo):
+class UTC(datetime.tzinfo):
     """ UTC helper for datetime.datetime """
 
-    def utcoffset (self, dummy_dt):
-        return datetime.timedelta (0)
+    def utcoffset(self, dummy_dt):
+        return datetime.timedelta(0)
 
-    def tzname (self, dummy_dt):
+    def tzname(self, dummy_dt):
         return "UTC"
 
-    def dst (self, dummy_dt):
-        return datetime.timedelta (0)
+    def dst(self, dummy_dt):
+        return datetime.timedelta(0)
 
 # exceptions
 
-class SkipOutputFormat (Exception):
+class SkipOutputFormat(Exception):
     """ Raised to skip this output format. """
     pass
 
 # Spider.py tries a topological sort on link rel=next
-def topological_sort (pairlist):
+def topological_sort(pairlist):
     """Topologically sort a list of (parent, child) pairs.
 
     Return a list of the elements in dependency order (parent to child order).
@@ -456,5 +457,5 @@ def topological_sort (pairlist):
     if num_parents:
         # Everything in num_parents has at least one child ->
         # there's a cycle.
-        raise Exception (answer, num_parents, children)
+        raise Exception(answer, num_parents, children)
     return answer

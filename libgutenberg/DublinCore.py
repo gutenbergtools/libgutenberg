@@ -130,8 +130,6 @@ class PubInfo(object):
         return '' if info_str == '  .' else info_str
 
 
-
-
 # file extension we hope to be able to parse
 PARSEABLE_EXTENSIONS = 'txt html htm tex tei xml'.split()
 
@@ -231,7 +229,6 @@ class DublinCore(object):
         """ Strip MARC subfield markers. ($b) etc. """
         s = RE_MARC_SUBFIELD.sub('', s)
         return s.strip()
-
 
 
     @staticmethod
@@ -512,7 +509,6 @@ class GutenbergDublinCore(DublinCore):
         """ Load DublinCore from Project Gutenberg ebook.
 
         """
-
         super(GutenbergDublinCore, self).load_from_parser(parser)
         
         ## Worst method. Use as last resort only.
