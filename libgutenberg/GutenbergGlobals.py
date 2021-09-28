@@ -344,6 +344,8 @@ def normalize_path (path):
     """ Normalize a file path. """
     if path.startswith ('file://'):
         path = path[7:]
+    if re.search(r'^/[a-zA-Z]:', path):
+        path = path[1:]
     return path
 
 def is_same_path (path1, path2):
