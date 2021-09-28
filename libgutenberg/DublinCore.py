@@ -331,13 +331,15 @@ class DublinCore(object):
 
         return head
 
+    def append_lang(self, lang):
+        self.languages.append(lang)
 
     def add_lang_id(self, lang_id):
         """ Add language from language id. """
         language = Struct()
         language.id = lang_id
         language.language = self.language_map.get(lang_id)
-        self.languages.append(language)
+        self.append_lang(language)
 
 
     def add_author(self, name, marcrel = 'cre'):
@@ -405,6 +407,9 @@ class DublinCore(object):
 
             for elem in xpath(parser.xhtml, "/xhtml:html[@xml:lang]"):
                 self.add_lang_id(elem.get(NS.xml.lang))
+            if not self.languages:
+                for elem in xpath(parser.xhtml, "/*[@lang]"):
+                    self.add_lang_id(elem.get('lang'))
 
             for meta in xpath(parser.xhtml, "//xhtml:meta[@name='DC.Created']"):
                 self.created = gg.normalize(meta.get('content'))
@@ -669,14 +674,21 @@ class GutenbergDublinCore(DublinCore):
 
         def handle_languages(self, dummy_prefix, text):
             """ Scan Language: line """
+            reset = False
             for lang in text.lower().split(','):
-                try:
-                    language = Struct()
-                    language.id = self.language_map.inverse(lang, default='en')
-                    language.language = lang.title()
-                    self.languages.append(language)
-                except KeyError:
-                    pass
+                lang = lang.strip()
+                if lang:
+                    try:
+                        language = Struct()
+                        # if language name not in our table, just keep it.
+                        language.id = self.language_map.inverse(lang, default=lang)
+                        language.language = lang.title()
+                        if not reset:
+                            self.languages = []
+                            reset = True
+                        self.append_lang(language)
+                    except KeyError:
+                        pass
 
 
         def handle_subject(self, dummy_prefix, suffix):
