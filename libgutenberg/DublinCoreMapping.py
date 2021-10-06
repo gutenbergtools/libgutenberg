@@ -50,6 +50,16 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         self.session = session
 
 
+    def append_lang(self, lang):
+        if isinstance(lang, (Struct, str)):
+            tried_lang = lang if isinstance(lang, str) else lang.language
+            lang = get_lang(lang, session=self.session)
+            if not lang:
+                error("%s is not a recognizable language", tried_lang)
+                raise ValueError()
+        self.languages.append(lang)
+
+
     def get_my_session(self):
         if not GutenbergDatabase.OB:
             GutenbergDatabase.OB = Objectbase(self.pooled)

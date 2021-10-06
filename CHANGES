@@ -1,4 +1,14 @@
 CHANGES
+0.8.11 (September 28, 2021)
+- fix issue of polymorphism in dc.languages. Without a db, it's a list of structs; with a db, its a related collection.
+- ebookmaker will no longer ignore xml:lang or DC meta attributes
+- fix windows path comparison - ebookmaker will behave properly when input file is in outputdir
+- delint
+
+0.8.10 (September 7, 2021)
+- fixed bug where dc.project_gutenberg_id(ebook) was not handling null ebook
+- added session management decorator to methods in GutenbergFiles 
+
 0.8.9 (September 3, 2021)
 - added a session management decorator to DBUtils so that functions that get a new session also close them. Rebuilds were failing after 75 books.
 
