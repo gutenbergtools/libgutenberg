@@ -72,6 +72,7 @@ class _HTML_Writer(object):
         """ Write <meta name=what content=literal scheme=scheme> """
         if literal is None:
             return
+        literal = re.sub(r'\s*[\r\n]+\s*', '&#10;', literal)
         params = {'name' : self._what(what), 'content': literal}
         self.metadata.append(ElementMaker().meta(**params))
 
