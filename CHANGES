@@ -1,4 +1,7 @@
 CHANGES
+0.8.12 (November 5, 2021)
+- Attributes should not contain <CR> in HTML5. so we adjusted the code method makes dc meta tags to escape <CR>, <LF> and any combination thereof with the numeric entity &#11;
+
 0.8.11 (September 28, 2021)
 - fix issue of polymorphism in dc.languages. Without a db, it's a list of structs; with a db, its a related collection.
 - ebookmaker will no longer ignore xml:lang or DC meta attributes
