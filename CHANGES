@@ -1,4 +1,7 @@
 CHANGES
+0.8.13 (November 16, 2021)
+- handle errors in store_file_in_database due to dns errors
+
 0.8.12 (November 5, 2021)
 - Attributes should not contain <CR> in HTML5. so we adjusted the code method makes dc meta tags to escape <CR>, <LF> and any combination thereof with the numeric entity &#11;
 
