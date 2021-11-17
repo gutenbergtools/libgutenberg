@@ -4,6 +4,8 @@ import datetime
 import os
 import re
 
+from sqlalchemy.exc import OperationalError
+
 from . import DBUtils
 from .GutenbergDatabase import IntegrityError
 from .Logger import info, warning, error
@@ -159,10 +161,13 @@ def store_file_in_database(id_, filename, type_, encoding=None, session=None):
         statinfo = os.stat(filename)
 
         # check good filetype if not from guesser
-        if check_type and not session.query(Filetype).filter(Filetype.pk == type_).count():
-            warning("%s is not a valid filetype, didn't store %s", type_, filename)
+        try:
+            if check_type and not session.query(Filetype).filter(Filetype.pk == type_).count():
+                warning("%s is not a valid filetype, didn't store %s", type_, filename)
+                return
+        except OperationalError:
+            error("network problem, didn't store %s", filename)
             return
-
 
         diskstatus = get_diskstatus(id_, filedir, type_)
         compression = get_compression(filename_nopath)
