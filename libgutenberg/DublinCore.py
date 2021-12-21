@@ -763,6 +763,11 @@ class GutenbergDublinCore(DublinCore):
             last_prefix = None
             buf = ''
 
+            # only look in body; sometimes head is really long
+            pos = data.find("<body")
+            if pos > 0:
+                data = data[pos:]
+                
             for line in data.splitlines()[:300]:
                 line = line.strip(' %') # TeX comments
                 # debug("Line: %s" % line)
