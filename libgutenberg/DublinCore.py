@@ -675,6 +675,7 @@ class GutenbergDublinCore(DublinCore):
         def handle_languages(self, dummy_prefix, text):
             """ Scan Language: line """
             reset = False
+            lang = lang.replace(' and ', ',')
             for lang in text.lower().split(','):
                 lang = lang.strip()
                 if lang:
@@ -686,7 +687,10 @@ class GutenbergDublinCore(DublinCore):
                         if not reset:
                             self.languages = []
                             reset = True
-                        self.append_lang(language)
+                        try:
+                            self.append_lang(language)
+                        except ValueError:
+                            error('couldn't use language %s', language)
                     except KeyError:
                         pass
 
