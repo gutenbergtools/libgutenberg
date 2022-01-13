@@ -873,7 +873,7 @@ class GutenbergDublinCore(DublinCore):
         self.publisher = 'Project Gutenberg'
         self.rights = 'Public Domain in the USA.'
 
-        if data[0] == '{':
+        if data and data[0] == '{':
             #assume json
             scan_json(self, data)
         else:
