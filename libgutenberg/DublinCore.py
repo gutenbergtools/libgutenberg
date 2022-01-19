@@ -59,7 +59,7 @@ class _HTML_Writer(object):
         self.metadata = [
             ElementMaker().link(rel="schema.dc", href="http://purl.org/dc/elements/1.1/"),
             ElementMaker().link(rel="schema.dcterms", href="http://purl.org/dc/terms/"),
-        ]        
+        ]
 
     @staticmethod
     def _what(what):
@@ -354,7 +354,7 @@ class DublinCore(object):
             name = re.sub(r'\b%s\b' % i, i.lower(), name)
 
         name = name.replace('\\', '')   # remove \ (escape char in RST)
-        name = re.sub(r'\s\s+', '\s', name)
+        name = re.sub(r'\s\s+', r'\s', name)
         name = re.sub(r'\s*,\s*,', ',', name)
         name = re.sub(r',+', ',', name)
         name = name.replace(',M.D.', '')
@@ -511,11 +511,11 @@ class GutenbergDublinCore(DublinCore):
         """ Load DublinCore from Project Gutenberg ebook.
 
         """
-        super(GutenbergDublinCore, self).load_from_parser(parser)
-        
+        super().load_from_parser(parser)
+
         ## Worst method. Use as last resort only.
         ## first strip markup, leaving only text
-        
+
         for body in xpath(parser.xhtml, "//xhtml:body"):
             self.load_from_pgheader(lxml.etree.tostring(body,
                                                           encoding = six.text_type,
@@ -676,7 +676,7 @@ class GutenbergDublinCore(DublinCore):
         def handle_languages(self, dummy_prefix, text):
             """ Scan Language: line """
             reset = False
-            lang = lang.replace(' and ', ',')
+            text = text.replace(' and ', ',')
             for lang in text.lower().split(','):
                 lang = lang.strip()
                 if lang:
@@ -691,7 +691,7 @@ class GutenbergDublinCore(DublinCore):
                         try:
                             self.append_lang(language)
                         except ValueError:
-                            error('couldn't use language %s', language)
+                            error('could not use language %s', language)
                     except KeyError:
                         pass
 
@@ -772,7 +772,7 @@ class GutenbergDublinCore(DublinCore):
             pos = data.find("<body")
             if pos > 0:
                 data = data[pos:]
-                
+
             for line in data.splitlines()[:300]:
                 line = line.strip(' %') # TeX comments
                 # debug("Line: %s" % line)
