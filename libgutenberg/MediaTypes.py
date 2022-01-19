@@ -35,6 +35,7 @@ for ext, mimetype in (
         ('mobile',  'application/xhtml+xml'),
         ('ncx',     'application/x-dtbncx+xml'),
         ('opds',    'application/atom+xml'),
+        ('otf', 'application/vnd.ms-opentype'),
         ('pdf',     'application/pdf'),
         ('pdb',     'application/prs.plucker'),
         ('plucker', 'application/prs.plucker'),
@@ -45,8 +46,10 @@ for ext, mimetype in (
         ('rss',     'application/rss+xml'),
         ('rst',     'text/x-rst'),
         ('stanza',  'application/atom+xml'),
+        ('ttf', 'application/vnd.ms-opentype'),
         ('txt',     'text/plain'),
         ('wap',     'application/vnd.wap.xhtml+xml'),
+        ('woff',     'application/font-woff'),
         ('xhtml',   'application/xhtml+xml'),
         ('xml',     'application/xml'),
         ('mscz',   'application/x-musescore+xml'),
@@ -78,6 +81,8 @@ IMAGE_MEDIATYPES = set ( (
 
 AUX_MEDIATYPES = set ( (
     'text/css',
+    'application/font-woff',
+    'application/vnd.ms-opentype',
 ) )
 
 
