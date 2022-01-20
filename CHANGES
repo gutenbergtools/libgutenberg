@@ -1,5 +1,5 @@
 CHANGES
-0.8.14 (January 19, 2022)
+0.8.15 (January 20, 2022)
 - find gutenberg header in html even if html header is long
 - catch exception when a non-existent language code is used
 - fix exception with empty file
@@ -7,6 +7,7 @@ CHANGES
 - add mime types for font files
 - update lxml
 - delint
+- fix error in 0.8.14
 
 0.8.13 (November 16, 2021)
 - handle errors in store_file_in_database due to dns errors
