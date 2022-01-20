@@ -354,7 +354,7 @@ class DublinCore(object):
             name = re.sub(r'\b%s\b' % i, i.lower(), name)
 
         name = name.replace('\\', '')   # remove \ (escape char in RST)
-        name = re.sub(r'\s\s+', r'\s', name)
+        name = re.sub(r'\s\s+', ' ', name)
         name = re.sub(r'\s*,\s*,', ',', name)
         name = re.sub(r',+', ',', name)
         name = name.replace(',M.D.', '')
