@@ -1,4 +1,8 @@
 CHANGES
+0.8.16 (February 4, 2022)
+- add HTML5_DOCTYPE to GutenbergGlobals
+- add epub prefix for NSMAP
+
 0.8.15 (January 20, 2022)
 - find gutenberg header in html even if html header is long
 - catch exception when a non-existent language code is used
