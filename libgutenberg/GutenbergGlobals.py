@@ -41,6 +41,7 @@ NSMAP = {
     'dcmitype':   'http://purl.org/dc/dcmitype/',
     'dcterms':    'http://purl.org/dc/terms/',
     'ebook':      'http://' + PG_CANONICAL_HOST + '/ebooks/',             # for RDF only
+    'epub':       'http://www.idpf.org/2007/ops',
     'foaf':       'http://xmlns.com/foaf/0.1/',
     'marcrel':    'http://id.loc.gov/vocabulary/relators/',
     'mathml':     'http://www.w3.org/1998/Math/MathML',
@@ -269,6 +270,7 @@ XHTML_RDFa_DOCTYPE = ("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML+RDFa 1.1//EN' " 
 NCX_DOCTYPE = ("<!DOCTYPE ncx PUBLIC '-//NISO//DTD ncx 2005-1//EN' " +
                "'http://www.daisy.org/z3986/2005/ncx-2005-1.dtd'>")
 
+HTML5_DOCTYPE = "<!DOCTYPE html>"
 
 def xmlspecialchars(s):
     """ Replace xml special chars & < > with escapes. """
@@ -314,7 +316,7 @@ def archive2files(ebook, path):
 
 def xpath(node, path, **kwargs):
     """ xpath helper """
-    return node.xpath(path, namespaces = NSMAP, **kwargs)
+    return node.xpath(path, namespaces=NSMAP, **kwargs)
 
 
 def mkdir_for_filename(fn):
