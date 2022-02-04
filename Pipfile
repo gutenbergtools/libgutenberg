@@ -8,6 +8,7 @@ verify_ssl = true
 [packages]
 libgutenberg = {editable = true,path = "."}
 pycountry = "*"
+lxml = ">=4.6.5"
 
 [requires]
 python_version = "3.6"

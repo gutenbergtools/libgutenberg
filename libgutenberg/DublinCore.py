@@ -59,7 +59,7 @@ class _HTML_Writer(object):
         self.metadata = [
             ElementMaker().link(rel="schema.dc", href="http://purl.org/dc/elements/1.1/"),
             ElementMaker().link(rel="schema.dcterms", href="http://purl.org/dc/terms/"),
-        ]        
+        ]
 
     @staticmethod
     def _what(what):
@@ -72,6 +72,7 @@ class _HTML_Writer(object):
         """ Write <meta name=what content=literal scheme=scheme> """
         if literal is None:
             return
+        literal = re.sub(r'\s*[\r\n]+\s*', '&#10;', literal)
         params = {'name' : self._what(what), 'content': literal}
         self.metadata.append(ElementMaker().meta(**params))
 
@@ -353,8 +354,9 @@ class DublinCore(object):
             name = re.sub(r'\b%s\b' % i, i.lower(), name)
 
         name = name.replace('\\', '')   # remove \ (escape char in RST)
-        name = re.sub(r'\s*,\s*,',  ',', name)
-        name = re.sub(r',+',        ',', name)
+        name = re.sub(r'\s\s+', ' ', name)
+        name = re.sub(r'\s*,\s*,', ',', name)
+        name = re.sub(r',+', ',', name)
         name = name.replace(',M.D.', '')
 
         name = re.sub(r'\s*\[.*?\]\s*', ' ', name) # [pseud.]
@@ -509,11 +511,11 @@ class GutenbergDublinCore(DublinCore):
         """ Load DublinCore from Project Gutenberg ebook.
 
         """
-        super(GutenbergDublinCore, self).load_from_parser(parser)
-        
+        super().load_from_parser(parser)
+
         ## Worst method. Use as last resort only.
         ## first strip markup, leaving only text
-        
+
         for body in xpath(parser.xhtml, "//xhtml:body"):
             self.load_from_pgheader(lxml.etree.tostring(body,
                                                           encoding = six.text_type,
@@ -674,6 +676,7 @@ class GutenbergDublinCore(DublinCore):
         def handle_languages(self, dummy_prefix, text):
             """ Scan Language: line """
             reset = False
+            text = text.replace(' and ', ',')
             for lang in text.lower().split(','):
                 lang = lang.strip()
                 if lang:
@@ -685,7 +688,10 @@ class GutenbergDublinCore(DublinCore):
                         if not reset:
                             self.languages = []
                             reset = True
-                        self.append_lang(language)
+                        try:
+                            self.append_lang(language)
+                        except ValueError:
+                            error('could not use language %s', language)
                     except KeyError:
                         pass
 
@@ -761,6 +767,11 @@ class GutenbergDublinCore(DublinCore):
         def scan_txt(self, data):
             last_prefix = None
             buf = ''
+
+            # only look in body; sometimes head is really long
+            pos = data.find("<body")
+            if pos > 0:
+                data = data[pos:]
 
             for line in data.splitlines()[:300]:
                 line = line.strip(' %') # TeX comments
@@ -863,7 +874,7 @@ class GutenbergDublinCore(DublinCore):
         self.publisher = 'Project Gutenberg'
         self.rights = 'Public Domain in the USA.'
 
-        if data[0] == '{':
+        if data and data[0] == '{':
             #assume json
             scan_json(self, data)
         else:

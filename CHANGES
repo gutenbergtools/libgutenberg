@@ -1,4 +1,24 @@
 CHANGES
+0.8.16 (February 4, 2022)
+- add HTML5_DOCTYPE to GutenbergGlobals
+- add epub prefix for NSMAP
+
+0.8.15 (January 20, 2022)
+- find gutenberg header in html even if html header is long
+- catch exception when a non-existent language code is used
+- fix exception with empty file
+- remove double spaces from names
+- add mime types for font files
+- update lxml
+- delint
+- fix error in 0.8.14
+
+0.8.13 (November 16, 2021)
+- handle errors in store_file_in_database due to dns errors
+
+0.8.12 (November 5, 2021)
+- Attributes should not contain <CR> in HTML5. so we adjusted the code method makes dc meta tags to escape <CR>, <LF> and any combination thereof with the numeric entity &#11;
+
 0.8.11 (September 28, 2021)
 - fix issue of polymorphism in dc.languages. Without a db, it's a list of structs; with a db, its a related collection.
 - ebookmaker will no longer ignore xml:lang or DC meta attributes
