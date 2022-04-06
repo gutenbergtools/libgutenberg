@@ -22,7 +22,7 @@ import datetime
 from . import DublinCore
 from . import GutenbergGlobals as gg
 from .GutenbergGlobals import Struct, PG_URL
-from .Logger import info, warning, error
+from .Logger import debug, info, warning, error
 from .GutenbergDatabase import xl, DatabaseError, IntegrityError
 
 RE_FIRST_AZ = re.compile (r"^[a-z]")
