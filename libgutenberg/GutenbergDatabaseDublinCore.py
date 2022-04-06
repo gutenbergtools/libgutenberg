@@ -158,7 +158,6 @@ select attributes.text, attributes.nonfiling,
                 self.title = marc.text
                 self.title_file_as = marc.text[row.nonfiling:]
                 self.title_file_as = self.title_file_as[0].upper() + self.title_file_as[1:]
-                info("Title: %s", self.title)
 
 
         # languages (datatype)

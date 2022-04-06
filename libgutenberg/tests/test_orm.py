@@ -36,7 +36,6 @@ class TestORM(unittest.TestCase):
     def test_query(self):
         num_books = self.session.query(Book).count()
         mx = self.session.execute(select(func.max(Book.pk))).scalars().first()
-        print(mx)
 
     def tearDown(self):
         pass

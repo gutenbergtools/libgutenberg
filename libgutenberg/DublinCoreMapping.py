@@ -130,7 +130,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 self.title_file_as = marc.text[attrib.nonfiling:]
                 self.title_file_as = self.title_file_as[0].upper() +\
                     self.title_file_as[1:]
-                info("Title: %s", self.title)
+                debug("Title: %s", self.title)
 
         # languages (datatype)
         if not self.languages:
