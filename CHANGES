@@ -1,4 +1,6 @@
 CHANGES
+0.9.0 (June 16, 2022)
+- added a metadata handle for "created:" fileds
 0.8.16 (February 4, 2022)
 - add HTML5_DOCTYPE to GutenbergGlobals
 - add epub prefix for NSMAP
