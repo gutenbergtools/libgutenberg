@@ -1,5 +1,6 @@
 CHANGES
 0.9.0 (June 16, 2022)
+- tested with Python 3.7 and 3.8
 - added a metadata handle for "created:" fileds
 - turns out we didn't really want to clear the log handlers
 

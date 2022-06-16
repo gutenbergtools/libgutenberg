@@ -6,9 +6,10 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-libgutenberg = {editable = true,path = "."}
+libgutenberg = {editable = true, path = "."}
 pycountry = "*"
 lxml = ">=4.6.5"
+psycopg2-binary = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.8"
