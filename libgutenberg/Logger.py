@@ -59,8 +59,6 @@ def setup(logformat, logfile=None, loglevel=logging.INFO, notifier=None):
     file_handler = logging.FileHandler(logfile) if logfile else logging.StreamHandler()
     file_handler.setFormatter(CustomFormatter(logformat))
     logger = logging.getLogger()
-    if logger.hasHandlers():
-        logger.handlers.clear()        
     logger.addHandler(file_handler)
     if notifier:
         notify_handler = NotificationHandler(notifier=notifier)
