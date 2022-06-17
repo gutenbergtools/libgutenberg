@@ -1,6 +1,9 @@
 CHANGES
+0.9.1 (June 17, 2022)
+- remove duplicate log handlers when logging to console
+
 0.9.0 (June 16, 2022)
-- tested with Python 3.7 and 3.8
+- tested with Python 3.7 and 3.8; Python 3.6 no longer supported
 - added a metadata handle for "created:" fileds
 - turns out we didn't really want to clear the log handlers
 

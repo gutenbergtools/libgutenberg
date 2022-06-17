@@ -56,7 +56,12 @@ def setup(logformat, logfile=None, loglevel=logging.INFO, notifier=None):
     """ Setup logger. """
 
     # StreamHandler defaults to sys.stderr
-    file_handler = logging.FileHandler(logfile) if logfile else logging.StreamHandler()
+    if logfile: 
+        file_handler = logging.FileHandler(logfile) 
+    else: 
+        if logger.hasHandlers():
+            logger.handlers.clear()        
+        file_handler = logging.StreamHandler()
     file_handler.setFormatter(CustomFormatter(logformat))
     logger = logging.getLogger()
     logger.addHandler(file_handler)
