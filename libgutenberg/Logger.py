@@ -21,6 +21,8 @@ from logging import debug, info, warning, error, critical, exception # pylint: d
 LOGFORMAT = '%(asctime)s %(levelname)-8s  #%(ebook)-5d %(message)s'
 
 ebook = 0 # global
+notifier = None # global
+base_logfile = None
 
 class CustomFormatter(logging.Formatter):
     """ A custom formatter that adds ebook no. """
@@ -37,38 +39,54 @@ class CustomFormatter(logging.Formatter):
 class NotificationHandler(logging.Handler):
     """ notifier is a callable with signature ebook, message"""
 
-    def __init__(self, notifier=None):
+    def __init__(self):
         super(logging.Handler, self).__init__()
         self.setLevel(logging.CRITICAL)
-        self.notifier = notifier
         
     def handle(self, record):
         ''' To activate message queueing, 
             and set a notifier callable in setup.
         '''
-        if self.notifier :
+        if notifier :
             message = CustomFormatter(LOGFORMAT).format(record)
-            self.notifier(ebook, message)
+            notifier(ebook, message)
 
 
 
-def setup(logformat, logfile=None, loglevel=logging.INFO, notifier=None):
+def setup(logformat, logfile=None, loglevel=logging.INFO):
     """ Setup logger. """
 
-    # StreamHandler defaults to sys.stderr
+    # Setup logger. 
     logger = logging.getLogger()
+    logger.setLevel(loglevel)
+
+    # setup handlers
+    if logger.hasHandlers():
+        logger.handlers.clear()        
+
+    # setup file_handlers
     if logfile: 
         file_handler = logging.FileHandler(logfile) 
-    else: 
-        if logger.hasHandlers():
-            logger.handlers.clear()        
-        file_handler = logging.StreamHandler()
-    file_handler.setFormatter(CustomFormatter(logformat))
-    logger.addHandler(file_handler)
+        file_handler.setFormatter(CustomFormatter(logformat))
+        logger.addHandler(file_handler)
+    else:
+        file_handler = None
+
+    if base_logfile: 
+        file_handler = logging.FileHandler(base_logfile) 
+        file_handler.setFormatter(CustomFormatter(logformat))
+        logger.addHandler(file_handler)
+
+
+    # setup stream_handler
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(CustomFormatter(LOGFORMAT))
+    logger.addHandler(stream_handler)
+
+
     if notifier:
-        notify_handler = NotificationHandler(notifier=notifier)
+        notify_handler = NotificationHandler()
         logger.addHandler(notify_handler)
-    logger.setLevel(loglevel)
     return file_handler
 
 
