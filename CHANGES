@@ -1,5 +1,5 @@
 CHANGES
-0.9.4 (July 9, 2022)
+0.10.0 (July 12, 2022)
 - breaking change! moved notifier to be a Logger global because loggers are global
 - revised Logger to avoid duplicate logging. Now, every time Logger.setup() is called, at most 3 handlers are set, a StreamHandler, a base_logger, and a ebook-specific logger.
 
