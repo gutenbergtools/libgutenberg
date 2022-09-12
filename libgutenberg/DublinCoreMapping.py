@@ -383,6 +383,8 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         self.add_attribute(book, title, nonfiling=nonfiling, marc=marc)
 
     def add_attribute(self, book, attr, nonfiling=0, marc=0):
+        if not attr:
+            return
         session = self.get_my_session()
         attq = session.query(Attribute).filter_by(book=book, fk_attriblist=marc)
         if isinstance(attr, set):
