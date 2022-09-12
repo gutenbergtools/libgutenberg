@@ -9,7 +9,7 @@ import unittest
 from libgutenberg.CommonOptions import Options
 from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
 from libgutenberg import DBUtils, DublinCoreMapping
-from libgutenberg.Logger import warning
+from libgutenberg.Logger import debug, warning
 from libgutenberg.Models import Attribute, Book
 
 global db_exists

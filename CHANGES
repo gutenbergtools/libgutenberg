@@ -1,4 +1,19 @@
 CHANGES
+0.10.1 (September 12, 2022)
+- fixed bug where metadata upload failed if pubinfo was missing the country. 
+
+0.10.0 (July 12, 2022)
+- breaking change! moved notifier to be a Logger global because loggers are global
+- revised Logger to avoid duplicate logging. Now, every time Logger.setup() is called, at most 3 handlers are set, a StreamHandler, a base_logger, and a ebook-specific logger.
+
+0.9.3 (June 17, 2022)
+- remove duplicate log handlers when logging to console
+
+0.9.0 (June 16, 2022)
+- tested with Python 3.7 and 3.8; Python 3.6 no longer supported
+- added a metadata handle for "created:" fields
+- turns out we didn't really want to clear the log handlers
+
 0.8.16 (February 4, 2022)
 - add HTML5_DOCTYPE to GutenbergGlobals
 - add epub prefix for NSMAP

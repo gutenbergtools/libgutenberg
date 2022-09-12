@@ -130,7 +130,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 self.title_file_as = marc.text[attrib.nonfiling:]
                 self.title_file_as = self.title_file_as[0].upper() +\
                     self.title_file_as[1:]
-                info("Title: %s", self.title)
+                debug("Title: %s", self.title)
 
         # languages (datatype)
         if not self.languages:
@@ -383,6 +383,8 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         self.add_attribute(book, title, nonfiling=nonfiling, marc=marc)
 
     def add_attribute(self, book, attr, nonfiling=0, marc=0):
+        if not attr:
+            return
         session = self.get_my_session()
         attq = session.query(Attribute).filter_by(book=book, fk_attriblist=marc)
         if isinstance(attr, set):

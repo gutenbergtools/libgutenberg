@@ -22,7 +22,7 @@ import datetime
 from . import DublinCore
 from . import GutenbergGlobals as gg
 from .GutenbergGlobals import Struct, PG_URL
-from .Logger import info, warning, error
+from .Logger import debug, info, warning, error
 from .GutenbergDatabase import xl, DatabaseError, IntegrityError
 
 RE_FIRST_AZ = re.compile (r"^[a-z]")
@@ -158,7 +158,6 @@ select attributes.text, attributes.nonfiling,
                 self.title = marc.text
                 self.title_file_as = marc.text[row.nonfiling:]
                 self.title_file_as = self.title_file_as[0].upper() + self.title_file_as[1:]
-                info("Title: %s", self.title)
 
 
         # languages (datatype)
