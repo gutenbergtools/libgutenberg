@@ -1,4 +1,7 @@
 CHANGES
+0.10.1 (September 12, 2022)
+- fixed bug where metadata upload failed if pubinfo was missing the country. 
+
 0.10.0 (July 12, 2022)
 - breaking change! moved notifier to be a Logger global because loggers are global
 - revised Logger to avoid duplicate logging. Now, every time Logger.setup() is called, at most 3 handlers are set, a StreamHandler, a base_logger, and a ebook-specific logger.
