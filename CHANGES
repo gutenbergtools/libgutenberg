@@ -2,7 +2,7 @@ CHANGES
 0.10.2 (September 14, 2022)
 - fix bug that wiped authorlist if an updated dc object was saved to the DB
 - fix bug that failed the marc formated display when there is a pubinfo without a country
--
+- refactor handle_languages so code can be used outside the dc object
 
 0.10.1 (September 12, 2022)
 - fixed bug where metadata upload failed if pubinfo was missing the country. 

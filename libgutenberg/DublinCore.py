@@ -454,6 +454,29 @@ class DublinCore(object):
         return ''
 
 
+def handle_dc_languages(dc, text):
+    """ Scan Language: line """
+    reset = False
+    text = text.replace(' and ', ',')
+    for lang in text.lower().split(','):
+        lang = lang.strip()
+        if lang:
+            try:
+                language = Struct()
+                # if language name not in our table, just keep it.
+                language.id = dc.language_map.inverse(lang, default=lang)
+                language.language = lang.title()
+                if not reset:
+                    dc.languages = []
+                    reset = True
+                try:
+                    dc.append_lang(language)
+                except ValueError:
+                    error('could not use language %s', language)
+            except KeyError:
+                pass
+
+
 class GutenbergDublinCore(DublinCore):
     """ Parse from PG files. """
 
@@ -677,26 +700,7 @@ class GutenbergDublinCore(DublinCore):
 
 
         def handle_languages(self, dummy_prefix, text):
-            """ Scan Language: line """
-            reset = False
-            text = text.replace(' and ', ',')
-            for lang in text.lower().split(','):
-                lang = lang.strip()
-                if lang:
-                    try:
-                        language = Struct()
-                        # if language name not in our table, just keep it.
-                        language.id = self.language_map.inverse(lang, default=lang)
-                        language.language = lang.title()
-                        if not reset:
-                            self.languages = []
-                            reset = True
-                        try:
-                            self.append_lang(language)
-                        except ValueError:
-                            error('could not use language %s', language)
-                    except KeyError:
-                        pass
+            handle_dc_languages(self, text)
 
 
         def handle_subject(self, dummy_prefix, suffix):
