@@ -329,10 +329,12 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
     def add_authors(self, book):
         if len(book.authors) > 0:
-            warning("book already has authors.")
-            if not self.authors:
+            info("book already has authors.")
+            if not len(self.authors):
                 return False
-            warning("replacing them.")
+            if self.authors is book.authors:
+                return False
+            warning("replacing existing authors.")
             book.authors[:] = []
 
         session = self.get_my_session()
