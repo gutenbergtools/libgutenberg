@@ -394,11 +394,12 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         if isinstance(attr, list):
             # append instead of replace
             for text_item in attr:
-                for att in attq.all():
-                    if att.text == text_item:
-                        return
-                book.attributes.append(Attribute(
-                    fk_attriblist=marc, nonfiling=nonfiling, text=text_item))
+                if text_item:
+                    for att in attq.all():
+                        if att.text == text_item:
+                            return
+                    book.attributes.append(Attribute(
+                        fk_attriblist=marc, nonfiling=nonfiling, text=text_item))
         else:
             att = attq.first()
             if att:

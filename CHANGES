@@ -1,4 +1,7 @@
 CHANGES
+0.10.3 (September 15, 2022)
+- fix bug where list attributes to set were not checked for empty text items
+
 0.10.2 (September 14, 2022)
 - fix bug that wiped authorlist if an updated dc object was saved to the DB
 - fix bug that failed the marc formated display when there is a pubinfo without a country
