@@ -878,7 +878,6 @@ class GutenbergDublinCore(DublinCore):
             'character set encoding': 'encoding',
             'copyright':              'rights',
             'alternate title':        'alt_title',
-            'created':                'source_publication_years'
             'created':                'source_publication_years',
             'produced by':            'credit',
             }
