@@ -625,10 +625,10 @@ class GutenbergDublinCore(DublinCore):
         return True
 
 
-    def load_from_pgheader(self, data):
-        """ Load DublinCore from Project Gutenberg ebook.
+    def load_from_pgheader(self, data, parser=None):
+        """ Load DublinCore from Project Gutenberg ebook file.
 
-        Worst method. Use as last resort only.
+        When a parser is supplied, data from the parser is used
 
         """
 
@@ -795,6 +795,11 @@ class GutenbergDublinCore(DublinCore):
                     continue
 
                 if re.search('START OF', line):
+                    # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
+                    
+                    if last_prefix:
+                        dispatcher[last_prefix](self, last_prefix, buf.strip())
+                    
                     break
 
                 prefix, sep, suffix = line.partition(':')
@@ -874,6 +879,8 @@ class GutenbergDublinCore(DublinCore):
             'copyright':              'rights',
             'alternate title':        'alt_title',
             'created':                'source_publication_years'
+            'created':                'source_publication_years',
+            'produced by':            'credit',
             }
 
         for role in list(self.inverse_role_map.keys()):
