@@ -1,5 +1,5 @@
 CHANGES
-0.10.4 (September 29, 2022)
+0.10.4 (September 30, 2022)
 - don't skip last metadata item when it is followed immediately by the START marker
 - add `produced by` as a synonym for `credit`
 - add `self_closing` parameter to `GutenbergGlobals.insert_breaks()`
