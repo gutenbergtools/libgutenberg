@@ -4,7 +4,7 @@ CHANGES
 - add `produced by` as a synonym for `credit`
 - add `self_closing` parameter to `GutenbergGlobals.insert_breaks()`
 - dc.load_from_database() was not loading dc attributes corresponding to marc attributes Support for this has now been added.
-
+- since dc.pubinfo is never False, dc.save() tried (in vain) to save empty pubinfos. No longer. 
 
 0.10.3 (September 15, 2022)
 - fix bug where list attributes to set were not checked for empty text items

@@ -330,9 +330,13 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             # new release without release_date set; should not happen
             self.book.release_date = datetime.date.today()
 
-        if self.pubinfo:
+        if self.pubinfo.publisher:
             self.add_attribute(self.book, self.pubinfo.marc(), marc=260)
+
+        if self.pubinfo.first_year:
             self.add_attribute(self.book, self.pubinfo.first_year, marc=906)
+
+        if self.pubinfo.country:
             self.add_attribute(self.book, self.pubinfo.country, marc=907)
 
         if self.credit:
