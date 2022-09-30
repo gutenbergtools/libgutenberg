@@ -625,7 +625,7 @@ class GutenbergDublinCore(DublinCore):
         return True
 
 
-    def load_from_pgheader(self, data, parser=None):
+    def load_from_pgheader(self, data):
         """ Load DublinCore from Project Gutenberg ebook file.
 
         When a parser is supplied, data from the parser is used
