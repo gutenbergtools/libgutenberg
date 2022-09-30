@@ -131,6 +131,27 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 self.title_file_as = self.title_file_as[0].upper() +\
                     self.title_file_as[1:]
                 debug("Title: %s", self.title)
+            elif marc.code == '206':                
+                self.alt_title = marc.text
+            elif marc.code == '260':                
+                self.pubinfo.years = [('copyright', marc.text)]
+            elif marc.code == '500':
+                self.notes = marc.text
+            elif marc.code == '505':
+                self.contents = marc.text
+            elif marc.code == '508':
+                self.credit = marc.text
+            elif marc.code == '904':
+                self.scan_urls = marc.text
+            elif marc.code == '905':
+                self.request_key = marc.text
+            elif marc.code == '906':
+                if '$b' in attrib.text:
+                    publisher = attrib.text.split('$b')[1]
+                    publisher = publisher.split(',')[0]
+                    self.pubinfo.publisher = publisher
+            elif marc.code == '907':
+                self.pubinfo.country = marc.text
 
         # languages (datatype)
         if not self.languages:
@@ -291,6 +312,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             subject = session.query(Subject).filter_by(subject=subject.subject).first()
             if subject and subject not in self.book.subjects:
                 self.book.subjects.append(subject)
+
         if self.notes:
             att = session.query(Attribute).filter_by(book=self.book, fk_attriblist=500).first()
             if not att:
