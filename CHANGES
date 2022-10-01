@@ -1,4 +1,7 @@
 CHANGES
+0.10.5 (October 1, 2022)
+- fixed bug in pubinfo.__str__ revealed by bugfix in ebookmaker renderer.
+
 0.10.4 (September 30, 2022)
 - don't skip last metadata item when it is followed immediately by the START marker
 - add `produced by` as a synonym for `credit`

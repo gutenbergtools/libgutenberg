@@ -97,7 +97,7 @@ class PubInfo(object):
             info_str += self.publisher
         if self.years:
             info_str += ', ' + self.first_year
-        info_str = info_str.trim()
+        info_str = info_str.strip()
         return '' if info_str == '()' else info_str
 
     def __bool__(self):
