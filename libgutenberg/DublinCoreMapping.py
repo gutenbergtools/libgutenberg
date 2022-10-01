@@ -131,6 +131,27 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 self.title_file_as = self.title_file_as[0].upper() +\
                     self.title_file_as[1:]
                 debug("Title: %s", self.title)
+            elif marc.code == '206':                
+                self.alt_title = marc.text
+            elif marc.code == '260':                
+                self.pubinfo.years = [('copyright', marc.text)]
+            elif marc.code == '500':
+                self.notes = marc.text
+            elif marc.code == '505':
+                self.contents = marc.text
+            elif marc.code == '508':
+                self.credit = marc.text
+            elif marc.code == '904':
+                self.scan_urls = marc.text
+            elif marc.code == '905':
+                self.request_key = marc.text
+            elif marc.code == '906':
+                if '$b' in attrib.text:
+                    publisher = attrib.text.split('$b')[1]
+                    publisher = publisher.split(',')[0]
+                    self.pubinfo.publisher = publisher
+            elif marc.code == '907':
+                self.pubinfo.country = marc.text
 
         # languages (datatype)
         if not self.languages:
@@ -291,6 +312,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             subject = session.query(Subject).filter_by(subject=subject.subject).first()
             if subject and subject not in self.book.subjects:
                 self.book.subjects.append(subject)
+
         if self.notes:
             att = session.query(Attribute).filter_by(book=self.book, fk_attriblist=500).first()
             if not att:
@@ -308,9 +330,13 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             # new release without release_date set; should not happen
             self.book.release_date = datetime.date.today()
 
-        if self.pubinfo:
+        if self.pubinfo.publisher:
             self.add_attribute(self.book, self.pubinfo.marc(), marc=260)
+
+        if self.pubinfo.first_year:
             self.add_attribute(self.book, self.pubinfo.first_year, marc=906)
+
+        if self.pubinfo.country:
             self.add_attribute(self.book, self.pubinfo.country, marc=907)
 
         if self.credit:
@@ -329,10 +355,12 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
     def add_authors(self, book):
         if len(book.authors) > 0:
-            warning("book already has authors.")
-            if not self.authors:
+            info("book already has authors.")
+            if not len(self.authors):
                 return False
-            warning("replacing them.")
+            if self.authors is book.authors:
+                return False
+            warning("replacing existing authors.")
             book.authors[:] = []
 
         session = self.get_my_session()
@@ -392,11 +420,12 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         if isinstance(attr, list):
             # append instead of replace
             for text_item in attr:
-                for att in attq.all():
-                    if att.text == text_item:
-                        return
-                book.attributes.append(Attribute(
-                    fk_attriblist=marc, nonfiling=nonfiling, text=text_item))
+                if text_item:
+                    for att in attq.all():
+                        if att.text == text_item:
+                            return
+                    book.attributes.append(Attribute(
+                        fk_attriblist=marc, nonfiling=nonfiling, text=text_item))
         else:
             att = attq.first()
             if att:

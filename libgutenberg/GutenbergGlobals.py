@@ -278,9 +278,9 @@ def xmlspecialchars(s):
              .replace('<',  '&lt;')
              .replace('>',  '&gt;'))
 
-def insert_breaks(s):
+def insert_breaks(s, self_closing=True):
     """ Replace newlines with <br/>. """
-    return s.replace('\n',  '<br />')
+    return s.replace('\n', '<br />' if self_closing else '<br>')
 
 RE_NORMALIZE    = re.compile(r"\s+")
 

@@ -120,8 +120,11 @@ class PubInfo(object):
             subc += self.years[0][1]
             for year in self.years[1:]:
                 subc += ',%s %s' % year
-        country = pycountry.countries.get(alpha_2=self.country)
-        country = country.name if country else self.country
+        if self.country:
+            country = pycountry.countries.get(alpha_2=self.country)
+            country = country.name if country else self.country
+        else:
+            country = ''
         info_str = ('$a' + country + ' :') if country else ''
         if self.publisher:
             info_str += '$b' + self.publisher + ','
@@ -451,6 +454,29 @@ class DublinCore(object):
         return ''
 
 
+def handle_dc_languages(dc, text):
+    """ Scan Language: line """
+    reset = False
+    text = text.replace(' and ', ',')
+    for lang in text.lower().split(','):
+        lang = lang.strip()
+        if lang:
+            try:
+                language = Struct()
+                # if language name not in our table, just keep it.
+                language.id = dc.language_map.inverse(lang, default=lang)
+                language.language = lang.title()
+                if not reset:
+                    dc.languages = []
+                    reset = True
+                try:
+                    dc.append_lang(language)
+                except ValueError:
+                    error('could not use language %s', language)
+            except KeyError:
+                pass
+
+
 class GutenbergDublinCore(DublinCore):
     """ Parse from PG files. """
 
@@ -600,9 +626,9 @@ class GutenbergDublinCore(DublinCore):
 
 
     def load_from_pgheader(self, data):
-        """ Load DublinCore from Project Gutenberg ebook.
+        """ Load DublinCore from Project Gutenberg ebook file.
 
-        Worst method. Use as last resort only.
+        When a parser is supplied, data from the parser is used
 
         """
 
@@ -674,26 +700,7 @@ class GutenbergDublinCore(DublinCore):
 
 
         def handle_languages(self, dummy_prefix, text):
-            """ Scan Language: line """
-            reset = False
-            text = text.replace(' and ', ',')
-            for lang in text.lower().split(','):
-                lang = lang.strip()
-                if lang:
-                    try:
-                        language = Struct()
-                        # if language name not in our table, just keep it.
-                        language.id = self.language_map.inverse(lang, default=lang)
-                        language.language = lang.title()
-                        if not reset:
-                            self.languages = []
-                            reset = True
-                        try:
-                            self.append_lang(language)
-                        except ValueError:
-                            error('could not use language %s', language)
-                    except KeyError:
-                        pass
+            handle_dc_languages(self, text)
 
 
         def handle_subject(self, dummy_prefix, suffix):
@@ -788,6 +795,11 @@ class GutenbergDublinCore(DublinCore):
                     continue
 
                 if re.search('START OF', line):
+                    # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
+                    
+                    if last_prefix:
+                        dispatcher[last_prefix](self, last_prefix, buf.strip())
+                    
                     break
 
                 prefix, sep, suffix = line.partition(':')
@@ -866,7 +878,8 @@ class GutenbergDublinCore(DublinCore):
             'character set encoding': 'encoding',
             'copyright':              'rights',
             'alternate title':        'alt_title',
-            'created':                'source_publication_years'
+            'created':                'source_publication_years',
+            'produced by':            'credit',
             }
 
         for role in list(self.inverse_role_map.keys()):
