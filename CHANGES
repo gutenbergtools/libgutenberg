@@ -2,6 +2,7 @@ CHANGES
 0.10.7 (October 7, 2022)
 - tweak display of marc fields. "United States: D. Appleton and Company, 1918." instead of "United States :D. Appleton and Company ,1918."
 - update tests
+- make sure all scanned metadata is normal form composed.
 
 0.10.5 (October 1, 2022)
 - fixed bug in pubinfo.__str__ revealed by bugfix in ebookmaker renderer.

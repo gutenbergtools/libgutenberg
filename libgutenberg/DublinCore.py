@@ -19,6 +19,7 @@ import datetime
 import json
 import re
 import textwrap
+import unicodedata
 from gettext import gettext as _
 
 import six
@@ -791,6 +792,7 @@ class GutenbergDublinCore(DublinCore):
 
                 if last_prefix and len(line) == 0:
                     # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
+                    buf = unicodedata.normalize('NFC', buf)
                     dispatcher[last_prefix](self, last_prefix, buf.strip())
                     last_prefix = None
                     buf = ''
@@ -800,6 +802,7 @@ class GutenbergDublinCore(DublinCore):
                     # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
                     
                     if last_prefix:
+                        buf = unicodedata.normalize('NFC', buf)
                         dispatcher[last_prefix](self, last_prefix, buf.strip())
                     
                     break
@@ -811,6 +814,7 @@ class GutenbergDublinCore(DublinCore):
                     if prefix in dispatcher:
                         if last_prefix:
                             # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
+                            buf = unicodedata.normalize('NFC', buf)
                             dispatcher[last_prefix](self, last_prefix, buf.strip())
                         last_prefix = prefix
                         buf = suffix
@@ -838,6 +842,7 @@ class GutenbergDublinCore(DublinCore):
                 store(self, 'encoding', 'utf-8')
                 for key, val in record.items():
                     key = key.lower()
+                    val = unicodedata.normalize('NFC', val) if isinstance(val, str) else val
                     key = 'creator_role' if key == "contributor" else key
                     key = aliases.get(key, key)
                     dispatcher.get(key, nothandled)(self, key, val)
