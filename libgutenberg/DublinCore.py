@@ -138,6 +138,7 @@ class PubInfo(object):
 PARSEABLE_EXTENSIONS = 'txt html htm tex tei xml'.split()
 
 RE_MARC_SUBFIELD = re.compile(r"\$[a-z]")
+RE_MARC_SPSEP = re.compile(r"[\n ](,|:)([A-Za-z0-9])")
 
 
 class DublinCore(object):
@@ -232,6 +233,7 @@ class DublinCore(object):
     def strip_marc_subfields(s):
         """ Strip MARC subfield markers. ($b) etc. """
         s = RE_MARC_SUBFIELD.sub('', s)
+        s = RE_MARC_SPSEP.sub(r'\1 \2', s) # move space to behind the separator
         return s.strip()
 
 
