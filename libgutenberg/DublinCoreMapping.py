@@ -280,11 +280,8 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             # updated files, mostly don't change metadata
             info("ebook #%s already in database, marking update.", self.book.pk)
             if datetime.date.today() - self.book.release_date > datetime.timedelta(days=14):
-                if self.credit:
-                    credit_message = self.credit
-                else:
-                    credit_message = 'Updated: ' + str(datetime.date.today())
-                self.add_attribute(self.book, [credit_message], marc=508)
+                self.add_credit('Updated: ' + str(datetime.date.today()))
+                self.add_attribute(self.book, [self.credit], marc=508)
                 session.commit()
             return
 

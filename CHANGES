@@ -1,4 +1,7 @@
 CHANGES
+0.10.8 
+- dc.credit is doing double duty - it's storing update notices as well as production credits. so updates need to be more sophisticated - updates can be added, credits are fixed. This fixes a problem where credits pulled from the source file are not included in the credites metadata.
+
 0.10.7 (October 7, 2022)
 - tweak display of marc fields. "United States: D. Appleton and Company, 1918." instead of "United States :D. Appleton and Company ,1918."
 - update tests

@@ -262,6 +262,10 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(len(dc.authors), 2)
         self.assertEqual(len(dc.scan_urls), 2)
         self.assertEqual(dc.pubinfo.first_year, '1920')
+        self.assertEqual(dc.credit, 'Roger Frank and Sue Clark.')
+        dc.add_credit('Updated: 10-1-2022.\n')
+        dc.add_credit('Updated: 10-1-2022.\n')
+        self.assertEqual(dc.credit, 'Roger Frank and Sue Clark.\nUpdated: 10-1-2022.')
         dc.get_my_session()
         dc.save(updatemode=0)
         dc.session.flush()
@@ -281,7 +285,7 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(
             len(dc.session.query(Attribute).filter_by(book=dc.book,
                 fk_attriblist=508).first().text),
-            26)
+            46)
         self.assertEqual(
             len(dc.session.query(Attribute).filter_by(book=dc.book,
                 fk_attriblist=904).all()),
