@@ -19,6 +19,7 @@ import datetime
 import json
 import re
 import textwrap
+import unicodedata
 from gettext import gettext as _
 
 import six
@@ -138,6 +139,8 @@ class PubInfo(object):
 PARSEABLE_EXTENSIONS = 'txt html htm tex tei xml'.split()
 
 RE_MARC_SUBFIELD = re.compile(r"\$[a-z]")
+RE_MARC_SPSEP = re.compile(r"[\n ](,|:)([A-Za-z0-9])")
+RE_UPDATE = re.compile(r'\s*updated?:\s*', re.I)
 
 
 class DublinCore(object):
@@ -232,6 +235,7 @@ class DublinCore(object):
     def strip_marc_subfields(s):
         """ Strip MARC subfield markers. ($b) etc. """
         s = RE_MARC_SUBFIELD.sub('', s)
+        s = RE_MARC_SPSEP.sub(r'\1 \2', s) # move space to behind the separator
         return s.strip()
 
 
@@ -378,6 +382,33 @@ class DublinCore(object):
         author.name_and_dates = name
         self.authors.append(author)
 
+
+    def add_credit(self, new_credit):
+        ''' the updates field can contain both a production credit and update notations.
+            Updates need to be more sophisticated - updates can be added, credits are singular.
+        '''
+        if not new_credit:
+            return
+        new_credit = new_credit.strip()
+        if not self.credit:
+            self.credit = new_credit
+            return
+
+        # parse out updates
+        updates_in_dc = RE_UPDATE.split(self.credit)[1:]
+        credit_in_dc = RE_UPDATE.split(self.credit)[0].strip()
+        new_updates = RE_UPDATE.split(new_credit)[1:]
+        new_credit = RE_UPDATE.split(new_credit)[0].strip()
+        credit = credit_in_dc or new_credit
+        credit = credit if credit else ''
+        updates = set()
+        for update in (new_updates + updates_in_dc):
+            update = update.strip(' \n\r\t.;')
+            if update and update not in updates:
+                updates.add(update)
+                credit = credit + '\nUpdated: ' + update + '.'
+        self.credit = credit
+        
 
     def load_from_parser(self, parser):
         """ Load Dublincore from html header. """
@@ -789,6 +820,7 @@ class GutenbergDublinCore(DublinCore):
 
                 if last_prefix and len(line) == 0:
                     # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
+                    buf = unicodedata.normalize('NFC', buf)
                     dispatcher[last_prefix](self, last_prefix, buf.strip())
                     last_prefix = None
                     buf = ''
@@ -798,6 +830,7 @@ class GutenbergDublinCore(DublinCore):
                     # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
                     
                     if last_prefix:
+                        buf = unicodedata.normalize('NFC', buf)
                         dispatcher[last_prefix](self, last_prefix, buf.strip())
                     
                     break
@@ -809,6 +842,7 @@ class GutenbergDublinCore(DublinCore):
                     if prefix in dispatcher:
                         if last_prefix:
                             # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
+                            buf = unicodedata.normalize('NFC', buf)
                             dispatcher[last_prefix](self, last_prefix, buf.strip())
                         last_prefix = prefix
                         buf = suffix
@@ -836,6 +870,7 @@ class GutenbergDublinCore(DublinCore):
                 store(self, 'encoding', 'utf-8')
                 for key, val in record.items():
                     key = key.lower()
+                    val = unicodedata.normalize('NFC', val) if isinstance(val, str) else val
                     key = 'creator_role' if key == "contributor" else key
                     key = aliases.get(key, key)
                     dispatcher.get(key, nothandled)(self, key, val)
