@@ -368,6 +368,8 @@ class DublinCore(object):
 
         name = re.sub(r'\s*\[.*?\]\s*', ' ', name) # [pseud.]
         name = name.strip()
+        if len(name) == 0:
+            return
 
         # lastname, firstname middlename
         if ',' not in name:
