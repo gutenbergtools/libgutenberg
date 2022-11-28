@@ -1,6 +1,7 @@
 CHANGES
-0.10.9
+0.10.9 (November 28, 2022)
 - don't allow creators to be named ""
+- fix tests so they don't break so easily when database is updated.
 
 0.10.8 (October 23, 2022)
 - dc.credit is doing double duty - it's storing update notices as well as production credits. so updates need to be more sophisticated - updates can be added, credits are fixed. This fixes a problem where credits pulled from the source file are not included in the credites metadata.
