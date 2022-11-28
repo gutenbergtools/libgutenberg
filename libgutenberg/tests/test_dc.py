@@ -119,11 +119,20 @@ class TestDC(unittest.TestCase):
 
     def files_test2(self, dc2):
         dc2.load_from_database(self.ebook2)
-        self.assertEqual(len(dc2.files) , 11)
-        self.assertEqual(dc2.files[0].encoding, 'utf-8')
-        self.assertEqual(dc2.files[1].compression, 'zip')
-        self.assertEqual(dc2.files[2].generated, True)
-        self.assertEqual(dc2.files[2].url, 'https://www.gutenberg.org/ebooks/2600.epub.images')
+        self.assertEqual(len(dc2.files) , 15)
+        for file_ in dc2.files:
+            if file_.encoding:
+                break
+        self.assertEqual(file_.encoding, 'us-ascii')
+        for file_ in dc2.files:
+            if file_.compression != 'none':
+                break
+        self.assertEqual(file_.compression, 'zip')
+        for file_ in dc2.files:
+            if file_.filetype == 'epub.images':
+                break
+        self.assertEqual(file_.generated, True)
+        self.assertEqual(file_.url, 'https://www.gutenberg.org/ebooks/2600.epub.images')
 
 
     def exercise(self, ebook, dc):
