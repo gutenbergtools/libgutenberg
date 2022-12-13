@@ -1,4 +1,8 @@
 CHANGES
+0.10.10 (December 13, 2022)
+- fix undefined variable in pub info handler
+
+
 0.10.9 (November 28, 2022)
 - don't allow creators to be named ""
 - fix tests so they don't break so easily when database is updated.

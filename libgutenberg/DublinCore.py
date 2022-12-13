@@ -794,7 +794,7 @@ class GutenbergDublinCore(DublinCore):
                         self.pubinfo.years.append((event, year))
                     elif event_year:
                         warning('assuming %s is a copyright year', event_year)
-                        self.pubinfo.years.append(('copyright', year))
+                        self.pubinfo.years.append(('copyright', event_year))
 
         def nothandled(self, key, value):
             info('key %s, value %s not handled', key, value)
