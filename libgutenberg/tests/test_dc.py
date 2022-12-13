@@ -173,6 +173,16 @@ class TestDC(unittest.TestCase):
         dc = DublinCoreMapping.DublinCoreObject()
         self.add_delete_files(dc)
 
+    def test_add_delete_orm_authors(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+        adam = dc.get_or_create_author('Smith, Adamx')
+        self.assertEqual(adam.name, 'Smith, Adamx')
+        adam2 = dc.get_or_create_author('Smith, Adam')
+        self.assertNotEqual(adam.id, adam2.id)
+        adam3 = dc.get_or_create_author('Smith, Adamx')
+        self.assertEqual(adam.id, adam3.id)
+        dc.session.delete(adam)
+
     def add_delete_files(self, dc):
         fn = 'README.md'
         saved = False

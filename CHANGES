@@ -1,6 +1,7 @@
 CHANGES
 0.10.10 (December 13, 2022)
 - fix undefined variable in pub info handler
+- matching of author names with the data base is now stricter - matches may not match partial names.
 
 
 0.10.9 (November 28, 2022)

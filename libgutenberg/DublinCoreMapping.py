@@ -18,6 +18,7 @@ pooled=True and be sure to close the session when done with a thread.
 from __future__ import unicode_literals
 
 import datetime
+import unicodedata
 from sqlalchemy.exc import DBAPIError
 
 from . import DublinCore
@@ -377,17 +378,40 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
 
     def get_or_create_author(self, name, birthdate=None, deathdate=None):
+        ''' look for author in db matching name '''
+
+        def is_good_match(db_str, name):
+            ''' make sure we're not matching in the middle of a name '''
+            if name not in db_str:
+                return False
+            [before, after] = db_str.split(name, 1)
+            if len(before) > 0 and unicodedata.category(before[-1])[0] == 'L':
+                return False
+            if len(after) > 0 and unicodedata.category(after[0])[0] == 'L':
+                return False
+            return True
+
         session = self.get_my_session()
         like_author = '%%%s%%' % name
         # get an author by matching name
-        author = session.query(Author).where(
-            Author.name.ilike(like_author)).order_by(Author.id).first()
-        if not author:
-            author = session.query(Author).join(Alias.author).where(
-                Alias.alias.ilike(like_author)).order_by(Alias.fk_authors).first()
-        if not author:
-            author = Author(name=name, birthdate=birthdate, deathdate=deathdate)
-            session.add(author)
+        match_authors = session.query(Author).where(
+            Author.name.ilike(like_author)).order_by(Author.id).all()
+            
+        for author in match_authors:
+            if is_good_match(author.name, name):
+                return author
+
+        if len(match_authors) == 0:
+            match_aliases = session.query(Alias).where(
+                Alias.alias.ilike(like_author)).order_by(Alias.pk).all()
+        
+            for alias in match_aliases:
+                if is_good_match(alias.alias, name):
+                    return alias.author
+        
+        # no match in database
+        author = Author(name=name, birthdate=birthdate, deathdate=deathdate)
+        session.add(author)
         return author
 
 
