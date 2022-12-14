@@ -115,7 +115,6 @@ class PubInfo(object):
         return self.years[0][1] if self.years else ''
 
     def marc(self):
-        entries = []
         subc = ''
         if self.first_year:     #guarantees sort
             subc += self.years[0][1]
@@ -226,7 +225,7 @@ class DublinCore(object):
     def format_author_date_role(author):
         """ Format: Twain, Mark, 1835-1910 [Editor] """
         name = DublinCore.format_author_date(author)
-        if author.marcrel != "cre" and author.marcrel != 'aut':
+        if author.marcrel not in ('cre', 'aut'):
             return "%s [%s]" % (name, _(author.role))
         return name
 
@@ -288,7 +287,7 @@ class DublinCore(object):
 
         creators = [author for author in self.authors if author.marcrel in ('aut', 'cre')]
         if not creators:
-            creators = [author for author in self.authors]
+            creators = self.authors
         if not creators:
             return cutoff(title, size)
 
@@ -410,7 +409,7 @@ class DublinCore(object):
                 updates.add(update)
                 credit = credit + '\nUpdated: ' + update + '.'
         self.credit = credit
-        
+
 
     def load_from_parser(self, parser):
         """ Load Dublincore from html header. """
@@ -550,7 +549,7 @@ class GutenbergDublinCore(DublinCore):
         uri('dcterms:isFormatOf', self.is_format_of)
 
         for author in self.authors:
-            if author.marcrel == 'aut' or author.marcrel == 'cre':
+            if author.marcrel in ('aut', 'cre'):
                 lit('dc:creator', author.name_and_dates)
             else:
                 lit('marcrel:' + author.marcrel, author.name_and_dates)
@@ -830,11 +829,11 @@ class GutenbergDublinCore(DublinCore):
 
                 if re.search('START OF', line):
                     # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
-                    
+
                     if last_prefix:
                         buf = unicodedata.normalize('NFC', buf)
                         dispatcher[last_prefix](self, last_prefix, buf.strip())
-                    
+
                     break
 
                 prefix, sep, suffix = line.partition(':')

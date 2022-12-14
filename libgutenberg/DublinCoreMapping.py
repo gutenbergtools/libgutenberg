@@ -102,13 +102,12 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             for key in args:
                 setattr(s, key, args[key])
             return s
-        
+
         book = self.load_book(ebook)
         if not book:
             return
 
         # Load DublinCore from PG database.
-        session = self.get_my_session()
         if self.release_date == datetime.date.min:
             self.release_date = book.release_date
         self.downloads = book.downloads
@@ -132,9 +131,9 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 self.title_file_as = self.title_file_as[0].upper() +\
                     self.title_file_as[1:]
                 debug("Title: %s", self.title)
-            elif marc.code == '206':                
+            elif marc.code == '206':
                 self.alt_title = marc.text
-            elif marc.code == '260':                
+            elif marc.code == '260':
                 self.pubinfo.years = [('copyright', marc.text)]
             elif marc.code == '500':
                 self.notes = marc.text
@@ -262,7 +261,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             session.rollback()
 
     def save(self, updatemode=0):
-        """ 
+        """
             updatemode = 0 : initial metadata creation; won't change an existing book
             updatemode = 1 : change metadata for an existing book
         """
@@ -274,7 +273,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             # this has not yet been loaded from a database or pre-assigned an id
             info("loading book for project gutenberg id %s", self.project_gutenberg_id)
             self.load_or_create_book(self.project_gutenberg_id)
-            
+
 
         session = self.get_my_session()
         if self.book.updatemode != updatemode:
@@ -354,7 +353,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
     def add_authors(self, book):
         if len(book.authors) > 0:
             info("book already has authors.")
-            if not len(self.authors):
+            if len(self.authors) == 0:
                 return False
             if self.authors is book.authors:
                 return False
@@ -396,7 +395,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         # get an author by matching name
         match_authors = session.query(Author).where(
             Author.name.ilike(like_author)).order_by(Author.id).all()
-            
+
         for author in match_authors:
             if is_good_match(author.name, name):
                 return author
@@ -404,11 +403,11 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         if len(match_authors) == 0:
             match_aliases = session.query(Alias).where(
                 Alias.alias.ilike(like_author)).order_by(Alias.pk).all()
-        
+
             for alias in match_aliases:
                 if is_good_match(alias.alias, name):
                     return alias.author
-        
+
         # no match in database
         author = Author(name=name, birthdate=birthdate, deathdate=deathdate)
         session.add(author)
