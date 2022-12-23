@@ -1,4 +1,7 @@
 CHANGES
+0.10.11 (December xx, 2022)
+- load_from_pgheader now treats allows any plural metadata keywords. ending 's' of a keyword it stripped so that "Editors" is treated the same way "Editor" is.
+
 0.10.10 (December 14, 2022)
 - fix undefined variable in pub info handler
 - matching of author names with the data base is now stricter - matches may not match partial names.

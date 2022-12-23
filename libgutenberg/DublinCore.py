@@ -663,15 +663,16 @@ class GutenbergDublinCore(DublinCore):
         When a parser is supplied, data from the parser is used
 
         """
-
         def handle_subtitle(self, key, value):
             self.title = self.title_no_subtitle + ': ' + value
+
 
         def handle_title(self, key, value):
             if self.subtitle:
                 self.title = value + ': ' + self.subtitle
             else:
                 self.title = value
+
 
         def handle_authors(self, role, names):
             """ Handle Author:, Illustrator: etc. line
@@ -682,7 +683,6 @@ class GutenbergDublinCore(DublinCore):
             Illustrator: Jack Tenniel
 
             """
-
             try:
                 marcrel = self.inverse_role_map[role]
             except KeyError:
@@ -720,6 +720,7 @@ class GutenbergDublinCore(DublinCore):
 
                 if self.release_date == datetime.date.min:
                     error("Cannot understand date: %s", date)
+                    return
 
 
         def handle_ebook_no(self, key, text):
@@ -750,6 +751,7 @@ class GutenbergDublinCore(DublinCore):
             locc.locc = suffix
             self.loccs.append(locc)
 
+
         def handle_creators(self, key, value):
             if isinstance(value, dict):
                 value = [value]
@@ -766,6 +768,7 @@ class GutenbergDublinCore(DublinCore):
                     marcrel = 'cre'
                 self.add_author(creator['name'], marcrel)
 
+
         def handle_scan_urls(self, key, value):
             if isinstance(value, str):
                 value = [value]
@@ -776,6 +779,7 @@ class GutenbergDublinCore(DublinCore):
                 return
             for scan_url in value:
                 self.scan_urls.add(scan_url)
+
 
         def handle_pubinfo(self, key, value):
             if key == 'publisher':
@@ -795,13 +799,16 @@ class GutenbergDublinCore(DublinCore):
                         warning('assuming %s is a copyright year', event_year)
                         self.pubinfo.years.append(('copyright', event_year))
 
+
         def nothandled(self, key, value):
             info('key %s, value %s not handled', key, value)
+
 
         def store(self, prefix, suffix):
             """ Store into attribute. """
             # debug("store: %s %s" % (prefix, suffix))
             setattr(self, prefix, suffix)
+
 
         def scan_txt(self, data):
             last_prefix = None
@@ -820,31 +827,21 @@ class GutenbergDublinCore(DublinCore):
                     handle_ebook_no(self, None, line.strip())
 
                 if last_prefix and len(line) == 0:
-                    # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
-                    buf = unicodedata.normalize('NFC', buf)
-                    dispatcher[last_prefix](self, last_prefix, buf.strip())
+                    dispatch(self, last_prefix, buf)
                     last_prefix = None
                     buf = ''
                     continue
 
                 if re.search('START OF', line):
-                    # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
-
                     if last_prefix:
-                        buf = unicodedata.normalize('NFC', buf)
-                        dispatcher[last_prefix](self, last_prefix, buf.strip())
-
+                        dispatch(self, last_prefix, buf)
                     break
 
                 prefix, sep, suffix = line.partition(':')
                 if sep:
-                    prefix = prefix.lower()
-                    prefix = aliases.get(prefix, prefix) # map alias
-                    if prefix in dispatcher:
+                    if get_dispatcher(prefix) != nothandled:
                         if last_prefix:
-                            # debug("Dispatching: %s => %s" % (last_prefix, buf.strip()))
-                            buf = unicodedata.normalize('NFC', buf)
-                            dispatcher[last_prefix](self, last_prefix, buf.strip())
+                            dispatch(self, last_prefix, buf)
                         last_prefix = prefix
                         buf = suffix
                         continue
@@ -859,24 +856,38 @@ class GutenbergDublinCore(DublinCore):
                     if 'Sound' not in self.categories:
                         self.categories.append('Sound')
 
-
                 if 'copyrighted project gutenberg' in line:
                     self.rights = 'Copyrighted.'
 
+
         def scan_json(self, data):
+            pg_json = json.loads(data)
+            record = pg_json['DATA']
+            record = record[0] if isinstance(record, list) else record
+            store(self, 'encoding', 'utf-8')
+            for key, val in record.items():
+                key = key.lower()
+                dispatch(self, key, val)
+
+
+        def get_dispatcher(key):
+            key = key.lower().strip()
+            key = 'creator_role' if key == "contributor" else key
+            if key in aliases:
+                key = aliases[key]
+            dispatcher_method = dispatcher.get(key, None)
+            if not dispatcher_method:
+                dispatcher_method = aliases.get(key.strip('s'), nothandled)
+            return key, dispatcher_method
+
+
+        def dispatch(self, key, val):
+            val = unicodedata.normalize('NFC', val).strip() if isinstance(val, str) else val
+            key, dispatcher_method = get_dispatcher(key)
             try:
-                pg_json = json.loads(data)
-                record = pg_json['DATA']
-                record = record[0] if isinstance(record, list) else record
-                store(self, 'encoding', 'utf-8')
-                for key, val in record.items():
-                    key = key.lower()
-                    val = unicodedata.normalize('NFC', val) if isinstance(val, str) else val
-                    key = 'creator_role' if key == "contributor" else key
-                    key = aliases.get(key, key)
-                    dispatcher.get(key, nothandled)(self, key, val)
+                dispatcher_method(self, key, val)
             except ValueError:
-                critical('This is not a valid Project Gutenberg workflow file: %s' % data)
+                warning('This is not a valid Project Gutenberg metadata key: %s' % key)
 
 
         dispatcher = {
@@ -904,7 +915,6 @@ class GutenbergDublinCore(DublinCore):
             }
 
         aliases = {
-            'authors':                'author',
             'language':               'languages',
             'subject':                'subjects',
             'loc class':              'loccs',
@@ -931,9 +941,9 @@ class GutenbergDublinCore(DublinCore):
             # scan this text file
             scan_txt(self, data)
 
-
         if self.project_gutenberg_id is None:
             raise ValueError('This is not a Project Gutenberg ebook file.')
+
 
 # use PGDCObject if you want a DublinCoreObject that uses a database if available
 try:
