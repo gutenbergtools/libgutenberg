@@ -839,7 +839,8 @@ class GutenbergDublinCore(DublinCore):
 
                 prefix, sep, suffix = line.partition(':')
                 if sep:
-                    if get_dispatcher(prefix) != nothandled:
+                    prefix, dispatcher = get_dispatcher(prefix)
+                    if dispatcher != nothandled:
                         if last_prefix:
                             dispatch(self, last_prefix, buf)
                         last_prefix = prefix
