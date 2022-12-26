@@ -245,6 +245,7 @@ class TestDCLoader(unittest.TestCase):
         dc.session.flush()
         self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))
         self.assertEqual(len(dc.book.authors), 5)
+        self.assertEqual(dc.book.authors[4].marcrel, 'trl')
         self.assertTrue(DBUtils.author_exists('Lorem Ipsum Jr.', session=dc.session))
         self.assertTrue(DBUtils.author_exists('Hemingway, Ernest', session=dc.session))
         dc.load_from_database(99999)

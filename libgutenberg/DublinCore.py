@@ -878,6 +878,11 @@ class GutenbergDublinCore(DublinCore):
                 key = aliases[key]
             dispatcher_method = dispatcher.get(key, None)
             if not dispatcher_method:
+                dispatcher_method = aliases.get(key.strip('s'), None)
+            if not dispatcher_method:
+                key = key.strip('s')
+                dispatcher_method = dispatcher.get(key, None)
+            if not dispatcher_method:
                 dispatcher_method = aliases.get(key.strip('s'), nothandled)
             return key, dispatcher_method
 
