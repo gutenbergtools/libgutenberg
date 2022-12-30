@@ -173,6 +173,16 @@ class TestDC(unittest.TestCase):
         dc = DublinCoreMapping.DublinCoreObject()
         self.add_delete_files(dc)
 
+    def test_add_delete_orm_authors(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+        adam = dc.get_or_create_author('Smith, Adamx')
+        self.assertEqual(adam.name, 'Smith, Adamx')
+        adam2 = dc.get_or_create_author('Smith, Adam')
+        self.assertNotEqual(adam.id, adam2.id)
+        adam3 = dc.get_or_create_author('Smith, Adamx')
+        self.assertEqual(adam.id, adam3.id)
+        dc.session.delete(adam)
+
     def add_delete_files(self, dc):
         fn = 'README.md'
         saved = False
@@ -229,12 +239,13 @@ class TestDCLoader(unittest.TestCase):
             dc.load_from_pgheader(fakebook_file.read())
         set_title = dc.title
         self.assertEqual(set_title, 'The Fake EBook of “Testing”')
-        self.assertEqual(len(dc.authors), 2)
+        self.assertEqual(len(dc.authors), 5)
         dc.get_my_session()
         dc.save(updatemode=0)
         dc.session.flush()
         self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))
-        self.assertEqual(len(dc.book.authors), 2)
+        self.assertEqual(len(dc.book.authors), 5)
+        self.assertEqual(dc.book.authors[4].marcrel, 'trl')
         self.assertTrue(DBUtils.author_exists('Lorem Ipsum Jr.', session=dc.session))
         self.assertTrue(DBUtils.author_exists('Hemingway, Ernest', session=dc.session))
         dc.load_from_database(99999)

@@ -1,4 +1,14 @@
 CHANGES
+0.10.13 (December 26, 2022)
+- load_from_pgheader now treats allows any plural metadata keywords. ending 's' of a keyword it stripped so that "Editors" is treated the same way "Editor" is.
+- refactored and delinted DublinCore
+- added tests for translator handling
+
+0.10.10 (December 14, 2022)
+- fix undefined variable in pub info handler
+- matching of author names with the data base is now stricter - matches may not match partial names.
+- delint DublinCore and DublinCoreMapping
+
 0.10.9 (November 28, 2022)
 - don't allow creators to be named ""
 - fix tests so they don't break so easily when database is updated.
