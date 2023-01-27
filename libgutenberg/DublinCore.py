@@ -46,7 +46,7 @@ DCMITYPES = [
     ("Dataset","Data Set"),
     ("Collection","Collection")
 ]
-title_splitter = re.compile(r'[\r\n:]+', flags=re.M)
+title_splitter = re.compile(r'([\r\n]+|\$b )', flags=re.M)
 
 class _HTML_Writer(object):
     """ Write metadata suitable for inclusion in HTML.
@@ -165,6 +165,7 @@ class DublinCore(object):
 
     def __init__(self):
         self.title = 'No title'
+        self.subtitle = ''
         self.alt_title = None
         self.title_file_as = self.title
         self.source = None
@@ -466,12 +467,8 @@ class DublinCore(object):
         return title if len(title) > 1 else [title[0], '']
 
     @property
-    def subtitle(self):
-        return self.split_title()[1]
-
-    @property
     def title_no_subtitle(self):
-        return self.split_title()[0]
+        return self.split_title()[0].strip(': .')
 
     # as you'd expect to see the names on a cover, last names last.
     def authors_short(self):
@@ -672,14 +669,13 @@ class GutenbergDublinCore(DublinCore):
 
         """
 
-        def handle_title(self, key, value): 
+        def handle_title(self, key, value):
             value = self.format_title(value) # straighten quotes, make one line
 
-        def handle_title(self, key, value):
-            if self.subtitle:
-                self.title = value + ': ' + self.subtitle
-            else:
-                self.title = value
+            if key == 'title' and ' : ' in value:
+                [value, self.subtitle] = value.split(' : ', maxsplit=1)
+
+            setattr(self, key, value)
 
 
         def handle_authors(self, role, names):
@@ -906,7 +902,7 @@ class GutenbergDublinCore(DublinCore):
 
         dispatcher = {
             'title':        handle_title,
-            'subtitle':     handle_subtitle,
+            'subtitle':     handle_title,
             'author':       handle_authors,
             'release date': handle_release_date,
             'languages':    handle_languages,

@@ -2,8 +2,8 @@
     "GENERATED": "2021-07-07",
     "VERSION": "1.00",
     "DATA": {
-        "SUBTITLE": "a true story",
         "TITLE": "A Sagebrush’s Cinderella: not a subtitle",
+        "SUBTITLE": "a true story\nsecond line",
         "CONTRIBUTOR": [
             {
                 "name": "Max Brand",

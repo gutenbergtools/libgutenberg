@@ -278,7 +278,9 @@ class TestDCJson(unittest.TestCase):
         with open(self.test_fakebook, 'r') as fakebook_file:
             dc.load_from_pgheader(fakebook_file.read())
         set_title = dc.title
+        set_subtitle = dc.subtitle
         self.assertEqual(set_title, "A Sagebrush's Cinderella: not a subtitle")
+        self.assertEqual(set_subtitle, "a true story : second line")
         self.assertEqual(len(dc.authors), 2)
         self.assertEqual(len(dc.scan_urls), 2)
         self.assertEqual(dc.pubinfo.first_year, '1920')
@@ -294,6 +296,7 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(len(dc.book.authors), 2)
         dc.load_from_database(99999)
         self.assertEqual(set_title, dc.title)
+        self.assertEqual(set_subtitle, dc.subtitle)
         marc260 = dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=260).first().text
         self.assertTrue('1920' in marc260)
         self.assertEqual(
