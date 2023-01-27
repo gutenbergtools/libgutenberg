@@ -1,6 +1,6 @@
 {
     "GENERATED": "2021-07-07",
-    "VERSION": "1.00",
+    "VERSION": "3.03",
     "DATA": {
         "TITLE": "A Sagebrush’s Cinderella: not a subtitle",
         "SUBTITLE": "a true story\nsecond line",
@@ -29,6 +29,7 @@
             "reprint:1972"
         ],
         "REQUEST_KEY": "20210623194947brand",
+        "COPYRIGHTED_WORK": false,
         "EBOOK_NUMBER": "99999",
         "WWNOTES": "sample ww note"
     }
