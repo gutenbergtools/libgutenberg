@@ -18,6 +18,7 @@ pooled=True and be sure to close the session when done with a thread.
 from __future__ import unicode_literals
 
 import datetime
+import re
 import unicodedata
 from sqlalchemy.exc import DBAPIError
 
@@ -32,6 +33,9 @@ from .GutenbergDatabase import DatabaseError, IntegrityError, Objectbase
 from .Models import (Alias, Attribute, Author, Book, BookAuthor, Category, File, Locc,
     Role, Subject)
 
+RE_YEARS = re.compile(r'(.*)([12]\d\d\d)') # no years before 1000
+RE_CRLF = re.compile(r'[\n\r]+', flags=re.M)
+RE_PLACE = re.compile(r'^\[?([\w\. ]*):')
 
 class DublinCoreObject(DublinCore.GutenbergDublinCore):
     """ Augment GutenbergDublinCore class. """

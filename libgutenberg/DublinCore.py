@@ -84,16 +84,20 @@ class _HTML_Writer(object):
         self.metadata.append(ElementMaker().link(
                 rel = self._what(what), href = str(uri)))
 
+RE_TIGHT_COMMA = re.compile(r",(\S)")
+
 class PubInfo(object):
     def __init__(self):
         self.publisher = ''
         self.years = []  #  list of (event_type, year)
+        self.place = ''
         self.country = ''
 
     def __str__(self):
         info_str = ''
-        if self.country:
-            info_str += self.country + ': '
+        place = self.place if self.place else self.country
+        if place:
+            info_str += place + ': '
         if self.publisher:
             info_str += self.publisher
         if self.years:
@@ -102,7 +106,7 @@ class PubInfo(object):
         return '' if info_str == '()' else info_str
 
     def __bool__(self):
-        return bool(self.publisher or self.years or self.country)
+        return bool(self.publisher or self.years or self.country or self.place)
 
     @property
     def first_year(self):
@@ -120,16 +124,19 @@ class PubInfo(object):
             subc += self.years[0][1]
             for year in self.years[1:]:
                 subc += ',%s %s' % year
-        if self.country:
-            country = pycountry.countries.get(alpha_2=self.country)
-            country = country.name if country else self.country
+        if self.place:
+            place = self.place
+        elif self.country:
+            place = pycountry.countries.get(alpha_2=self.country)
+            place = place.name if place else self.country
         else:
-            country = ''
-        info_str = ('$a' + country + ' :') if country else ''
+            place = ''
+        info_str = ('$a' + place + ' :') if place else ''
         if self.publisher:
             info_str += '$b' + self.publisher + ','
         if subc:
             info_str += '$c' + subc
+        info_str = RE_TIGHT_COMMA.sub(r', \1', info_str) # put space after tight commas
         info_str = '  ' + info_str.strip(' ,:') + '.'
         return '' if info_str == '  .' else info_str
 
@@ -790,6 +797,8 @@ class GutenbergDublinCore(DublinCore):
                 self.pubinfo.publisher = value
             elif key == 'publisher_country':
                 self.pubinfo.country = value
+            elif key == 'place':
+                self.pubinfo.place = value
             elif key == 'source_publication_years':
                 value = [value] if isinstance(value, str) else value
                 if not isinstance(value, list):
@@ -919,6 +928,7 @@ class GutenbergDublinCore(DublinCore):
             'credit':       store,
             'publisher':    handle_pubinfo,
             'publisher_country': handle_pubinfo,
+            'place':        handle_pubinfo,
             'source_publication_years': handle_pubinfo,
             'ebook_number': handle_ebook_no,
             "request_key":  store,
