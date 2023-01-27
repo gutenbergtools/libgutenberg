@@ -1,4 +1,8 @@
 CHANGES
+0.10.14
+- curly quotes in titles are straightened.
+- 
+
 0.10.13 (December 26, 2022)
 - load_from_pgheader now treats allows any plural metadata keywords. ending 's' of a keyword it stripped so that "Editors" is treated the same way "Editor" is.
 - refactored and delinted DublinCore

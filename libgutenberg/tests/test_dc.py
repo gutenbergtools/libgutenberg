@@ -238,7 +238,7 @@ class TestDCLoader(unittest.TestCase):
         with open(self.test_fakebook, 'r') as fakebook_file:
             dc.load_from_pgheader(fakebook_file.read())
         set_title = dc.title
-        self.assertEqual(set_title, 'The Fake EBook of “Testing”')
+        self.assertEqual(set_title, 'The Fake EBook of "Testing"')
         self.assertEqual(len(dc.authors), 5)
         dc.get_my_session()
         dc.save(updatemode=0)
@@ -278,7 +278,7 @@ class TestDCJson(unittest.TestCase):
         with open(self.test_fakebook, 'r') as fakebook_file:
             dc.load_from_pgheader(fakebook_file.read())
         set_title = dc.title
-        self.assertEqual(set_title, 'A Sagebrush Cinderella: a true story')
+        self.assertEqual(set_title, "A Sagebrush's Cinderella: not a subtitle")
         self.assertEqual(len(dc.authors), 2)
         self.assertEqual(len(dc.scan_urls), 2)
         self.assertEqual(dc.pubinfo.first_year, '1920')

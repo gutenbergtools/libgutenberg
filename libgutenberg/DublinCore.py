@@ -259,6 +259,14 @@ class DublinCore(object):
         return _(' and ').join(list_)
 
 
+    @staticmethod
+    def format_title(s):
+        ''' straighten curly quotes '''
+        s = re.sub('[‘’]', "'", s)
+        s = re.sub('[“”]', '"', s)
+        return title_splitter.sub(' : ', s)
+
+
     def human_readable_size(self, size):
         """ Return human readable string of filesize. """
         if size < 0:
@@ -663,9 +671,9 @@ class GutenbergDublinCore(DublinCore):
         When a parser is supplied, data from the parser is used
 
         """
-        def handle_subtitle(self, key, value):
-            self.title = self.title_no_subtitle + ': ' + value
 
+        def handle_title(self, key, value): 
+            value = self.format_title(value) # straighten quotes, make one line
 
         def handle_title(self, key, value):
             if self.subtitle:
