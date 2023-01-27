@@ -5,6 +5,7 @@ CHANGES
 - pubinfo was not being reconstituted when loaded from the database
 - add support for place in pubinfo
 - add spaces after tight commas in rendered pubinfo string
+- remove unused DublinCore.PARSEABLE_EXTENSIONS
 
 0.10.13 (December 26, 2022)
 - load_from_pgheader now treats allows any plural metadata keywords. ending 's' of a keyword it stripped so that "Editors" is treated the same way "Editor" is.

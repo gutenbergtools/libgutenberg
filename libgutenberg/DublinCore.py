@@ -142,8 +142,6 @@ class PubInfo(object):
 
 
 # file extension we hope to be able to parse
-PARSEABLE_EXTENSIONS = 'txt html htm tex tei xml'.split()
-
 RE_MARC_SUBFIELD = re.compile(r"\$[a-z]")
 RE_MARC_SPSEP = re.compile(r"[\n ](,|:)([A-Za-z0-9])")
 RE_UPDATE = re.compile(r'\s*updated?:\s*', re.I)
