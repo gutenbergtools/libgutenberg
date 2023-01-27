@@ -885,8 +885,7 @@ class GutenbergDublinCore(DublinCore):
         def get_dispatcher(key):
             key = key.lower().strip()
             key = 'creator_role' if key == "contributor" else key
-            if key in aliases:
-                key = aliases[key]
+            key = aliases.get(key, key)
             dispatcher_method = dispatcher.get(key, None)
             if not dispatcher_method:
                 dispatcher_method = aliases.get(key.strip('s'), None)

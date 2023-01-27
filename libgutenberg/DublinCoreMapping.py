@@ -126,7 +126,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 place = s.split('$')[0].strip(' :[]')
             else:
                 # 260 formatted as place:publisher year?
-        
+
                 if RE_PLACE.search(s):  #starts with a place
                     place = RE_PLACE.search(s).group(1).strip()
                     s = RE_PLACE.sub('', s)
@@ -135,7 +135,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                     years.append(('copyright', year_match.group(2)))
                     s = s.replace(year_match.group(2), '').strip(' []().')
                 publisher = publisher if publisher else s
-    
+
             return (place, publisher, years)
 
         book = self.load_book(ebook)
