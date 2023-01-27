@@ -107,6 +107,37 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 setattr(s, key, args[key])
             return s
 
+        def parse260(s):
+            (place, publisher, years) = ('', '', [])
+            s = RE_CRLF.sub(' ', s)
+            if '$c' in s:
+                for c_year in s.split('$c')[1].split('$')[0].split(','):
+                    year_match = RE_YEARS.search(c_year)
+                    if year_match:
+                        yrtype = year_match.group(1).strip() if year_match.group(1).strip() else 'copyright'
+                        years.append((yrtype, year_match.group(2)))
+                s = s.split('$c')[0]
+            if '$b' in s:
+                publisher = s.split('$b')[1].split('$')[0].strip(' :,.;[]')
+                s = s.split('$b')[0]
+            if '$a' in s:
+                place = s.split('$a')[1].split('$')[0].strip(' :,.;[]')
+            elif '$' in s:
+                place = s.split('$')[0].strip(' :[]')
+            else:
+                # 260 formatted as place:publisher year?
+        
+                if RE_PLACE.search(s):  #starts with a place
+                    place = RE_PLACE.search(s).group(1).strip()
+                    s = RE_PLACE.sub('', s)
+                year_match = RE_YEARS.search(s)
+                if len(years) == 0 and year_match: # has a year
+                    years.append(('copyright', year_match.group(2)))
+                    s = s.replace(year_match.group(2), '').strip(' []().')
+                publisher = publisher if publisher else s
+    
+            return (place, publisher, years)
+
         book = self.load_book(ebook)
         if not book:
             return
@@ -145,7 +176,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             elif marc.code == '206':
                 self.alt_title = marc.text
             elif marc.code == '260':
-                self.pubinfo.years = [('copyright', marc.text)]
+                (self.pubinfo.place, self.pubinfo.publisher, self.pubinfo.years) = parse260(marc.text) 
             elif marc.code == '500':
                 self.notes = marc.text
             elif marc.code == '505':
@@ -284,7 +315,6 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             # this has not yet been loaded from a database or pre-assigned an id
             info("loading book for project gutenberg id %s", self.project_gutenberg_id)
             self.load_or_create_book(self.project_gutenberg_id)
-
 
         session = self.get_my_session()
         if self.book.updatemode != updatemode:
