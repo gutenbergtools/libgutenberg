@@ -1,5 +1,6 @@
 CHANGES
-0.10.14
+0.10.15 (January 31, 2023)
+- libgutenberg is not compatible with SQLAlchemy 2.0; added a version restriction
 - curly quotes in titles are straightened.
 - store subtitle in a marc subfield
 - pubinfo was not being reconstituted when loaded from the database
