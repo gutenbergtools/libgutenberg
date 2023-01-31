@@ -943,6 +943,7 @@ class GutenbergDublinCore(DublinCore):
             'alternate title':        'alt_title',
             'created':                'source_publication_years',
             'produced by':            'credit',
+            'publisher_place':        'place',
             }
 
         for role in list(self.inverse_role_map.keys()):
