@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import logging
 import unittest
 
 from libgutenberg.Logger import info
@@ -22,3 +23,9 @@ class TestLoggger(unittest.TestCase):
         Logger.ebook = 'one'
         info('test3')
 
+    def tearDown(self):
+        logger = logging.getLogger()
+        if logger.hasHandlers():
+            for handler in logger.handlers:
+                logger.removeHandler(handler)
+                handler.close()

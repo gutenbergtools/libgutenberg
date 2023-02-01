@@ -18,6 +18,7 @@ pooled=True and be sure to close the session when done with a thread.
 from __future__ import unicode_literals
 
 import datetime
+import re
 import unicodedata
 from sqlalchemy.exc import DBAPIError
 
@@ -32,6 +33,10 @@ from .GutenbergDatabase import DatabaseError, IntegrityError, Objectbase
 from .Models import (Alias, Attribute, Author, Book, BookAuthor, Category, File, Locc,
     Role, Subject)
 
+RE_YEARS = re.compile(r'(.*)([12]\d\d\d)') # no years before 1000
+RE_CRLF = re.compile(r'[\n\r]+', flags=re.M)
+RE_PLACE = re.compile(r'^\[?([\w\. ]*):')
+RE_UPDATE = re.compile(r'\s*updated?:\s*', re.I)
 
 class DublinCoreObject(DublinCore.GutenbergDublinCore):
     """ Augment GutenbergDublinCore class. """
@@ -103,6 +108,41 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 setattr(s, key, args[key])
             return s
 
+        def parse260(s):
+            (place, publisher, years) = ('', '', [])
+            s = RE_CRLF.sub(' ', s)
+            if '$c' in s:
+                for c_year in s.split('$c')[1].split('$')[0].split(','):
+                    year_match = RE_YEARS.search(c_year)
+                    if year_match:
+                        yrtype = year_match.group(1).strip() if year_match.group(1).strip() else 'copyright'
+                        years.append((yrtype, year_match.group(2)))
+                s = s.split('$c')[0]
+            if '$b' in s:
+                publisher = s.split('$b')[1].split('$')[0].strip(' :,.;[]')
+                s = s.split('$b')[0]
+            if '$a' in s:
+                place = s.split('$a')[1].split('$')[0].strip(' :,.;[]')
+            elif '$' in s:
+                place = s.split('$')[0].strip(' :[]')
+            else:
+                # 260 formatted as place:publisher year?
+
+                if RE_PLACE.search(s):  #starts with a place
+                    place = RE_PLACE.search(s).group(1).strip()
+                    s = RE_PLACE.sub('', s)
+                year_match = RE_YEARS.search(s)
+                if len(years) == 0 and year_match: # has a year
+                    years.append(('copyright', year_match.group(2)))
+                    s = s.replace(year_match.group(2), '').strip(' []().')
+                publisher = publisher if publisher else s
+
+            return (place, publisher, years)
+
+        def clean_credit(s):
+            # parse out updates
+            return RE_UPDATE.split(s)[0].strip()
+
         book = self.load_book(ebook)
         if not book:
             return
@@ -121,26 +161,33 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         for attrib in book.attributes:
             marc = Struct()
             marc.code = attrib.attribute_type.name.split(' ')[0]
-            marc.text = self.strip_marc_subfields(attrib.text)
+            if marc.code not in {'245', '260'}:
+                attrib.text = self.strip_marc_subfields(attrib.text)
+            marc.text = attrib.text
             marc.caption = attrib.attribute_type.caption
             self.marcs.append(marc)
 
             if marc.code == '245':
-                self.title = marc.text
-                self.title_file_as = marc.text[attrib.nonfiling:]
+                if '$b' in marc.text:
+                    [self.title, self.subtitle] = marc.text.split('$b', maxsplit=1)
+                    self.title = self.title.rstrip(' :')
+                    self.subtitle = self.subtitle.strip()
+                else:
+                    self.title = marc.text
+                self.title_file_as = self.title[attrib.nonfiling:]
                 self.title_file_as = self.title_file_as[0].upper() +\
                     self.title_file_as[1:]
                 debug("Title: %s", self.title)
             elif marc.code == '206':
                 self.alt_title = marc.text
             elif marc.code == '260':
-                self.pubinfo.years = [('copyright', marc.text)]
+                (self.pubinfo.place, self.pubinfo.publisher, self.pubinfo.years) = parse260(marc.text) 
             elif marc.code == '500':
                 self.notes = marc.text
             elif marc.code == '505':
                 self.contents = marc.text
             elif marc.code == '508':
-                self.credit = marc.text
+                self.credit = clean_credit(marc.text)
             elif marc.code == '904':
                 self.scan_urls = marc.text
             elif marc.code == '905':
@@ -274,21 +321,16 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             info("loading book for project gutenberg id %s", self.project_gutenberg_id)
             self.load_or_create_book(self.project_gutenberg_id)
 
-
         session = self.get_my_session()
         if self.book.updatemode != updatemode:
-            # updated files, mostly don't change metadata
-            info("ebook #%s already in database, marking update.", self.book.pk)
-            if datetime.date.today() - self.book.release_date > datetime.timedelta(days=14):
-                self.add_credit('Updated: ' + str(datetime.date.today()))
-                self.add_attribute(self.book, [self.credit], marc=508)
-                session.commit()
+            self.add_attribute(self.book, [self.credit], marc=508)
+            session.commit()
             return
 
         # either 0=0 for fresh book updatemode or 1=1 for re-editing old book
 
         self.add_authors(self.book)
-        self.add_title(self.book, self.title)
+        self.add_title(self.book, self.title, subtitle=self.subtitle)
         if self.alt_title:
             self.add_title(self.book, self.alt_title, marc=246)
 
@@ -414,13 +456,16 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         return author
 
 
-    def add_title(self, book, title, marc=245):
+    def add_title(self, book, title, marc=245, subtitle=None):
         """ set the appropriate marc attribute.
         book.title gets generated by a database function. """
 
         if not title:
             error("no title %s found for etext#%s", marc, self.project_gutenberg_id)
             return
+        if subtitle:
+            title += ' : $b ' + subtitle
+        print(f'saving {marc} as {title}')
         nonfiling = 0
         for nonfiling_str in gg.NONFILINGS:
             if title.startswith(nonfiling_str):

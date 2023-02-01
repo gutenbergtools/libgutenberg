@@ -1,4 +1,19 @@
 CHANGES
+0.10.15 (February 1, 2023)
+- libgutenberg is not compatible with SQLAlchemy 2.0; added a version restriction
+- in logging tests, clean up the open log file
+- fileinfo didn't work properly in non-pg installations, which depended on symlinks in the filesystem. refactored the file path massaging when storing filenames.
+- curly quotes in titles are straightened.
+- store subtitle in a marc subfield
+- pubinfo was not being reconstituted when loaded from the database
+- add support for place in pubinfo
+- add spaces after tight commas in rendered pubinfo string
+- update json support to version 3.03 of workflow
+- remove unused DublinCore.PARSEABLE_EXTENSIONS
+- added `update_date` property to DublinCore
+- removed code that was adding update date to credit.
+- strip updates from db credits.
+
 0.10.13 (December 26, 2022)
 - load_from_pgheader now treats allows any plural metadata keywords. ending 's' of a keyword it stripped so that "Editors" is treated the same way "Editor" is.
 - refactored and delinted DublinCore

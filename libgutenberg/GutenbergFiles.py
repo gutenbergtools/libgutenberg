@@ -12,6 +12,9 @@ from .Logger import info, warning, error
 from .Models import Compression, File, Filetype
 
 FTP   = '/public/ftp/pub/docs/books/gutenberg/'
+PUBLIC  = os.getenv ('PUBLIC')  or ''
+FILES = os.path.join(PUBLIC, 'files/')
+
 EXTENSION_ALIASES = {
     'htm': 'html',
     'tif': 'tiff',
@@ -134,9 +137,12 @@ def remove_file_from_database(filename, session=None):
 
 def parse_filename(filename):
     filedir, filename_nopath = os.path.split(filename)
-    filedir = os.path.realpath(filedir)
+    filedir = os.path.realpath(filedir)  # converts files/12345 to ftp/1/2/3/4/12345
     # this introduces a restriction on CACHELOC and FTP; should consider deriving the patterns
-    filedir = filedir.replace(FTP, '')
+    if FTP in filedir:
+        filedir = filedir.replace(FTP, '') # 1/2/3/4/ paths
+    elif FILES in filedir:
+        filedir = filedir.replace(FILES, '') # non gutenberg paths
     filedir = re.sub(r'^.*/cache\d?/', 'cache/', filedir)
     archive_path = os.path.join(filedir, filename_nopath)
     return filedir, filename_nopath, archive_path
@@ -144,7 +150,7 @@ def parse_filename(filename):
 
 @DBUtils.managed_session
 def store_file_in_database(id_, filename, type_, encoding=None, session=None):
-    """ Store file in PG database. filename is a file system uri"""
+    """ Store file in PG database. filename absolute or relative to FILES"""
 
     filedir, filename_nopath, archive_path = parse_filename(filename)
 

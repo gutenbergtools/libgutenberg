@@ -238,7 +238,7 @@ class TestDCLoader(unittest.TestCase):
         with open(self.test_fakebook, 'r') as fakebook_file:
             dc.load_from_pgheader(fakebook_file.read())
         set_title = dc.title
-        self.assertEqual(set_title, 'The Fake EBook of “Testing”')
+        self.assertEqual(set_title, 'The Fake EBook of "Testing"')
         self.assertEqual(len(dc.authors), 5)
         dc.get_my_session()
         dc.save(updatemode=0)
@@ -250,6 +250,7 @@ class TestDCLoader(unittest.TestCase):
         self.assertTrue(DBUtils.author_exists('Hemingway, Ernest', session=dc.session))
         dc.load_from_database(99999)
         self.assertEqual(set_title, dc.title)
+        self.assertEqual('A ChatPG Robot.', dc.credit)
         dc.delete()
         dc = DublinCoreMapping.DublinCoreObject()
         dc.load_from_database(99999)
@@ -278,14 +279,15 @@ class TestDCJson(unittest.TestCase):
         with open(self.test_fakebook, 'r') as fakebook_file:
             dc.load_from_pgheader(fakebook_file.read())
         set_title = dc.title
-        self.assertEqual(set_title, 'A Sagebrush Cinderella: a true story')
+        set_subtitle = dc.subtitle
+        self.assertEqual(set_title, "A Sagebrush's Cinderella: not a subtitle")
+        self.assertEqual(set_subtitle, "a true story : second line")
         self.assertEqual(len(dc.authors), 2)
         self.assertEqual(len(dc.scan_urls), 2)
         self.assertEqual(dc.pubinfo.first_year, '1920')
         self.assertEqual(dc.credit, 'Roger Frank and Sue Clark.')
-        dc.add_credit('Updated: 10-1-2022.\n')
-        dc.add_credit('Updated: 10-1-2022.\n')
-        self.assertEqual(dc.credit, 'Roger Frank and Sue Clark.\nUpdated: 10-1-2022.')
+        dc.add_credit('Sue Frank and Roger Clark.\n')
+        self.assertEqual(dc.credit, 'Sue Frank and Roger Clark.')
         dc.get_my_session()
         dc.save(updatemode=0)
         dc.session.flush()
@@ -294,18 +296,19 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(len(dc.book.authors), 2)
         dc.load_from_database(99999)
         self.assertEqual(set_title, dc.title)
+        self.assertEqual(set_subtitle, dc.subtitle)
         marc260 = dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=260).first().text
         self.assertTrue('1920' in marc260)
         self.assertEqual(
-            '  $aUnited States :$bFrank A. Munsey Company,$c1920,reprint 1955,reprint 1972.',
+            '  $aNew York, NY :$bFrank A. Munsey Company, $c1920, reprint 1955, reprint 1972.',
             marc260)
         self.assertEqual(
-            'United States: Frank A. Munsey Company,1920,reprint 1955,reprint 1972.',
+            'New York, NY: Frank A. Munsey Company, 1920, reprint 1955, reprint 1972.',
             dc.strip_marc_subfields(marc260))
         self.assertEqual(
             len(dc.session.query(Attribute).filter_by(book=dc.book,
                 fk_attriblist=508).first().text),
-            46)
+            26)
         self.assertEqual(
             len(dc.session.query(Attribute).filter_by(book=dc.book,
                 fk_attriblist=904).all()),

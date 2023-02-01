@@ -46,7 +46,7 @@ DCMITYPES = [
     ("Dataset","Data Set"),
     ("Collection","Collection")
 ]
-title_splitter = re.compile(r'[\r\n:]+', flags=re.M)
+title_splitter = re.compile(r'([\r\n]+|\$b )', flags=re.M)
 
 class _HTML_Writer(object):
     """ Write metadata suitable for inclusion in HTML.
@@ -84,16 +84,20 @@ class _HTML_Writer(object):
         self.metadata.append(ElementMaker().link(
                 rel = self._what(what), href = str(uri)))
 
+RE_TIGHT_COMMA = re.compile(r",(\S)")
+
 class PubInfo(object):
     def __init__(self):
         self.publisher = ''
         self.years = []  #  list of (event_type, year)
+        self.place = ''
         self.country = ''
 
     def __str__(self):
         info_str = ''
-        if self.country:
-            info_str += self.country + ': '
+        place = self.place if self.place else self.country
+        if place:
+            info_str += place + ': '
         if self.publisher:
             info_str += self.publisher
         if self.years:
@@ -102,7 +106,7 @@ class PubInfo(object):
         return '' if info_str == '()' else info_str
 
     def __bool__(self):
-        return bool(self.publisher or self.years or self.country)
+        return bool(self.publisher or self.years or self.country or self.place)
 
     @property
     def first_year(self):
@@ -120,26 +124,26 @@ class PubInfo(object):
             subc += self.years[0][1]
             for year in self.years[1:]:
                 subc += ',%s %s' % year
-        if self.country:
-            country = pycountry.countries.get(alpha_2=self.country)
-            country = country.name if country else self.country
+        if self.place:
+            place = self.place
+        elif self.country:
+            place = pycountry.countries.get(alpha_2=self.country)
+            place = place.name if place else self.country
         else:
-            country = ''
-        info_str = ('$a' + country + ' :') if country else ''
+            place = ''
+        info_str = ('$a' + place + ' :') if place else ''
         if self.publisher:
             info_str += '$b' + self.publisher + ','
         if subc:
             info_str += '$c' + subc
+        info_str = RE_TIGHT_COMMA.sub(r', \1', info_str) # put space after tight commas
         info_str = '  ' + info_str.strip(' ,:') + '.'
         return '' if info_str == '  .' else info_str
 
 
 # file extension we hope to be able to parse
-PARSEABLE_EXTENSIONS = 'txt html htm tex tei xml'.split()
-
 RE_MARC_SUBFIELD = re.compile(r"\$[a-z]")
 RE_MARC_SPSEP = re.compile(r"[\n ](,|:)([A-Za-z0-9])")
-RE_UPDATE = re.compile(r'\s*updated?:\s*', re.I)
 
 
 class DublinCore(object):
@@ -165,6 +169,7 @@ class DublinCore(object):
 
     def __init__(self):
         self.title = 'No title'
+        self.subtitle = ''
         self.alt_title = None
         self.title_file_as = self.title
         self.source = None
@@ -179,6 +184,7 @@ class DublinCore(object):
         self.categories = []
         self.dcmitypes = [] # similar to categories but based on the DCMIType vocabulary
         self.release_date = datetime.date.min  # valid date for SQL, must not test for null!
+        self.update_date = None
         self.edition = None
         self.contents = None
         self.encoding = None
@@ -257,6 +263,14 @@ class DublinCore(object):
         if len(list_) > 2:
             list_ = (', '.join(list_[:-1]) + ',', list_[-1])
         return _(' and ').join(list_)
+
+
+    @staticmethod
+    def format_title(s):
+        ''' straighten curly quotes '''
+        s = re.sub('[‘’]', "'", s)
+        s = re.sub('[“”]', '"', s)
+        return title_splitter.sub(' : ', s)
 
 
     def human_readable_size(self, size):
@@ -390,25 +404,7 @@ class DublinCore(object):
         '''
         if not new_credit:
             return
-        new_credit = new_credit.strip()
-        if not self.credit:
-            self.credit = new_credit
-            return
-
-        # parse out updates
-        updates_in_dc = RE_UPDATE.split(self.credit)[1:]
-        credit_in_dc = RE_UPDATE.split(self.credit)[0].strip()
-        new_updates = RE_UPDATE.split(new_credit)[1:]
-        new_credit = RE_UPDATE.split(new_credit)[0].strip()
-        credit = credit_in_dc or new_credit
-        credit = credit if credit else ''
-        updates = set()
-        for update in (new_updates + updates_in_dc):
-            update = update.strip(' \n\r\t.;')
-            if update and update not in updates:
-                updates.add(update)
-                credit = credit + '\nUpdated: ' + update + '.'
-        self.credit = credit
+        self.credit = new_credit.strip()
 
 
     def load_from_parser(self, parser):
@@ -458,12 +454,8 @@ class DublinCore(object):
         return title if len(title) > 1 else [title[0], '']
 
     @property
-    def subtitle(self):
-        return self.split_title()[1]
-
-    @property
     def title_no_subtitle(self):
-        return self.split_title()[0]
+        return self.split_title()[0].strip(': .')
 
     # as you'd expect to see the names on a cover, last names last.
     def authors_short(self):
@@ -663,15 +655,14 @@ class GutenbergDublinCore(DublinCore):
         When a parser is supplied, data from the parser is used
 
         """
-        def handle_subtitle(self, key, value):
-            self.title = self.title_no_subtitle + ': ' + value
-
 
         def handle_title(self, key, value):
-            if self.subtitle:
-                self.title = value + ': ' + self.subtitle
-            else:
-                self.title = value
+            value = self.format_title(value) # straighten quotes, make one line
+
+            if key == 'title' and ' : ' in value:
+                [value, self.subtitle] = value.split(' : ', maxsplit=1)
+
+            setattr(self, key, value)
 
 
         def handle_authors(self, role, names):
@@ -786,6 +777,8 @@ class GutenbergDublinCore(DublinCore):
                 self.pubinfo.publisher = value
             elif key == 'publisher_country':
                 self.pubinfo.country = value
+            elif key == 'place':
+                self.pubinfo.place = value
             elif key == 'source_publication_years':
                 value = [value] if isinstance(value, str) else value
                 if not isinstance(value, list):
@@ -874,8 +867,7 @@ class GutenbergDublinCore(DublinCore):
         def get_dispatcher(key):
             key = key.lower().strip()
             key = 'creator_role' if key == "contributor" else key
-            if key in aliases:
-                key = aliases[key]
+            key = aliases.get(key, key)
             dispatcher_method = dispatcher.get(key, None)
             if not dispatcher_method:
                 dispatcher_method = aliases.get(key.strip('s'), None)
@@ -898,7 +890,7 @@ class GutenbergDublinCore(DublinCore):
 
         dispatcher = {
             'title':        handle_title,
-            'subtitle':     handle_subtitle,
+            'subtitle':     handle_title,
             'author':       handle_authors,
             'release date': handle_release_date,
             'languages':    handle_languages,
@@ -915,6 +907,7 @@ class GutenbergDublinCore(DublinCore):
             'credit':       store,
             'publisher':    handle_pubinfo,
             'publisher_country': handle_pubinfo,
+            'place':        handle_pubinfo,
             'source_publication_years': handle_pubinfo,
             'ebook_number': handle_ebook_no,
             "request_key":  store,
@@ -932,6 +925,7 @@ class GutenbergDublinCore(DublinCore):
             'alternate title':        'alt_title',
             'created':                'source_publication_years',
             'produced by':            'credit',
+            'publisher_place':        'place',
             }
 
         for role in list(self.inverse_role_map.keys()):
