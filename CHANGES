@@ -11,6 +11,8 @@ CHANGES
 - update json support to version 3.03 of workflow
 - remove unused DublinCore.PARSEABLE_EXTENSIONS
 - added `update_date` property to DublinCore
+- removed code that was adding update date to credit.
+- strip updates from db credits.
 
 0.10.13 (December 26, 2022)
 - load_from_pgheader now treats allows any plural metadata keywords. ending 's' of a keyword it stripped so that "Editors" is treated the same way "Editor" is.

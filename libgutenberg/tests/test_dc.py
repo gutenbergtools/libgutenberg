@@ -250,6 +250,7 @@ class TestDCLoader(unittest.TestCase):
         self.assertTrue(DBUtils.author_exists('Hemingway, Ernest', session=dc.session))
         dc.load_from_database(99999)
         self.assertEqual(set_title, dc.title)
+        self.assertEqual('A ChatPG Robot.', dc.credit)
         dc.delete()
         dc = DublinCoreMapping.DublinCoreObject()
         dc.load_from_database(99999)
@@ -285,9 +286,8 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(len(dc.scan_urls), 2)
         self.assertEqual(dc.pubinfo.first_year, '1920')
         self.assertEqual(dc.credit, 'Roger Frank and Sue Clark.')
-        dc.add_credit('Updated: 10-1-2022.\n')
-        dc.add_credit('Updated: 10-1-2022.\n')
-        self.assertEqual(dc.credit, 'Roger Frank and Sue Clark.\nUpdated: 10-1-2022.')
+        dc.add_credit('Sue Frank and Roger Clark.\n')
+        self.assertEqual(dc.credit, 'Sue Frank and Roger Clark.')
         dc.get_my_session()
         dc.save(updatemode=0)
         dc.session.flush()
@@ -308,7 +308,7 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(
             len(dc.session.query(Attribute).filter_by(book=dc.book,
                 fk_attriblist=508).first().text),
-            46)
+            26)
         self.assertEqual(
             len(dc.session.query(Attribute).filter_by(book=dc.book,
                 fk_attriblist=904).all()),

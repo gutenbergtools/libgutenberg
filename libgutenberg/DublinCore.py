@@ -144,7 +144,6 @@ class PubInfo(object):
 # file extension we hope to be able to parse
 RE_MARC_SUBFIELD = re.compile(r"\$[a-z]")
 RE_MARC_SPSEP = re.compile(r"[\n ](,|:)([A-Za-z0-9])")
-RE_UPDATE = re.compile(r'\s*updated?:\s*', re.I)
 
 
 class DublinCore(object):
@@ -405,25 +404,7 @@ class DublinCore(object):
         '''
         if not new_credit:
             return
-        new_credit = new_credit.strip()
-        if not self.credit:
-            self.credit = new_credit
-            return
-
-        # parse out updates
-        updates_in_dc = RE_UPDATE.split(self.credit)[1:]
-        credit_in_dc = RE_UPDATE.split(self.credit)[0].strip()
-        new_updates = RE_UPDATE.split(new_credit)[1:]
-        new_credit = RE_UPDATE.split(new_credit)[0].strip()
-        credit = credit_in_dc or new_credit
-        credit = credit if credit else ''
-        updates = set()
-        for update in (new_updates + updates_in_dc):
-            update = update.strip(' \n\r\t.;')
-            if update and update not in updates:
-                updates.add(update)
-                credit = credit + '\nUpdated: ' + update + '.'
-        self.credit = credit
+        self.credit = new_credit.strip()
 
 
     def load_from_parser(self, parser):
