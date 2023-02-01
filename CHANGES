@@ -2,6 +2,7 @@ CHANGES
 0.10.15 (January 31, 2023)
 - libgutenberg is not compatible with SQLAlchemy 2.0; added a version restriction
 - in logging tests, clean up the open log file
+- fileinfo didn't work properly in non-pg installations, which depended on symlinks in the filesystem. refactored the file path massaging.
 - curly quotes in titles are straightened.
 - store subtitle in a marc subfield
 - pubinfo was not being reconstituted when loaded from the database
