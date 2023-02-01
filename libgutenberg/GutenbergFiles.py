@@ -150,7 +150,7 @@ def parse_filename(filename):
 
 @DBUtils.managed_session
 def store_file_in_database(id_, filename, type_, encoding=None, session=None):
-    """ Store file in PG database. filename is a file system uri"""
+    """ Store file in PG database. filename absolute or relative to FILES"""
 
     filedir, filename_nopath, archive_path = parse_filename(filename)
 
