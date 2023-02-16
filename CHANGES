@@ -1,4 +1,7 @@
 CHANGES
+0.10.16 (February 15, 2023)
+- dc.update_date initialized to datetime.date.min 
+
 0.10.15 (February 1, 2023)
 - libgutenberg is not compatible with SQLAlchemy 2.0; added a version restriction
 - in logging tests, clean up the open log file

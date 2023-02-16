@@ -184,7 +184,7 @@ class DublinCore(object):
         self.categories = []
         self.dcmitypes = [] # similar to categories but based on the DCMIType vocabulary
         self.release_date = datetime.date.min  # valid date for SQL, must not test for null!
-        self.update_date = None
+        self.update_date = datetime.date.min  # valid date for SQL, must not test for null!
         self.edition = None
         self.contents = None
         self.encoding = None
