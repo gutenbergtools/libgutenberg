@@ -46,7 +46,7 @@ DCMITYPES = [
     ("Dataset","Data Set"),
     ("Collection","Collection")
 ]
-title_splitter = re.compile(r'([\r\n]+|\$b )', flags=re.M)
+title_splitter = re.compile(r'([\r\n]+|\$[bcv] )', flags=re.M)
 
 class _HTML_Writer(object):
     """ Write metadata suitable for inclusion in HTML.
