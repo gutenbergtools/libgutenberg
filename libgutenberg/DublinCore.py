@@ -942,7 +942,7 @@ class GutenbergDublinCore(DublinCore):
             scan_txt(self, data)
 
         if self.project_gutenberg_id is None:
-            raise ValueError('This is not a Project Gutenberg ebook file.')
+            raise ValueError('This is not a Project Gutenberg eBook file.')
 
 
 # use PGDCObject if you want a DublinCoreObject that uses a database if available
