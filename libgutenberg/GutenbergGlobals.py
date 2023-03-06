@@ -278,9 +278,14 @@ def xmlspecialchars(s):
              .replace('<',  '&lt;')
              .replace('>',  '&gt;'))
 
+TITLE_SPLITTER =  re.compile(r'(\r?\n?\$[bcv] |[\r\n]+)', flags=re.M)
+
 def insert_breaks(s, self_closing=True):
-    """ Replace newlines with <br/>. """
-    return s.replace('\n', '<br />' if self_closing else '<br>')
+    """ Replace newlines with <br/>. 
+        This is used for marc attribute text, so also also replace subfield indicators
+    """
+    
+    return TITLE_SPLITTER.sub('<br />' if self_closing else '<br>', s)
 
 RE_NORMALIZE    = re.compile(r"\s+")
 
