@@ -29,7 +29,7 @@ from lxml.builder import ElementMaker
 import pycountry
 
 from . import GutenbergGlobals as gg
-from .GutenbergGlobals import NS, Struct, xpath, ROLES
+from .GutenbergGlobals import NS, Struct, xpath, ROLES, TITLE_SPLITTER as title_splitter
 from .Logger import critical, debug, error, exception, info, warning
 
 
@@ -46,7 +46,6 @@ DCMITYPES = [
     ("Dataset","Data Set"),
     ("Collection","Collection")
 ]
-title_splitter = re.compile(r'([\r\n]+|\$b )', flags=re.M)
 
 class _HTML_Writer(object):
     """ Write metadata suitable for inclusion in HTML.
@@ -942,7 +941,7 @@ class GutenbergDublinCore(DublinCore):
             scan_txt(self, data)
 
         if self.project_gutenberg_id is None:
-            raise ValueError('This is not a Project Gutenberg ebook file.')
+            raise ValueError('This is not a Project Gutenberg eBook file.')
 
 
 # use PGDCObject if you want a DublinCoreObject that uses a database if available

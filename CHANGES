@@ -1,4 +1,9 @@
 CHANGES
+0.10.17 (March 7, 2023)
+- handle $c and $v title subfields
+- include subfield marker removal in GutenbergGlobals.insert_breaks
+- normalize capitalization of "eBook" in an error message
+
 0.10.16 (February 15, 2023)
 - dc.update_date initialized to datetime.date.min 
 
