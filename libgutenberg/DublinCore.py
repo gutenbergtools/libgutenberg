@@ -91,6 +91,7 @@ class PubInfo(object):
         self.years = []  #  list of (event_type, year)
         self.place = ''
         self.country = ''
+        self.raw_info_str = ''
 
     def __str__(self):
         info_str = ''
@@ -102,7 +103,7 @@ class PubInfo(object):
         if self.years:
             info_str += ', ' + self.first_year
         info_str = info_str.strip()
-        return '' if info_str == '()' else info_str
+        return self.raw_info_str if info_str in ['()', ''] else info_str
 
     def __bool__(self):
         return bool(self.publisher or self.years or self.country or self.place)
@@ -790,6 +791,8 @@ class GutenbergDublinCore(DublinCore):
                     elif event_year:
                         warning('assuming %s is a copyright year', event_year)
                         self.pubinfo.years.append(('copyright', event_year))
+            elif key == 'original publication':
+                self.pubinfo.raw_info_str = value
 
 
         def nothandled(self, key, value):
@@ -909,7 +912,8 @@ class GutenbergDublinCore(DublinCore):
             'place':        handle_pubinfo,
             'source_publication_years': handle_pubinfo,
             'ebook_number': handle_ebook_no,
-            "request_key":  store,
+            'request_key':  store,
+            'original publication': handle_pubinfo,
             }
 
         aliases = {

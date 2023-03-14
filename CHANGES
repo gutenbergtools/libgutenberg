@@ -1,4 +1,7 @@
 CHANGES
+0.10.18 (March 14, 2023)
+- add handler for 'original publication' in pg header. This field is not parsed.
+
 0.10.17 (March 7, 2023)
 - handle $c and $v title subfields
 - include subfield marker removal in GutenbergGlobals.insert_breaks
