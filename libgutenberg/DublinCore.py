@@ -204,17 +204,17 @@ class DublinCore(object):
             # Hack to display 9999? if only d2 is set
             if d2 and not d1:
                 if d2 < 0:
-                    return "%d? BCE" % abs(d2)
+                    return "%d? BCE" % abs(d2 - 1)
                 return "%d?" % d2
             if not d1:
                 return ''
             if d2 and d1 != d2:
                 d3 = max(d1, d2)
                 if d3 < 0:
-                    return "%d? BCE" % abs(d3)
+                    return "%d? BCE" % abs(d3 - 1)
                 return "%d?" % d3
             if d1 < 0:
-                return "%d BCE" % abs(d1)
+                return "%d BCE" % abs(d1 - 1)
             return str(d1)
 
         born = format_dates(author.birthdate, author.birthdate2)
