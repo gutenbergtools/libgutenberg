@@ -162,6 +162,11 @@ class DublinCore(object):
     # load local role map as default
     role_map = ROLES
     inverse_role_map = {v.lower(): k for k, v in ROLES.items()}
+    inverse_role_map.update({
+            'author of afterword': 'aft',
+            'author of colophon': 'aft',
+            'author of introduction': 'aui',
+    })
 
     # load local language map as default
     language_map = gg.language_map

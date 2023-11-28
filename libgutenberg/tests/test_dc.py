@@ -239,13 +239,15 @@ class TestDCLoader(unittest.TestCase):
             dc.load_from_pgheader(fakebook_file.read())
         set_title = dc.title
         self.assertEqual(set_title, 'The Fake EBook of "Testing"')
-        self.assertEqual(len(dc.authors), 5)
+        self.assertEqual(len(dc.authors), 6)
         dc.get_my_session()
         dc.save(updatemode=0)
         dc.session.flush()
         self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))
-        self.assertEqual(len(dc.book.authors), 5)
-        self.assertEqual(dc.book.authors[4].marcrel, 'trl')
+        self.assertEqual(len(dc.book.authors), 6)
+        roles = [author.marcrel for author in dc.book.authors]
+        self.assertTrue('trl' in roles)
+        self.assertTrue('aui' in roles)
         self.assertTrue(DBUtils.author_exists('Lorem Ipsum Jr.', session=dc.session))
         self.assertTrue(DBUtils.author_exists('Hemingway, Ernest', session=dc.session))
         dc.load_from_database(99999)
@@ -264,7 +266,8 @@ class TestDCLoader(unittest.TestCase):
 
     def tearDown(self):
         session = DBUtils.check_session(None)
-        DBUtils.remove_author('Lorem Ipsum Jr.', session=session)
+        
+        #DBUtils.remove_author('Lorem Ipsum Jr.', session=session)
         session.query(Book).filter(Book.pk == 99999).delete()
         session.commit()
         
