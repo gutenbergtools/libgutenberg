@@ -482,10 +482,11 @@ class DublinCore(object):
             return "%s et al." % DublinCore.make_pretty_name(creators[0].name)
         return ''
 
-
+RE_ELEMENTS = re.compile(r'<[^<>]*>')
 def handle_dc_languages(dc, text):
     """ Scan Language: line """
     reset = False
+    text = RE_ELEMENTS.sub('', text)       
     text = text.replace(' and ', ',')
     for lang in text.lower().split(','):
         lang = lang.strip()
@@ -950,7 +951,9 @@ class GutenbergDublinCore(DublinCore):
             scan_txt(self, data)
 
         if self.project_gutenberg_id is None:
-            raise ValueError('This is not a Project Gutenberg eBook file.')
+            warning('There is no  Project Gutenberg eBook number for this book.')
+            if not self.title:
+                raise ValueError('This may not be a Project Gutenberg eBook file.')
 
 
 # use PGDCObject if you want a DublinCoreObject that uses a database if available
