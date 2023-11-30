@@ -253,6 +253,9 @@ class TestDCLoader(unittest.TestCase):
         dc.load_from_database(99999)
         self.assertEqual(set_title, dc.title)
         self.assertEqual('A ChatPG Robot.', dc.credit)
+        for cat in dc.dcmitypes:
+            print(cat.id)
+            self.assertEqual(cat.id, 'Text')
         dc.delete()
         dc = DublinCoreMapping.DublinCoreObject()
         dc.load_from_database(99999)
