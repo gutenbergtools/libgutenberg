@@ -239,6 +239,9 @@ class TestDCLoader(unittest.TestCase):
             dc.load_from_pgheader(fakebook_file.read())
         set_title = dc.title
         self.assertEqual(set_title, 'The Fake EBook of "Testing"')
+        dc.title = "an extra long title, longer than 80 char, for The Fake EBook of \"Testing\", really we\'re not kidding"
+        self.assertTrue(len(dc.make_pretty_title()) < 80)
+        dc.title = set_title
         self.assertEqual(len(dc.authors), 6)
         dc.get_my_session()
         dc.save(updatemode=0)

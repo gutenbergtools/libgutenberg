@@ -84,6 +84,7 @@ class _HTML_Writer(object):
                 rel = self._what(what), href = str(uri)))
 
 RE_TIGHT_COMMA = re.compile(r",(\S)")
+RE_WIDOW = re.compile(r'( \W+$|\s.$)')
 
 class PubInfo(object):
     def __init__(self):
@@ -287,13 +288,12 @@ class DublinCore(object):
                 return format_string % (float(size) / threshold)
         return '%d B' % size
 
-
     def make_pretty_title(self, size = 80, cut_nonfiling = False):
         """ Generate a pretty title for ebook. """
 
         def cutoff(title, size):
-            """ Cut string off after size characters. """
-            return textwrap.wrap(title, size)[0]
+            """ Cut string off after size characters. (leave room for …)"""
+            return RE_WIDOW.sub('…', textwrap.wrap(title, size - 1)[0])
 
         title = self.title_file_as if cut_nonfiling else self.title
 

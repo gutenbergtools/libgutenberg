@@ -1,10 +1,12 @@
 CHANGES
-0.10.19 (November xx, 2023)
+0.10.19 (December 1, 2023)
 - add media type for `.zip`
 - add aliases to metadata parser for `author of introduction` and `author of afterward'.
 - fix off by one error in rendering of BCE dates: 1 BCE is represented as 0.
 - fix metadata parser not to raise an error only because there's no ebook number - a title suffices.
 - ensures no markup in 'language attributes. this was crashing ebookmaker.
+- tests added for DCMIType
+- improves title truncation in dc.make_pretty_title(). fixes #33
 
 0.10.18 (March 14, 2023)
 - add handler for 'original publication' in pg header. This field is not parsed.
