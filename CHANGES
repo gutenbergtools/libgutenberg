@@ -1,5 +1,5 @@
 CHANGES
-0.10.19 (December 1, 2023)
+0.10.19 (December 7, 2023)
 - add media type for `.zip`
 - add aliases to metadata parser for `author of introduction` and `author of afterward'.
 - fix off by one error in rendering of BCE dates: 1 BCE is represented as 0.
