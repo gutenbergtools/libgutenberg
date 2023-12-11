@@ -951,7 +951,7 @@ class GutenbergDublinCore(DublinCore):
             scan_txt(self, data)
 
         if self.project_gutenberg_id is None:
-            warning('There is no  Project Gutenberg eBook number for this book.')
+            info('There is no  Project Gutenberg eBook number for this book.')
             if not self.title:
                 raise ValueError('This may not be a Project Gutenberg eBook file.')
 
