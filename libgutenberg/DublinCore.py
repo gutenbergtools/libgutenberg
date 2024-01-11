@@ -85,6 +85,7 @@ class _HTML_Writer(object):
 
 RE_TIGHT_COMMA = re.compile(r",(\S)")
 RE_WIDOW = re.compile(r'( \W+$|\s.$)')
+RE_UPDATE = re.compile(r'\s*updated?:\s*', re.I)
 
 class PubInfo(object):
     def __init__(self):

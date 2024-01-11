@@ -159,6 +159,8 @@ select attributes.text, attributes.nonfiling,
                 self.title_file_as = marc.text[row.nonfiling:]
                 self.title_file_as = self.title_file_as[0].upper() + self.title_file_as[1:]
 
+            elif marc.code == '508':
+                marc.text = DublinCore.RE_UPDATE.split(marc.text)[0].strip()
 
         # languages (datatype)
 
