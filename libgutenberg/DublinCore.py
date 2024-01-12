@@ -294,7 +294,10 @@ class DublinCore(object):
 
         def cutoff(title, size):
             """ Cut string off after size characters. (leave room for …)"""
-            return RE_WIDOW.sub('…', textwrap.wrap(title, size - 1)[0])
+            wrapped = textwrap.wrap(title, size - 1)
+            if len(wrapped) == 1:
+                return wrapped[0]
+            return RE_WIDOW.sub('', wrapped[0]) + '…'
 
         title = self.title_file_as if cut_nonfiling else self.title
 
