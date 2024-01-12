@@ -1,7 +1,9 @@
 CHANGES
-0.10.20 (January 11, 2024)
-- add credit cleaning to GutenbergDatabaseDublinCore
+0.10.20 (January 12, 2024)
+- add credit cleaning to GutenbergDatabaseDublinCore. required for autocat3 https://github.com/gutenbergtools/autocat3/issues/116
 - refactor credit cleaning
+- refine pretty_title truncation to always add … to truncated titles. improves #33
+- change no-gutenberg-id log message from warning to info, improve wording fixes #35
 
 0.10.19 (December 7, 2023)
 - add media type for `.zip`
