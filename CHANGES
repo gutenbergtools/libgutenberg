@@ -1,4 +1,7 @@
 CHANGES
+0.10.21 (February xx, 2024)
+- credits should be replaced, not appended
+
 0.10.20 (January 12, 2024)
 - add credit cleaning to GutenbergDatabaseDublinCore. required for autocat3 https://github.com/gutenbergtools/autocat3/issues/116
 - refactor credit cleaning

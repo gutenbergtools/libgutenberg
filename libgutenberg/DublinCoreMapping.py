@@ -318,7 +318,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
         session = self.get_my_session()
         if self.book.updatemode != updatemode:
-            self.add_attribute(self.book, [self.credit], marc=508)
+            self.add_attribute(self.book, self.credit, marc=508)
             session.commit()
             return
 
@@ -374,7 +374,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             self.add_attribute(self.book, self.pubinfo.country, marc=907)
 
         if self.credit:
-            self.add_attribute(self.book, [self.credit], marc=508)
+            self.add_attribute(self.book, self.credit, marc=508)
 
         if self.scan_urls:
             self.add_attribute(self.book, self.scan_urls, marc=904)
