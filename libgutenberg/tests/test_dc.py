@@ -300,7 +300,9 @@ class TestDCJson(unittest.TestCase):
         dc.get_my_session()
         dc.save(updatemode=0)
         dc.session.flush()
-
+        dc.add_credit('Added Credit')
+        dc.save(updatemode=0)
+        
         self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))
         self.assertEqual(len(dc.book.authors), 2)
         dc.load_from_database(99999)
@@ -314,10 +316,9 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(
             'New York, NY: Frank A. Munsey Company, 1920, reprint 1955, reprint 1972.',
             dc.strip_marc_subfields(marc260))
-        self.assertEqual(
-            len(dc.session.query(Attribute).filter_by(book=dc.book,
-                fk_attriblist=508).first().text),
-            26)
+        marc508s = dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=508)
+        self.assertEqual(len(marc508s.first().text), 12) #length of 'Added Credit'
+        self.assertEqual(1, marc508s.count())
         self.assertEqual(
             len(dc.session.query(Attribute).filter_by(book=dc.book,
                 fk_attriblist=904).all()),
@@ -325,7 +326,7 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(
             dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=905).first().text,
             '20210623194947brand')
-
+        self.assertEqual(1, marc508s.count())
         dc.delete()
         dc = DublinCoreMapping.DublinCoreObject()
         dc.load_from_database(99999)
