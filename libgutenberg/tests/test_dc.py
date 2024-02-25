@@ -119,7 +119,7 @@ class TestDC(unittest.TestCase):
 
     def files_test2(self, dc2):
         dc2.load_from_database(self.ebook2)
-        self.assertEqual(len(dc2.files) , 15)
+        self.assertEqual(len(dc2.files) , 18)
         for file_ in dc2.files:
             if file_.encoding:
                 break
