@@ -1,8 +1,9 @@
 CHANGES
-0.10.21 (February 26, 2024)
+0.10.22 (February 26, 2024)
 - credits should be replaced, not appended
 - added test for credit replacement
 - fixed tests for current db
+- 0.10.21 was not deployed
 
 0.10.20 (January 12, 2024)
 - add credit cleaning to GutenbergDatabaseDublinCore. required for autocat3 https://github.com/gutenbergtools/autocat3/issues/116
