@@ -296,11 +296,11 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(dc.pubinfo.first_year, '1920')
         self.assertEqual(dc.credit, 'Roger Frank and Sue Clark.')
         dc.add_credit('Sue Frank and Roger Clark.\n')
-        self.assertEqual(dc.credit, 'Sue Frank and Roger Clark.')
+        self.assertEqual(dc.credit, 'Roger Frank and Sue Clark.')
         dc.get_my_session()
         dc.save(updatemode=0)
         dc.session.flush()
-        dc.add_credit('Added Credit')
+        dc.credit = 'Added Credit'
         dc.save(updatemode=0)
         
         self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))

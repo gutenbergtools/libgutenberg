@@ -410,10 +410,11 @@ class DublinCore(object):
     def add_credit(self, new_credit):
         ''' the updates field can contain both a production credit and update notations.
             Updates need to be more sophisticated - updates can be added, credits are singular.
+            only add credit if there's not already a credit.
         '''
         if not new_credit:
             return
-        self.credit = new_credit.strip()
+        self.credit = self.credit or new_credit.strip()
 
 
     def load_from_parser(self, parser):
