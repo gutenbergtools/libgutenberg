@@ -119,7 +119,7 @@ class TestDC(unittest.TestCase):
 
     def files_test2(self, dc2):
         dc2.load_from_database(self.ebook2)
-        self.assertEqual(len(dc2.files) , 15)
+        self.assertEqual(len(dc2.files) , 18)
         for file_ in dc2.files:
             if file_.encoding:
                 break
@@ -239,18 +239,26 @@ class TestDCLoader(unittest.TestCase):
             dc.load_from_pgheader(fakebook_file.read())
         set_title = dc.title
         self.assertEqual(set_title, 'The Fake EBook of "Testing"')
-        self.assertEqual(len(dc.authors), 5)
+        dc.title = "an extra long title, longer than 80 char, for The Fake EBook of \"Testing\", really we\'re not kidding"
+        self.assertTrue(len(dc.make_pretty_title()) < 80)
+        dc.title = set_title
+        self.assertEqual(len(dc.authors), 6)
         dc.get_my_session()
         dc.save(updatemode=0)
         dc.session.flush()
         self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))
-        self.assertEqual(len(dc.book.authors), 5)
-        self.assertEqual(dc.book.authors[4].marcrel, 'trl')
+        self.assertEqual(len(dc.book.authors), 6)
+        roles = [author.marcrel for author in dc.book.authors]
+        self.assertTrue('trl' in roles)
+        self.assertTrue('aui' in roles)
         self.assertTrue(DBUtils.author_exists('Lorem Ipsum Jr.', session=dc.session))
         self.assertTrue(DBUtils.author_exists('Hemingway, Ernest', session=dc.session))
         dc.load_from_database(99999)
         self.assertEqual(set_title, dc.title)
         self.assertEqual('A ChatPG Robot.', dc.credit)
+        for cat in dc.dcmitypes:
+            print(cat.id)
+            self.assertEqual(cat.id, 'Text')
         dc.delete()
         dc = DublinCoreMapping.DublinCoreObject()
         dc.load_from_database(99999)
@@ -264,7 +272,8 @@ class TestDCLoader(unittest.TestCase):
 
     def tearDown(self):
         session = DBUtils.check_session(None)
-        DBUtils.remove_author('Lorem Ipsum Jr.', session=session)
+        
+        #DBUtils.remove_author('Lorem Ipsum Jr.', session=session)
         session.query(Book).filter(Book.pk == 99999).delete()
         session.commit()
         
@@ -287,11 +296,13 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(dc.pubinfo.first_year, '1920')
         self.assertEqual(dc.credit, 'Roger Frank and Sue Clark.')
         dc.add_credit('Sue Frank and Roger Clark.\n')
-        self.assertEqual(dc.credit, 'Sue Frank and Roger Clark.')
+        self.assertEqual(dc.credit, 'Roger Frank and Sue Clark.')
         dc.get_my_session()
         dc.save(updatemode=0)
         dc.session.flush()
-
+        dc.credit = 'Added Credit'
+        dc.save(updatemode=0)
+        
         self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))
         self.assertEqual(len(dc.book.authors), 2)
         dc.load_from_database(99999)
@@ -305,10 +316,9 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(
             'New York, NY: Frank A. Munsey Company, 1920, reprint 1955, reprint 1972.',
             dc.strip_marc_subfields(marc260))
-        self.assertEqual(
-            len(dc.session.query(Attribute).filter_by(book=dc.book,
-                fk_attriblist=508).first().text),
-            26)
+        marc508s = dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=508)
+        self.assertEqual(len(marc508s.first().text), 12) #length of 'Added Credit'
+        self.assertEqual(1, marc508s.count())
         self.assertEqual(
             len(dc.session.query(Attribute).filter_by(book=dc.book,
                 fk_attriblist=904).all()),
@@ -316,7 +326,7 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(
             dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=905).first().text,
             '20210623194947brand')
-
+        self.assertEqual(1, marc508s.count())
         dc.delete()
         dc = DublinCoreMapping.DublinCoreObject()
         dc.load_from_database(99999)

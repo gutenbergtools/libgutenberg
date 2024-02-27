@@ -84,6 +84,8 @@ class _HTML_Writer(object):
                 rel = self._what(what), href = str(uri)))
 
 RE_TIGHT_COMMA = re.compile(r",(\S)")
+RE_WIDOW = re.compile(r'( \W+$|\s.$)')
+RE_UPDATE = re.compile(r'\s*updated?:\s*', re.I)
 
 class PubInfo(object):
     def __init__(self):
@@ -91,6 +93,7 @@ class PubInfo(object):
         self.years = []  #  list of (event_type, year)
         self.place = ''
         self.country = ''
+        self.raw_info_str = ''
 
     def __str__(self):
         info_str = ''
@@ -102,7 +105,7 @@ class PubInfo(object):
         if self.years:
             info_str += ', ' + self.first_year
         info_str = info_str.strip()
-        return '' if info_str == '()' else info_str
+        return self.raw_info_str if info_str in ['()', ''] else info_str
 
     def __bool__(self):
         return bool(self.publisher or self.years or self.country or self.place)
@@ -161,6 +164,11 @@ class DublinCore(object):
     # load local role map as default
     role_map = ROLES
     inverse_role_map = {v.lower(): k for k, v in ROLES.items()}
+    inverse_role_map.update({
+            'author of afterword': 'aft',
+            'author of colophon': 'aft',
+            'author of introduction': 'aui',
+    })
 
     # load local language map as default
     language_map = gg.language_map
@@ -203,17 +211,17 @@ class DublinCore(object):
             # Hack to display 9999? if only d2 is set
             if d2 and not d1:
                 if d2 < 0:
-                    return "%d? BCE" % abs(d2)
+                    return "%d? BCE" % abs(d2 - 1)
                 return "%d?" % d2
             if not d1:
                 return ''
             if d2 and d1 != d2:
                 d3 = max(d1, d2)
                 if d3 < 0:
-                    return "%d? BCE" % abs(d3)
+                    return "%d? BCE" % abs(d3 - 1)
                 return "%d?" % d3
             if d1 < 0:
-                return "%d BCE" % abs(d1)
+                return "%d BCE" % abs(d1 - 1)
             return str(d1)
 
         born = format_dates(author.birthdate, author.birthdate2)
@@ -281,13 +289,15 @@ class DublinCore(object):
                 return format_string % (float(size) / threshold)
         return '%d B' % size
 
-
     def make_pretty_title(self, size = 80, cut_nonfiling = False):
         """ Generate a pretty title for ebook. """
 
         def cutoff(title, size):
-            """ Cut string off after size characters. """
-            return textwrap.wrap(title, size)[0]
+            """ Cut string off after size characters. (leave room for …)"""
+            wrapped = textwrap.wrap(title, size - 1)
+            if len(wrapped) == 1:
+                return wrapped[0]
+            return RE_WIDOW.sub('', wrapped[0]) + '…'
 
         title = self.title_file_as if cut_nonfiling else self.title
 
@@ -400,10 +410,11 @@ class DublinCore(object):
     def add_credit(self, new_credit):
         ''' the updates field can contain both a production credit and update notations.
             Updates need to be more sophisticated - updates can be added, credits are singular.
+            only add credit if there's not already a credit.
         '''
         if not new_credit:
             return
-        self.credit = new_credit.strip()
+        self.credit = self.credit or new_credit.strip()
 
 
     def load_from_parser(self, parser):
@@ -476,10 +487,11 @@ class DublinCore(object):
             return "%s et al." % DublinCore.make_pretty_name(creators[0].name)
         return ''
 
-
+RE_ELEMENTS = re.compile(r'<[^<>]*>')
 def handle_dc_languages(dc, text):
     """ Scan Language: line """
     reset = False
+    text = RE_ELEMENTS.sub('', text)       
     text = text.replace(' and ', ',')
     for lang in text.lower().split(','):
         lang = lang.strip()
@@ -790,6 +802,8 @@ class GutenbergDublinCore(DublinCore):
                     elif event_year:
                         warning('assuming %s is a copyright year', event_year)
                         self.pubinfo.years.append(('copyright', event_year))
+            elif key == 'original publication':
+                self.pubinfo.raw_info_str = value
 
 
         def nothandled(self, key, value):
@@ -909,7 +923,8 @@ class GutenbergDublinCore(DublinCore):
             'place':        handle_pubinfo,
             'source_publication_years': handle_pubinfo,
             'ebook_number': handle_ebook_no,
-            "request_key":  store,
+            'request_key':  store,
+            'original publication': handle_pubinfo,
             }
 
         aliases = {
@@ -941,7 +956,9 @@ class GutenbergDublinCore(DublinCore):
             scan_txt(self, data)
 
         if self.project_gutenberg_id is None:
-            raise ValueError('This is not a Project Gutenberg eBook file.')
+            info('There is no  Project Gutenberg eBook number for this book in the source file.')
+            if not self.title:
+                raise ValueError('This may not be a Project Gutenberg eBook file.')
 
 
 # use PGDCObject if you want a DublinCoreObject that uses a database if available

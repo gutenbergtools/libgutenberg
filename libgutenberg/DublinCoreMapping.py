@@ -36,7 +36,6 @@ from .Models import (Alias, Attribute, Author, Book, BookAuthor, Category, File,
 RE_YEARS = re.compile(r'(.*)([12]\d\d\d)') # no years before 1000
 RE_CRLF = re.compile(r'[\n\r]+', flags=re.M)
 RE_PLACE = re.compile(r'^\[?([\w\. ]*):')
-RE_UPDATE = re.compile(r'\s*updated?:\s*', re.I)
 
 class DublinCoreObject(DublinCore.GutenbergDublinCore):
     """ Augment GutenbergDublinCore class. """
@@ -139,10 +138,6 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
             return (place, publisher, years)
 
-        def clean_credit(s):
-            # parse out updates
-            return RE_UPDATE.split(s)[0].strip()
-
         book = self.load_book(ebook)
         if not book:
             return
@@ -187,7 +182,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             elif marc.code == '505':
                 self.contents = marc.text
             elif marc.code == '508':
-                self.credit = clean_credit(marc.text)
+                self.credit = DublinCore.RE_UPDATE.split(marc.text)[0].strip()
             elif marc.code == '904':
                 self.scan_urls = marc.text
             elif marc.code == '905':
@@ -323,7 +318,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
         session = self.get_my_session()
         if self.book.updatemode != updatemode:
-            self.add_attribute(self.book, [self.credit], marc=508)
+            self.add_attribute(self.book, self.credit, marc=508)
             session.commit()
             return
 
@@ -379,7 +374,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             self.add_attribute(self.book, self.pubinfo.country, marc=907)
 
         if self.credit:
-            self.add_attribute(self.book, [self.credit], marc=508)
+            self.add_attribute(self.book, self.credit, marc=508)
 
         if self.scan_urls:
             self.add_attribute(self.book, self.scan_urls, marc=904)

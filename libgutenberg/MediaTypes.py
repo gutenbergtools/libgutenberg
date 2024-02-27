@@ -60,6 +60,7 @@ for ext, mimetype in (
         ('mxl', 'application/vnd.recordare.musicxml'),
         ('mp3', 'audio/mpeg'),
         ('svg', 'image/svg+xml'),
+        ('zip', 'application/zip'),
 ):
     T2E[mimetype] = ext
     E2T[ext] = mimetype

@@ -1,4 +1,28 @@
 CHANGES
+0.10.22 (February 26, 2024)
+- credits should be replaced, not appended
+- added test for credit replacement
+- fixed tests for current db
+- 0.10.21 was not deployed
+
+0.10.20 (January 12, 2024)
+- add credit cleaning to GutenbergDatabaseDublinCore. required for autocat3 https://github.com/gutenbergtools/autocat3/issues/116
+- refactor credit cleaning
+- refine pretty_title truncation to always add … to truncated titles. improves #33
+- change no-gutenberg-id log message from warning to info, improve wording fixes #35
+
+0.10.19 (December 7, 2023)
+- add media type for `.zip`
+- add aliases to metadata parser for `author of introduction` and `author of afterward'.
+- fix off by one error in rendering of BCE dates: 1 BCE is represented as 0.
+- fix metadata parser not to raise an error only because there's no ebook number - a title suffices.
+- ensures no markup in 'language attributes. this was crashing ebookmaker.
+- tests added for DCMIType
+- improves title truncation in dc.make_pretty_title(). fixes #33
+
+0.10.18 (March 14, 2023)
+- add handler for 'original publication' in pg header. This field is not parsed.
+
 0.10.17 (March 7, 2023)
 - handle $c and $v title subfields
 - include subfield marker removal in GutenbergGlobals.insert_breaks
