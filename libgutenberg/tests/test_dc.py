@@ -179,7 +179,7 @@ class TestDC(unittest.TestCase):
         self.assertEqual(adam.name, 'Smith, Adamx')
         adam2 = dc.get_or_create_author('Smith, Adam')
         self.assertNotEqual(adam.id, adam2.id)
-        adam3 = dc.get_or_create_author('Smith, Adamx')
+        adam3 = dc.get_or_create_author('Smith, adamx')
         self.assertEqual(adam.id, adam3.id)
         dc.session.delete(adam)
 
