@@ -1,4 +1,7 @@
 CHANGES
+0.10.23 (March 15, 2024)
+- fixed a reversion in 0.10.10 that made author name matching case sensitive.
+
 0.10.22 (February 26, 2024)
 - credits should be replaced, not appended
 - added test for credit replacement
