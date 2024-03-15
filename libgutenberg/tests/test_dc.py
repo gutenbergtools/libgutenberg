@@ -115,7 +115,7 @@ class TestDC(unittest.TestCase):
         self.assertTrue('Readme' in dc.filetypes)
         self.assertEqual(dc.files[0].mediatypes[-1].mimetype, 'text/plain')
         self.assertEqual(len(dc.mediatypes), 6)
-        self.assertTrue('audio/ogg' in dc.mediatypes)
+        self.assertTrue('audio/ogg; codecs=opus' in dc.mediatypes)
 
     def files_test2(self, dc2):
         dc2.load_from_database(self.ebook2)

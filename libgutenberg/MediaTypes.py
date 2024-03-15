@@ -34,6 +34,7 @@ for ext, mimetype in (
         ('mobi', 'application/x-mobipocket-ebook'),
         ('mobile', 'application/xhtml+xml'),
         ('ncx', 'application/x-dtbncx+xml'),
+        ('ogg', 'audio/ogg; codecs=opus'),
         ('opds', 'application/atom+xml'),
         ('otf', 'application/vnd.ms-opentype'),
         ('pdf', 'application/pdf'),
