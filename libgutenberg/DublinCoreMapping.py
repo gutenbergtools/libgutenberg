@@ -418,6 +418,8 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
         def is_good_match(db_str, name):
             ''' make sure we're not matching in the middle of a name '''
+            db_str = db_str.lower()
+            name = name.lower()
             if name not in db_str:
                 return False
             [before, after] = db_str.split(name, 1)
