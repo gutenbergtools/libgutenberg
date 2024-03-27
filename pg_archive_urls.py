@@ -24,8 +24,8 @@ from urllib.parse import urlparse
 
 # from https://github.com/gutenbergtools/ebookconverter/blob/master/ebookconverter/EbookConverter.py
 FILENAMES = {
-    'html.noimages':    'pg{id}.html.utf8',
-    'html.images':      'pg{id}-images.html.utf8',
+    'html.noimages':    'pg{id}.html',
+    'html.images':      'pg{id}-images.html',
     'epub.noimages':    'pg{id}.epub',
     'epub.images':      'pg{id}-images.epub',
     'epub3.images':     'pg{id}-images-3.epub',
@@ -34,9 +34,13 @@ FILENAMES = {
     'kf8.images':       'pg{id}-images-kf8.mobi',
     'pdf.noimages':     'pg{id}.pdf',
     'pdf.images':       'pg{id}-images.pdf',
-    'txt.utf-8':        'pg{id}.txt.utf8',
+    'txt.utf-8':        'pg{id}.txt',
     'rdf':              'pg{id}.rdf',
-    'rst.gen':          'pg{id}.rst.utf8',
+    'rst.gen':          'pg{id}.rst',
+    'cover.small':      'pg{id}.cover.small.jpg',
+    'cover.medium':     'pg{id}.cover.medium.jpg',
+    'qrcode':           'pg{id}.qrcode.png',
+    'zip':              'pg{id}-h.zip',
 }
 MATCH_TYPE = re.compile(r'/ebooks/(\d+)\.([^\?\#]*)')
 MATCH_DIRS = re.compile(r'/files/(\d+)/([^\?\#]*)')
@@ -53,7 +57,7 @@ def archive_dir(ebook):
     a[-1] = ebook
     return "/".join(a)
 
-def archive_url(pg_url, netloc="dante.pglaf.org", scheme='http'):
+def archive_url(pg_url, netloc="aleph.pglaf.org", scheme='http'):
     """ translate pg canonical url to an archive url """
     if not pg_url:
         return None
@@ -66,7 +70,11 @@ def archive_url(pg_url, netloc="dante.pglaf.org", scheme='http'):
     if matched:
         return f'{scheme}://{netloc}/{archive_dir(matched.group(1))}/{matched.group(2)}'
     return f'{scheme}://{netloc}{path}'
-        
+
+def url_for_type(pg_type, id, netloc="aleph.pglaf.org", scheme='http'):
+    if pg_type in FILENAMES:
+        fn = FILENAMES[pg_type].format(id=id)
+        return f'{scheme}://{netloc}/cache/epub/{id}/{fn}'
 
 example1 = 'https://www.gutenberg.org/ebooks/12345.html.images'
 example2 = 'https://www.gutenberg.org/files/12345/12345-h/12345-h.htm'
@@ -74,3 +82,4 @@ example3 = 'https://www.gutenberg.org/cache/epub/12345/pg12345-images.html.utf8'
 print(archive_url(example1))
 print(archive_url(example2))
 print(archive_url(example3))
+print(url_for_type('zip', 12345))
