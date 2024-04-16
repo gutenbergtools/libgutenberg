@@ -62,7 +62,7 @@ class TestDC(unittest.TestCase):
         self.assertEqual(dc.marcs[0].caption, 'Title')
         self.assertEqual(dc.title, dc.title_file_as)
         self.assertEqual(len(dc.authors), 2)
-        author = dc.authors[0]
+        author, author2 = dc.authors[0:2]
         self.assertTrue(author.name.startswith("Grimm"))
         self.assertEqual(author.id, 971)
         self.assertEqual(author.marcrel, 'aut')
@@ -72,6 +72,7 @@ class TestDC(unittest.TestCase):
         self.assertEqual(author.name_and_dates, 'Grimm, Jacob, 1785-1863')
         self.assertEqual(author.webpages[0].url, 'https://en.wikipedia.org/wiki/Jacob_Grimm')
         self.assertEqual(author.aliases[0].alias, 'Grimm, Jacob Ludwig Carl')
+        self.assertEqual(author2.heading, 2)
         self.assertEqual(len(dc.subjects), 1)
         self.assertEqual(dc.subjects[0].subject, 'Fairy tales -- Germany')
         self.assertEqual(len(dc.bookshelves), 1)
@@ -248,6 +249,9 @@ class TestDCLoader(unittest.TestCase):
         dc.session.flush()
         self.assertTrue(DBUtils.ebook_exists(99999, session=dc.session))
         self.assertEqual(len(dc.book.authors), 6)
+        self.assertEqual(dc.book.authors[0].name, 'Lorem Ipsum Jr.')
+        self.assertEqual(dc.book.authors[0].heading, 1)
+        self.assertEqual(dc.book.authors[2].heading, 2)
         roles = [author.marcrel for author in dc.book.authors]
         self.assertTrue('trl' in roles)
         self.assertTrue('aui' in roles)

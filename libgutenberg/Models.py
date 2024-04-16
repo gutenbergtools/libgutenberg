@@ -101,7 +101,7 @@ class Book(Base):
     langs = relationship('Lang', secondary='mn_books_langs')
     attributes = relationship('Attribute', order_by='Attribute.fk_attriblist',
         cascade="all, delete-orphan")
-    authors = relationship('BookAuthor', order_by='BookAuthor.role, BookAuthor.name',
+    authors = relationship('BookAuthor', order_by='BookAuthor.heading, BookAuthor.role, BookAuthor.name',
         cascade="all, delete-orphan")
     files = relationship(
         'File',

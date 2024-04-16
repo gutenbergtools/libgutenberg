@@ -398,6 +398,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             book.authors[:] = []
 
         session = self.get_my_session()
+        first = True
         for dc_author in self.authors:
             author = self.get_or_create_author(dc_author.name)
             if hasattr(dc_author, 'birthdate'):
@@ -409,7 +410,13 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             if not role_type:
                 error("%s is not a valid role.", role_type.role)
                 continue
-            book.authors.append(BookAuthor(author=author, role_type=role_type))
+            book.authors.append(BookAuthor(
+                author=author,
+                role_type=role_type,
+                heading=1 if first else 2
+                ))
+            if first:
+                first = False
         return True
 
 
