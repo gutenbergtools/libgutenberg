@@ -85,12 +85,12 @@ select copyrighted, release_date, downloads from books where pk = %(ebook)s""",
         # http://www.loc.gov/loc.terms/relators/
 
         c.execute("""
-SELECT authors.pk as pk, author, born_floor, born_ceil, died_floor, died_ceil, fk_roles, role
+SELECT authors.pk as pk, author, born_floor, born_ceil, died_floor, died_ceil, fk_roles, role, heading
    FROM mn_books_authors
    JOIN authors ON mn_books_authors.fk_authors = authors.pk
    JOIN roles   ON mn_books_authors.fk_roles   = roles.pk
 WHERE mn_books_authors.fk_books = %(ebook)s
-ORDER BY role, author""", {'ebook': id_})
+ORDER BY heading, role, author""", {'ebook': id_})
 
         for row in c.fetchall():
             row = xl(c, row)
@@ -100,6 +100,7 @@ ORDER BY role, author""", {'ebook': id_})
             author.name           = row.author
             author.marcrel        = row.fk_roles
             author.role           = row.role
+            author.heading        = row.heading
             author.birthdate      = row.born_floor
             author.deathdate      = row.died_floor
             author.birthdate2     = row.born_ceil
