@@ -465,7 +465,7 @@ class DublinCore(object):
 
     @property
     def title_no_subtitle(self):
-        return self.split_title()[0].strip(': .')
+        return self.split_title()[0].strip(': ')
 
     # as you'd expect to see the names on a cover, last names last.
     def authors_short(self):
