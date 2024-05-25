@@ -371,6 +371,9 @@ class DublinCore(object):
 
     def add_author(self, name, marcrel = 'cre'):
         """ Add author. """
+        if not name:
+            warning(f'{name} is empty or null')
+            return
         try:
             role = self.role_map[marcrel]
         except KeyError:
