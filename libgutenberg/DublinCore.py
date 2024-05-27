@@ -371,6 +371,9 @@ class DublinCore(object):
 
     def add_author(self, name, marcrel = 'cre'):
         """ Add author. """
+        if not name:
+            warning(f'{name} is empty or null')
+            return
         try:
             role = self.role_map[marcrel]
         except KeyError:
@@ -465,7 +468,7 @@ class DublinCore(object):
 
     @property
     def title_no_subtitle(self):
-        return self.split_title()[0].strip(': .')
+        return self.split_title()[0].strip(': ')
 
     # as you'd expect to see the names on a cover, last names last.
     def authors_short(self):
