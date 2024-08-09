@@ -2,6 +2,7 @@ CHANGES
 
 0.10.25
 - properly skip authors with None as name (Python null, not the string "None")
+- improve year parsing in 260 attributes
 
 0.10.25 (May 22, 2024)
 - don't strip periods from title_no_subtitle
