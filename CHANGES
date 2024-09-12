@@ -1,6 +1,6 @@
 CHANGES
 
-0.10.25 (September 12, 2024)
+0.10.26 (September 12, 2024)
 - properly skip authors with None as name (Python null, not the string "None")
 - improve year parsing in 260 attributes
 - don't try to put first name first if author is a publisher.
