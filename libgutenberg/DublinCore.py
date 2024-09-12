@@ -252,7 +252,9 @@ class DublinCore(object):
 
 
     @staticmethod
-    def make_pretty_name(name):
+    def make_pretty_name(name, role='aut'):
+        if role in {'publ'}:
+            return name
         """ Reverse author name components """
         rev = ' '.join(reversed(name.split(', ')))
         rev = re.sub(r'\(.*\)', '', rev)
@@ -291,6 +293,11 @@ class DublinCore(object):
 
     def make_pretty_title(self, size = 80, cut_nonfiling = False):
         """ Generate a pretty title for ebook. """
+        def surname(author):
+            if author.marcrel == "publ":
+                return author.name()
+            else:
+                return author.name.split(', ')[0]
 
         def cutoff(title, size):
             """ Cut string off after size characters. (leave room for …)"""
@@ -314,8 +321,8 @@ class DublinCore(object):
         if not creators:
             return cutoff(title, size)
 
-        fullnames = [self.make_pretty_name(author.name) for author in creators]
-        surnames  = [author.name.split(', ')[0] for author in creators]
+        fullnames = [self.make_pretty_name(author.name, role=author.marcrel) for author in creators]
+        surnames  = [surname(author) for author in creators]
 
         for tail in (self.strunk(fullnames), self.strunk(surnames)):
             if len(tail) + title_len < size:
@@ -479,15 +486,16 @@ class DublinCore(object):
                 num_auths += 1
                 creators.append(author)
         if num_auths == 1:
-            return DublinCore.make_pretty_name(creators[0].name)
+            return DublinCore.make_pretty_name(creators[0].name, role=creators[0].marcrel)
         if num_auths == 2:
             names = "%s and %s" % (
-                DublinCore.make_pretty_name(creators[0].name),
-                DublinCore.make_pretty_name(creators[1].name)
+                DublinCore.make_pretty_name(creators[0].name, role=creators[0].marcrel),
+                DublinCore.make_pretty_name(creators[1].name, role=creators[0].marcrel)
             )
             return names
         if num_auths > 2:
-            return "%s et al." % DublinCore.make_pretty_name(creators[0].name)
+            return "%s et al." % DublinCore.make_pretty_name(
+                creators[0].name, role=creators[0].marcrel)
         return ''
 
 RE_ELEMENTS = re.compile(r'<[^<>]*>')
