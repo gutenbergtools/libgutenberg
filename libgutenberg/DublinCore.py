@@ -295,7 +295,7 @@ class DublinCore(object):
         """ Generate a pretty title for ebook. """
         def surname(author):
             if author.marcrel == "pbl":
-                return author.name()
+                return author.name
             else:
                 return author.name.split(', ')[0]
 
