@@ -253,7 +253,7 @@ class DublinCore(object):
 
     @staticmethod
     def make_pretty_name(name, role='aut'):
-        if role in {'publ'}:
+        if role in {'pbl'}:
             return name
         """ Reverse author name components """
         rev = ' '.join(reversed(name.split(', ')))
