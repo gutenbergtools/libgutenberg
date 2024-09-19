@@ -294,7 +294,7 @@ class DublinCore(object):
     def make_pretty_title(self, size = 80, cut_nonfiling = False):
         """ Generate a pretty title for ebook. """
         def surname(author):
-            if author.marcrel == "publ":
+            if author.marcrel == "pbl":
                 return author.name()
             else:
                 return author.name.split(', ')[0]
