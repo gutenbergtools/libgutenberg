@@ -1,7 +1,11 @@
 CHANGES
 
-0.10.25
+0.10.30 (September 19, 2024)
 - properly skip authors with None as name (Python null, not the string "None")
+- improve year parsing in 260 attributes
+- don't try to put first name first if author is a publisher.
+    - for multiple reasons, our author table should add a column denoting corporate entities. This is needed in order for us to make correct MARC records. (we want 110 fields, not 100 fields.)
+- 0.10.26-29 had bugs discovered in testing and were not deployed
 
 0.10.25 (May 22, 2024)
 - don't strip periods from title_no_subtitle
