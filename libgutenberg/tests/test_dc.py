@@ -75,7 +75,7 @@ class TestDC(unittest.TestCase):
         self.assertEqual(author2.heading, 2)
         self.assertEqual(len(dc.subjects), 1)
         self.assertEqual(dc.subjects[0].subject, 'Fairy tales -- Germany')
-        self.assertEqual(len(dc.bookshelves), 1)
+        self.assertEqual(len(dc.bookshelves), 3)
         self.assertEqual(dc.bookshelves[0].bookshelf, 'DE Kinderbuch')
         self.assertEqual(dc.loccs[0].locc, 'Geography, Anthropology, Recreation: Folklore')
         self.assertEqual(dc.dcmitypes[0].id, 'Sound')
@@ -84,7 +84,7 @@ class TestDC(unittest.TestCase):
     def metadata_test2(self, dc2):
         dc2.load_from_database(self.ebook2)
         self.assertEqual('en', dc2.languages[0].id)
-        self.assertEqual(len(dc2.bookshelves), 5)
+        self.assertEqual(len(dc2.bookshelves), 9)
         self.assertEqual(dc2.bookshelves[0].bookshelf, 'Napoleonic(Bookshelf)')
         self.assertEqual(dc2.dcmitypes[0].id, 'Text')
 
@@ -102,7 +102,7 @@ class TestDC(unittest.TestCase):
     def files_test1(self, dc):
         dc.load_from_database(self.ebook)
         self.assertTrue(dc.new_filesystem)
-        self.assertEqual(len(dc.files) , 159)
+        self.assertEqual(len(dc.files) , 161)
         self.assertEqual(dc.files[0].archive_path, '2/0/0/5/20050/20050-readme.txt')
         self.assertEqual(dc.files[0].url, 'https://www.gutenberg.org/files/20050/20050-readme.txt')
         self.assertTrue(dc.files[0].extent, True)
@@ -115,7 +115,7 @@ class TestDC(unittest.TestCase):
         self.assertEqual(dc.files[0].filetype, 'readme')
         self.assertTrue('Readme' in dc.filetypes)
         self.assertEqual(dc.files[0].mediatypes[-1].mimetype, 'text/plain')
-        self.assertEqual(len(dc.mediatypes), 6)
+        self.assertEqual(len(dc.mediatypes), 7)
         self.assertTrue('audio/ogg' in dc.mediatypes)
 
     def files_test2(self, dc2):
