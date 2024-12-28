@@ -125,6 +125,7 @@ class language_map(object):
         'Cambodian': 'km',
         'Laothian': 'lo',
         'Malay': 'ms',
+        'Navajo': 'nv',
         'Nepali': 'ne',
         'Occitan': 'oc',
         'Oriya': 'or',
@@ -150,10 +151,10 @@ class language_map(object):
         'Mayan Languages': 'myn',
         'Iroquoian': 'iro',
         'Napoletano-Calabrese': 'nap',
-        'Gaelic, Scottish': 'gla',
+        'Gaelic, Scottish': 'gd',
         'Gaelic, Irish': 'gle',
         'Greek, Ancient': 'grc',
-        'Ojibwa, Western': 'ojw',
+        'Ojibwa, Western': 'oj',
         'Bodo': 'brx',
     }
 
