@@ -1,7 +1,7 @@
 CHANGES
 
-0.10.31 wip
-- change the language codes from 3-letter to 2. Related to https://github.com/gutenbergtools/ebookmaker/issues/243
+0.10.31 (December 30, 2024)
+- change 3 language codes from 3-letter to 2. Related to https://github.com/gutenbergtools/ebookmaker/issues/243
 - fix bug in PubInfo.__str__ that was omitting the year. Fixes https://github.com/gutenbergtools/ebookmaker/issues/245
 - update tests
 
