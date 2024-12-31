@@ -116,6 +116,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                     if year_match:
                         yrtype = year_match.group(1).strip('\r\t\n []') if year_match.group(1).strip('\r\t\n []') else 'copyright'
                         yrtype = 'copyright' if yrtype.lower() == 'c' else yrtype
+                        years.append((yrtype, year_match.group(2)))
                 s = s.split('$c')[0]
             if '$b' in s:
                 publisher = s.split('$b')[1].split('$')[0].strip(' :,.;[]')
