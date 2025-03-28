@@ -61,7 +61,7 @@ def archive_dir(ebook):
 
 
 def archive_url(pg_url, netloc="aleph.pglaf.org", scheme="http"):
-    """translate pg canonical url to an archive url"""
+    """ translate pg canonical url to an archive url """
     if not pg_url:
         return None
     path = urlparse(pg_url).path
