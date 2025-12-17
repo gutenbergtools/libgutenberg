@@ -1,5 +1,17 @@
 CHANGES
 
+0.10.32 (December 16, 2025)
+- correct GutenbergFiles.guess_type to align with currently used filenames (#49)
+- add support for markdown file typing (still need to add it to Filetypes table in db)
+- set markdown diskstatus so it won't be listed on landing pages (#49)
+- Cosmetic changes to please ruff standard rules (from Benoit74) (#47)
+  - respect maximum line length of 88 chars
+  - replace `id` reserved word with `book_id`
+  - prefer double quotes everywhere
+  - space conventions
+- setup.py now asks for lxml>=6.0.0 which in turn requires python>3.8 to fix HTML5 XML serialization bugs.
+
+
 0.10.31 (December 30, 2024)
 - change 3 language codes from 3-letter to 2. Related to https://github.com/gutenbergtools/ebookmaker/issues/243
 - fix bug in PubInfo.__str__ that was omitting the year. Fixes https://github.com/gutenbergtools/ebookmaker/issues/245
