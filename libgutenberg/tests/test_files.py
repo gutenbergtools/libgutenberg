@@ -22,6 +22,12 @@ class TestGutenbergFiles(unittest.TestCase):
         ft, enc = GutenbergFiles.guess_filetype("99999-0.txt")
         self.assertEqual(ft, 'txt')
         self.assertEqual(enc, 'utf-8')
+        ft, enc = GutenbergFiles.guess_filetype("99999.txt")
+        self.assertEqual(ft, 'txt')
+        self.assertEqual(enc, 'us-ascii')
+        ft, enc = GutenbergFiles.guess_filetype("readme.md")
+        self.assertEqual(ft, 'md')
+        self.assertFalse(enc)
 
     @unittest.skipIf(not db_exists, 'database not configured')
     def test_file_save_and_read(self):

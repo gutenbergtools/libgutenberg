@@ -61,6 +61,7 @@ for ext, mimetype in (
         ('mp3', 'audio/mpeg'),
         ('svg', 'image/svg+xml'),
         ('zip', 'application/zip'),
+        ('md', 'text/markdown'),
 ):
     T2E[mimetype] = ext
     E2T[ext] = mimetype

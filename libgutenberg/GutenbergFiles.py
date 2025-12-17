@@ -86,11 +86,7 @@ def guess_filetype(filename):
         if post10k:
             enc = ENC_CASES.get(base_after_hyphen, enc)
         if enc is None:
-            enc = "us-ascii"
-            if re.search(r'^8\w.+\d\da?$', base):
-                enc = "iso-8859-1"
-            if re.search(r'^8\w.+\d\du$', base):
-                enc = "utf-8"
+            enc = "utf-8"
     return filetype, enc
 
 
@@ -100,9 +96,9 @@ def get_diskstatus(id_, filedir, type_):
     """
     diskstatus = 0
 
-    # hide image files
+    # hide image files and markdown files
     if '/%s-' % id_ in filedir:
-        if (type_ in {"jpg", "png", "gif", "svg", "css", "xsl"}
+        if (type_ in {"jpg", "png", "gif", "svg", "css", "xsl", "md"}
                 or "/images" in filedir or "/music" in filedir
                 or "/files" in filedir or "/primefiles" in filedir):
             diskstatus = 1
