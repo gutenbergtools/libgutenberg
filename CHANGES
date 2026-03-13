@@ -1,9 +1,9 @@
 CHANGES
 
-0.10.32 (December 16, 2025)
+0.10.33 (December 18, 2025)
 - correct GutenbergFiles.guess_type to align with currently used filenames (#49)
 - add support for markdown file typing (still need to add it to Filetypes table in db)
-- set markdown diskstatus so it won't be listed on landing pages (#49)
+- set markdown and license files diskstatus so they won't be listed on landing pages (#49)
 - Cosmetic changes to please ruff standard rules (from Benoit74) (#47)
   - respect maximum line length of 88 chars
   - replace `id` reserved word with `book_id`
