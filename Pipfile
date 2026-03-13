@@ -6,8 +6,8 @@ name = "pypi"
 [packages]
 psycopg2 = "*"
 lxml = ">=4.9.1"
-libgutenberg = {file = ".", editable = true}
 cairocffi = ">1.7.0"
+libgutenberg = {file = ".", editable = true}
 
 [dev-packages]
 
