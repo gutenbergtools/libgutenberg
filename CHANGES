@@ -1,5 +1,9 @@
 CHANGES
 
+0.10.33 (March 13, 2026)
+- add install info to README
+- update cairocffi dependency
+
 0.10.33 (December 18, 2025)
 - correct GutenbergFiles.guess_type to align with currently used filenames (#49)
 - add support for markdown file typing (still need to add it to Filetypes table in db)
