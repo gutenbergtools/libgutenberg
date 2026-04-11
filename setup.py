@@ -3,7 +3,7 @@
 # libgutenberg setup.py
 #
 
-__version__ = '0.10.33'
+__version__ = '0.10.35'
 
 from setuptools import setup
 
@@ -23,7 +23,7 @@ setup (
     ],
     extras_require = {
         'postgres':  ['psycopg2',],
-        'covers': ['cairocffi==0.8.0'],
+        'covers': ['cairocffi>1.7.0'],
     },
     packages = [
         'libgutenberg'

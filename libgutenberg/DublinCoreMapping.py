@@ -264,7 +264,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 url = "%sebooks/%d.%s" % (PG_URL, ebook, file_.fk_filetypes)
             file_.url = url
 
-            if hasattr(file_, 'mediatype'):
+            if hasattr(file_, 'mediatype') and file_.mediatype:
                 self.mediatypes.add(file_.mediatype)
         #session.commit()
 

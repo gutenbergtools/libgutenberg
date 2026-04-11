@@ -118,7 +118,11 @@ def get_compression(filename):
 
 
 def get_obsoleted(filedir):
-    return 1 if re.search("old(/|$)", filedir) else 0
+    if re.search("old(/|$)", filedir):
+        return 1
+    if "-src" in filedir:
+        return 1
+    return 0
 
 
 @DBUtils.managed_session
