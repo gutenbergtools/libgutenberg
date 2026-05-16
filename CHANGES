@@ -1,5 +1,8 @@
 CHANGES
 
+0.10.36 (May xx, 2026)
+- stop stripping periods from pubinfo.place, pubinfo.publisher.
+
 0.10.35 (April 10, 2026)
 - use the obsoleted bit to prevent files i -src directories from being used
 - fix bug where mediatypes includes None when using DublinCoreMapping but not with GutenbergDatabaseDublinCore 
