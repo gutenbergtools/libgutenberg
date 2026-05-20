@@ -1,6 +1,6 @@
 CHANGES
 
-0.10.36 (May xx, 2026)
+0.10.36 (May 20, 2026)
 - stop stripping periods from pubinfo.place, pubinfo.publisher.
 
 0.10.35 (April 10, 2026)
