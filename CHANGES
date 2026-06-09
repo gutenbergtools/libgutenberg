@@ -1,4 +1,7 @@
 CHANGES
+0.10.36 (June 9, 2026)
+- Upgraded all the packages inside of `Pipfile.lock` to most recent versions.
+- Fixed syntax issues in `Models.py` preventing sqlalchemy upgrade.
 
 0.10.35 (April 10, 2026)
 - use the obsoleted bit to prevent files i -src directories from being used
