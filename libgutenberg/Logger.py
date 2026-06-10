@@ -16,7 +16,6 @@ Logging support.
 from __future__ import unicode_literals
 
 import logging
-from logging import debug, info, warning, error, critical, exception # pylint: disable=unused-import
 
 LOGFORMAT = '%(asctime)s %(levelname)-8s  #%(ebook)-5d %(message)s'
 

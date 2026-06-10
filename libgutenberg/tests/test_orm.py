@@ -10,7 +10,6 @@ from sqlalchemy.sql import func
 
 from libgutenberg import GutenbergDatabase
 from libgutenberg.CommonOptions import Options
-from libgutenberg.Logger import warning
 from libgutenberg.Models import Book
 
 global db_exists
@@ -34,8 +33,8 @@ class TestORM(unittest.TestCase):
         self.session = ob.get_session()
 
     def test_query(self):
-        num_books = self.session.query(Book).count()
-        mx = self.session.execute(select(func.max(Book.pk))).scalars().first()
+        _ = self.session.query(Book).count()
+        _ = self.session.execute(select(func.max(Book.pk))).scalars().first()
 
     def tearDown(self):
         pass

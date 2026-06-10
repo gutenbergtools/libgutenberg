@@ -9,7 +9,6 @@ import unittest
 from libgutenberg.CommonOptions import Options
 from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
 from libgutenberg import DBUtils, DublinCoreMapping
-from libgutenberg.Logger import debug, warning
 from libgutenberg.Models import Attribute, Book
 
 global db_exists
@@ -139,11 +138,11 @@ class TestDC(unittest.TestCase):
     def exercise(self, ebook, dc):
         dc.__init__(self.dummypool)
         dc.load_from_database(ebook)
-        test = '%s%s%s%s' % (dc.title, dc.title_file_as, dc.rights,dc.rights)
-        test = [lang.id for lang in dc.languages]
-        test = [marc.code for marc in dc.marcs]
-        test = [[alias for alias in author.aliases] for author in dc.authors]
-        test = [subject for subject in dc.subjects]
+        _ = '%s%s%s%s' % (dc.title, dc.title_file_as, dc.rights, dc.rights)
+        _ = [lang.id for lang in dc.languages]
+        _ = [marc.code for marc in dc.marcs]
+        _ = [[alias for alias in author.aliases] for author in dc.authors]
+        _ = [subject for subject in dc.subjects]
 
     def test_10k(self):
         class DCCompat(DublinCoreMapping.DublinCoreObject):

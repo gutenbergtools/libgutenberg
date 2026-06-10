@@ -8,7 +8,7 @@ import unittest
 from libgutenberg import Cover
 from libgutenberg.DublinCore import DublinCore as dc
 
-@unittest.skipIf(not 'cairo' in dir(Cover), 'cover generator not configured')
+@unittest.skipIf('cairo' not in dir(Cover), 'cover generator not configured')
 class TestMakeCovers(unittest.TestCase):
 
     def setUp(self):

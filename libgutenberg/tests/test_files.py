@@ -6,8 +6,7 @@ import unittest
 from libgutenberg import GutenbergDatabase
 from libgutenberg import GutenbergFiles
 from libgutenberg.DublinCoreMapping import DublinCoreObject 
-from libgutenberg.DBUtils import check_session, ebook_exists
-from libgutenberg.GutenbergFiles import store_file_in_database, PUBLIC, FILES, FTP
+from libgutenberg.GutenbergFiles import store_file_in_database, FILES
 from libgutenberg.Models import Book, File
 
 global db_exists

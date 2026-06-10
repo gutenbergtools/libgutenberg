@@ -28,7 +28,7 @@ from . import GutenbergDatabase
 from . import GutenbergFiles
 from .DBUtils import get_lang
 from .GutenbergGlobals import Struct, PG_URL
-from .Logger import debug, error, info, warning
+from logging import debug, error, info, warning
 from .GutenbergDatabase import DatabaseError, IntegrityError, Objectbase
 from .Models import (Alias, Attribute, Author, Book, BookAuthor, Category, File, Locc,
     Role, Subject)

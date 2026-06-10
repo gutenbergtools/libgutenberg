@@ -4,11 +4,13 @@ import datetime
 import os
 import re
 
+from typing import List
+
 from sqlalchemy.exc import OperationalError
 
 from . import DBUtils
 from .GutenbergDatabase import IntegrityError
-from .Logger import info, warning, error
+from logging import warning, error
 from .Models import Compression, File, Filetype
 
 FTP   = '/public/ftp/pub/docs/books/gutenberg/'
@@ -22,9 +24,9 @@ EXTENSION_ALIASES = {
     'midi': 'mid',
     'epub': 'epub.dp' # hand-crafted
 }
-FILETYPES = []
+FILETYPES: List[str] = []
 ENC_CASES = {"": "us-ascii", "8": "iso-8859-1", "0": "utf-8", "5": "big5"}
-COMPRESSIONS = []
+COMPRESSIONS: List[str] = []
 
 def get_filetypes(session=None):
     @DBUtils.managed_session

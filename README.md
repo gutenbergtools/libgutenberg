@@ -15,3 +15,7 @@ or
 
 Depending on your system configuration, you might need to use pip or pipenv to install
 `pipenv install psycopg2-binary'
+
+To run static checks, enter the following commands within the venv:
+`ruff check .`
+`mypy .`
