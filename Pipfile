@@ -10,14 +10,6 @@ cairocffi = ">1.7.0"
 libgutenberg = {file = ".", editable = true}
 
 [dev-packages]
-mypy = "*"
-sqlalchemy2-stubs = "*"
-ruff = "*"
-types-setuptools = "*"
-types-psycopg2 = "*"
-types-six = "*"
-lxml-stubs = "*"
-cairocffi-stubs = "*"
 
 [requires]
 python_version = ">=3.7"

@@ -1,14 +1,15 @@
-from typing import Any
-
 from sqlalchemy import not_
 from sqlalchemy import select
 from sqlalchemy.sql import func
 
 from libgutenberg import Models
 from libgutenberg import GutenbergDatabase as gdb
-from logging import info, debug, exception
+from libgutenberg.Logger import info, debug, warning, error, exception
 
-OB: Any = gdb.Objectbase(False) if gdb.db_exists else None
+if gdb.db_exists:
+    OB = gdb.Objectbase(False)
+else:
+    OB = None
 
 def managed_session(func):
     def sessionize(*args, session=None):

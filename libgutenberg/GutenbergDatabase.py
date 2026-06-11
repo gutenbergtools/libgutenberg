@@ -17,22 +17,18 @@ import os
 
 
 from .CommonOptions import Options
-from logging import critical, debug, info
+from .Logger import critical, debug, info, warning
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool.impl import QueuePool, NullPool
-
-DatabaseError: type[BaseException]
-IntegrityError: type[BaseException]
-
 try:
     import psycopg2
     import psycopg2.extensions
 
     psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
     psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
-    DatabaseError = psycopg2.DatabaseError
+    DatabaseError  = psycopg2.DatabaseError
     IntegrityError = psycopg2.IntegrityError
     logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 
@@ -40,8 +36,10 @@ try:
 
 except ImportError:
     db_exists = False
-    DatabaseError = Exception
-    IntegrityError = Exception
+    class DatabaseError(Exception):
+        pass
+    class IntegrityError(Exception):
+        pass
     info('Gutenberg Database is inactive because psycopg2 not installed')
 
 

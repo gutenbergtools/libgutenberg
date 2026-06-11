@@ -14,7 +14,6 @@ DublinCore metadata swiss army knife.
 """
 
 from __future__ import unicode_literals
-from typing import Any, Type
 
 import datetime
 import json
@@ -31,7 +30,7 @@ import pycountry
 
 from . import GutenbergGlobals as gg
 from .GutenbergGlobals import NS, Struct, xpath, ROLES, TITLE_SPLITTER as title_splitter
-from logging import error, exception, info, warning
+from .Logger import critical, debug, error, exception, info, warning
 
 
 
@@ -974,7 +973,6 @@ class GutenbergDublinCore(DublinCore):
 
 
 # use PGDCObject if you want a DublinCoreObject that uses a database if available
-PGDCObject: Type[Any]
 try:
     from .DublinCoreMapping import DublinCoreObject as PGDCObject
 except ImportError:

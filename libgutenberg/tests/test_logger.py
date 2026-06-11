@@ -4,7 +4,7 @@
 import logging
 import unittest
 
-from logging import info
+from libgutenberg.Logger import info
 from libgutenberg import Logger
 
 class TestLoggger(unittest.TestCase):
