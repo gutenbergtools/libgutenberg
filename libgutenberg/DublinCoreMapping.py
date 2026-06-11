@@ -215,7 +215,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         # categories(text, audiobook, etc)
         if book.categories:
             self.dcmitypes = [struct(id=cat.dcmitype[0], description=cat.dcmitype[1])
-                              for cat in book.categories]
+                            for cat in book.categories]
         else:
             self.dcmitypes = [struct(id='Text', description='Text')]
 
@@ -293,7 +293,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         try:
             session.begin_nested()
             session.add(Attribute(fk_books=id_, fk_attriblist=code,
-                                  text=gg.archive2files(id_, url)))
+                                text=gg.archive2files(id_, url)))
             session.commit()
 
         except IntegrityError:  # Duplicate key
@@ -480,6 +480,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         title = title.replace(' *_ *', '\n')
         self.add_attribute(book, title, nonfiling=nonfiling, marc=marc)
 
+
     def add_attribute(self, book, attr, nonfiling=0, marc=0):
         if not attr:
             return
@@ -504,6 +505,54 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             else:
                 book.attributes.append(Attribute(
                     fk_attriblist=marc, nonfiling=nonfiling, text=attr))
+
+
+    def get_wikipedia_urls(self):
+        urls = set()
+    
+        for attrib in (e.text for e in self.marcs if e.code == '500'):
+            if not attrib:
+                continue
+    
+            match = re.search(r'https?://[^\s]*wikipedia\.org[^\s]*', attrib)
+            if match:
+                urls.add(match.group(0))
+    
+        return urls
+
+    def add_wikipedia_url(self, url):
+        """Add Wikipedia URL into MARC 500 attributes (deduplicated)."""
+    
+        if not url:
+            return
+    
+        session = self.get_my_session()
+    
+        if not self.book:
+            return
+    
+        url = url.strip()
+    
+        text = f"Wikipedia page about this book: {url}"
+    
+        # check duplicates using SQLAlchemy (consistent with your style)
+        exists = session.query(Attribute).where(
+            Attribute.book == self.book,
+            Attribute.fk_attriblist == 500,
+            Attribute.text == text
+        ).first()
+    
+        if exists:
+            return
+    
+        self.book.attributes.append(
+            Attribute(
+                fk_attriblist=500,
+                text=text
+            )
+        )
+    
+        session.commit()
 
     def delete(self):
         """ only delete the book! """

@@ -224,7 +224,7 @@ class TestDC(unittest.TestCase):
         dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
         dc.register_coverpage(ebook, 'new_cover')
         # does nothing to avoid violates foreign key constraint
-        self.assertEqual(get_cover(ebook, dc), None) 
+        self.assertEqual(get_cover(ebook, dc), None)
         
     def tearDown(self):
         pass
@@ -342,3 +342,36 @@ class TestDCJson(unittest.TestCase):
         DBUtils.remove_author('Lorem Ipsum Jr.', session=session)
         session.query(Book).filter(Book.pk == 99999).delete()
         session.commit()
+
+@unittest.skipIf(not db_exists, 'database not configured')
+class testDCFunctions(unittest.TestCase):
+    def test_get_wikipedia_urls(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+        dc.load_from_database(2701)  # Moby Dick
+    
+        urls = dc.get_wikipedia_urls()
+    
+        self.assertEqual(
+            urls,
+            {"https://en.wikipedia.org/wiki/Moby-Dick"}
+        )
+
+    def test_add_wikipedia_url(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+    
+        ebook = 99998  # fake test id
+    
+        # ensure book exists
+        dc.load_or_create_book(ebook)
+    
+        url = "https://en.wikipedia.org/wiki/Moby-Dick"
+    
+        dc.add_wikipedia_url(url)
+    
+        # reload fresh object to ensure DB persistence
+        dc2 = DublinCoreMapping.DublinCoreObject()
+        dc2.load_from_database(ebook)
+    
+        urls = dc2.get_wikipedia_urls()
+    
+        self.assertIn(url, urls)
