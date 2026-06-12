@@ -535,7 +535,6 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
     
         text = f"Wikipedia page about this book: {url}"
     
-        # check duplicates using SQLAlchemy (consistent with your style)
         exists = session.query(Attribute).where(
             Attribute.book == self.book,
             Attribute.fk_attriblist == 500,
