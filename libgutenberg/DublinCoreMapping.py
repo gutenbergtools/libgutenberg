@@ -508,6 +508,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
 
     def get_wikipedia_urls(self):
+        """ Return a set of Wikipedia URLs from MARC 500 attributes. """
         urls = set()
     
         for attrib in (e.text for e in self.marcs if e.code == '500'):
