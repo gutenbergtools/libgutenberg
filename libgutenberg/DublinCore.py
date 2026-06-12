@@ -523,6 +523,26 @@ def handle_dc_languages(dc, text):
                 pass
 
 
+WIKI_URL_RE = re.compile(r'https?://[^\s]*wikipedia\.org[^\s]*')
+WIKIPEDIA_URL_PREFIX = 'Wikipedia page about this book: '
+
+
+def extract_wikipedia_url(text):
+    match = WIKI_URL_RE.search(text or '')
+    return match.group(0) if match else None
+
+
+def format_book_wikipedia_url(url_or_text):
+    """Bare URL gets default prefix; text with a URL already in it is kept as-is."""
+    text = (url_or_text or '').strip()
+    if not text:
+        return ''
+    url = extract_wikipedia_url(text)
+    if url and text == url:
+        return f"{WIKIPEDIA_URL_PREFIX}{url}"
+    return text
+
+
 class GutenbergDublinCore(DublinCore):
     """ Parse from PG files. """
 
@@ -533,7 +553,26 @@ class GutenbergDublinCore(DublinCore):
         self._project_gutenberg_id = None
         self.request_key = ''
         self.scan_urls = set()
+        self.book_wikipedia_urls = []
 
+
+    def add_book_wikipedia_url(self, url_or_text):
+        text = format_book_wikipedia_url(url_or_text)
+        if not text:
+            return
+        url = extract_wikipedia_url(text)
+        if url and any(extract_wikipedia_url(t) == url for t in self.book_wikipedia_urls):
+            return
+        self.book_wikipedia_urls.append(text)
+
+
+    def remove_book_wikipedia_url(self, url_or_text):
+        needle = (url_or_text or '').strip()
+        key = extract_wikipedia_url(needle)
+        for i, text in enumerate(self.book_wikipedia_urls):
+            if text == needle or (key and extract_wikipedia_url(text) == key):
+                del self.book_wikipedia_urls[i]
+                return
 
 
     @property
@@ -794,6 +833,18 @@ class GutenbergDublinCore(DublinCore):
                 self.scan_urls.add(scan_url)
 
 
+        def handle_book_wikipedia_urls(self, key, value):
+            if isinstance(value, str):
+                value = [value]
+            elif isinstance(value, list):
+                pass
+            else:
+                error('%s is not a valid wikipedia url', value)
+                return
+            for url in value:
+                self.add_book_wikipedia_url(url)
+
+
         def handle_pubinfo(self, key, value):
             if key == 'publisher':
                 self.pubinfo.publisher = value
@@ -928,6 +979,7 @@ class GutenbergDublinCore(DublinCore):
             'alt_title':    store,
             'creator_role':  handle_creators,
             'scans_archive_url': handle_scan_urls,
+            'book_wikipedia_url': handle_book_wikipedia_urls,
             'credit':       store,
             'publisher':    handle_pubinfo,
             'publisher_country': handle_pubinfo,
@@ -951,6 +1003,9 @@ class GutenbergDublinCore(DublinCore):
             'created':                'source_publication_years',
             'produced by':            'credit',
             'publisher_place':        'place',
+            'book_wikipedia_urls':    'book_wikipedia_url',
+            'wikipedia_urls':         'book_wikipedia_url',
+            'wikipedia_url':          'book_wikipedia_url',
             }
 
         for role in list(self.inverse_role_map.keys()):

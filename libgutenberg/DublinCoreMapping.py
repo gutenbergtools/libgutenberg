@@ -23,6 +23,7 @@ import unicodedata
 from sqlalchemy.exc import DBAPIError
 
 from . import DublinCore
+from .DublinCore import extract_wikipedia_url
 from . import GutenbergGlobals as gg
 from . import GutenbergDatabase
 from . import GutenbergFiles
@@ -179,7 +180,10 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             elif marc.code == '260':
                 (self.pubinfo.place, self.pubinfo.publisher, self.pubinfo.years) = parse260(marc.text) 
             elif marc.code == '500':
-                self.notes = marc.text
+                if extract_wikipedia_url(marc.text):
+                    self.add_book_wikipedia_url(marc.text)
+                else:
+                    self.notes = marc.text
             elif marc.code == '505':
                 self.contents = marc.text
             elif marc.code == '508':
@@ -383,6 +387,8 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         if self.request_key:
             self.add_attribute(self.book, self.request_key, marc=905)
 
+        self._update_book_wikipedia_urls()
+
         self.book.updatemode = 1 # prevent non-cataloguer changes
 
         session.commit()
@@ -507,52 +513,25 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                     fk_attriblist=marc, nonfiling=nonfiling, text=attr))
 
 
-    def get_wikipedia_urls(self):
-        """ Return a set of Wikipedia URLs from MARC 500 attributes. """
-        urls = set()
-    
-        for attrib in (e.text for e in self.marcs if e.code == '500'):
-            if not attrib:
-                continue
-    
-            match = re.search(r'https?://[^\s]*wikipedia\.org[^\s]*', attrib)
-            if match:
-                urls.add(match.group(0))
-    
-        return urls
-
-    def add_wikipedia_url(self, url):
-        """Add Wikipedia URL into MARC 500 attributes (deduplicated)."""
-    
-        if not url:
-            return
-    
-        session = self.get_my_session()
-    
+    def _update_book_wikipedia_urls(self):
+        """Sync MARC 500 wiki rows to book_wikipedia_urls (matched by URL)."""
         if not self.book:
             return
-    
-        url = url.strip()
-    
-        text = f"Wikipedia page about this book: {url}"
-    
-        exists = session.query(Attribute).where(
-            Attribute.book == self.book,
-            Attribute.fk_attriblist == 500,
-            Attribute.text == text
-        ).first()
-    
-        if exists:
-            return
-    
-        self.book.attributes.append(
-            Attribute(
-                fk_attriblist=500,
-                text=text
-            )
-        )
-    
-        session.commit()
+        wanted = {extract_wikipedia_url(text): text
+                  for text in self.book_wikipedia_urls
+                  if extract_wikipedia_url(text)}
+        for att in list(self.book.attributes):
+            if att.fk_attriblist != 500:
+                continue
+            url = extract_wikipedia_url(att.text)
+            if not url:
+                continue
+            if url in wanted:
+                del wanted[url]
+            else:
+                self.book.attributes.remove(att)
+        for text in wanted.values():
+            self.book.attributes.append(Attribute(fk_attriblist=500, text=text))
 
     def delete(self):
         """ only delete the book! """

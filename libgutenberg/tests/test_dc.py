@@ -9,6 +9,7 @@ import unittest
 from libgutenberg.CommonOptions import Options
 from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
 from libgutenberg import DBUtils, DublinCoreMapping
+from libgutenberg.DublinCore import GutenbergDublinCore, WIKIPEDIA_URL_PREFIX, extract_wikipedia_url
 from libgutenberg.Logger import debug, warning
 from libgutenberg.Models import Attribute, Book
 
@@ -50,6 +51,12 @@ class TestDC(unittest.TestCase):
         self.metadata_test1(dc)
         dc = DublinCoreMapping.DublinCoreObject()
         self.metadata_test2(dc)
+
+    def test_book_wikipedia_urls_load(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+        dc.load_from_database(2701)  # Moby Dick
+        urls = [extract_wikipedia_url(text) for text in dc.book_wikipedia_urls]
+        self.assertIn("https://en.wikipedia.org/wiki/Moby-Dick", urls)
 
     def metadata_test1(self, dc):
         dc.load_from_database(self.ebook)
@@ -297,6 +304,10 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(set_subtitle, "a true story : second line")
         self.assertEqual(len(dc.authors), 2)
         self.assertEqual(len(dc.scan_urls), 2)
+        self.assertEqual(
+            dc.book_wikipedia_urls,
+            [f"{WIKIPEDIA_URL_PREFIX}https://en.wikipedia.org/wiki/Test_Book",
+             f"{WIKIPEDIA_URL_PREFIX}https://en.wikipedia.org/wiki/Another_Book"])
         self.assertEqual(dc.pubinfo.first_year, '1920')
         self.assertEqual(dc.credit, 'Roger Frank and Sue Clark.')
         dc.add_credit('Sue Frank and Roger Clark.\n')
@@ -312,6 +323,10 @@ class TestDCJson(unittest.TestCase):
         dc.load_from_database(99999)
         self.assertEqual(set_title, dc.title)
         self.assertEqual(set_subtitle, dc.subtitle)
+        self.assertEqual(
+            dc.book_wikipedia_urls,
+            [f"{WIKIPEDIA_URL_PREFIX}https://en.wikipedia.org/wiki/Test_Book",
+             f"{WIKIPEDIA_URL_PREFIX}https://en.wikipedia.org/wiki/Another_Book"])
         marc260 = dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=260).first().text
         self.assertTrue('1920' in marc260)
         self.assertEqual(
@@ -328,6 +343,11 @@ class TestDCJson(unittest.TestCase):
                 fk_attriblist=904).all()),
             2)
         self.assertEqual(
+            len(dc.session.query(Attribute).filter_by(book=dc.book,
+                fk_attriblist=500).filter(
+                    Attribute.text.like('%wikipedia.org%')).all()),
+            2)
+        self.assertEqual(
             dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=905).first().text,
             '20210623194947brand')
         self.assertEqual(1, marc508s.count())
@@ -337,41 +357,80 @@ class TestDCJson(unittest.TestCase):
         dc.session.flush()
         self.assertFalse(DBUtils.ebook_exists(99999))
 
+    def test_book_wikipedia_url_format(self):
+        bare = "https://en.wikipedia.org/wiki/Moby-Dick"
+        prefixed = f"{WIKIPEDIA_URL_PREFIX}{bare}"
+        custom = f"See also: {bare}"
+
+        dc = GutenbergDublinCore()
+        dc.add_book_wikipedia_url(bare)
+        self.assertEqual(dc.book_wikipedia_urls, [prefixed])
+
+        dc.add_book_wikipedia_url(prefixed)
+        self.assertEqual(dc.book_wikipedia_urls, [prefixed])
+
+        dc2 = GutenbergDublinCore()
+        dc2.add_book_wikipedia_url(custom)
+        self.assertEqual(dc2.book_wikipedia_urls, [custom])
+
+        dc.add_book_wikipedia_url(bare)
+        dc.remove_book_wikipedia_url(bare)
+        self.assertEqual(dc.book_wikipedia_urls, [])
+
+        dc.add_book_wikipedia_url(bare)
+        dc.remove_book_wikipedia_url(prefixed)
+        self.assertEqual(dc.book_wikipedia_urls, [])
+
+    def test_book_wikipedia_urls_add_and_remove(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+
+        ebook = 99998  # fake test id
+
+        dc.load_or_create_book(ebook)
+        dc.rights = 'Public Domain in the USA.'
+
+        url = "https://en.wikipedia.org/wiki/Moby-Dick"
+        url2 = "https://en.wikipedia.org/wiki/Test_Book"
+        url3 = "https://en.wikipedia.org/wiki/Herman_Melville"
+        text1 = f"{WIKIPEDIA_URL_PREFIX}{url}"
+        text2 = f"{WIKIPEDIA_URL_PREFIX}{url2}"
+        custom_text = f"Wikipedia page about this author: {url3}"
+
+        dc.add_book_wikipedia_url(url)
+        dc.add_book_wikipedia_url(text2)
+        dc.add_book_wikipedia_url(custom_text)
+        dc.save(updatemode=0)
+
+        dc2 = DublinCoreMapping.DublinCoreObject()
+        dc2.load_from_database(ebook)
+
+        self.assertEqual(dc2.book_wikipedia_urls, [text1, text2, custom_text])
+
+        dc2.remove_book_wikipedia_url(url)
+        dc2.save(updatemode=1)
+
+        dc3 = DublinCoreMapping.DublinCoreObject()
+        dc3.load_from_database(ebook)
+
+        self.assertEqual(dc3.book_wikipedia_urls, [text2, custom_text])
+
+        dc3.remove_book_wikipedia_url(custom_text)
+        dc3.save(updatemode=1)
+
+        dc4 = DublinCoreMapping.DublinCoreObject()
+        dc4.load_from_database(ebook)
+        self.assertEqual(dc4.book_wikipedia_urls, [text2])
+
+        dc4.remove_book_wikipedia_url(text2)
+        dc4.save(updatemode=1)
+
+        dc5 = DublinCoreMapping.DublinCoreObject()
+        dc5.load_from_database(ebook)
+        self.assertEqual(dc5.book_wikipedia_urls, [])
+
     def tearDown(self):
         session = DBUtils.check_session(None)
         DBUtils.remove_author('Lorem Ipsum Jr.', session=session)
         session.query(Book).filter(Book.pk == 99999).delete()
+        session.query(Book).filter(Book.pk == 99998).delete()
         session.commit()
-
-@unittest.skipIf(not db_exists, 'database not configured')
-class testDCFunctions(unittest.TestCase):
-    def test_get_wikipedia_urls(self):
-        dc = DublinCoreMapping.DublinCoreObject()
-        dc.load_from_database(2701)  # Moby Dick
-    
-        urls = dc.get_wikipedia_urls()
-    
-        self.assertEqual(
-            urls,
-            {"https://en.wikipedia.org/wiki/Moby-Dick"}
-        )
-
-    def test_add_wikipedia_url(self):
-        dc = DublinCoreMapping.DublinCoreObject()
-    
-        ebook = 99998  # fake test id
-    
-        # ensure book exists
-        dc.load_or_create_book(ebook)
-    
-        url = "https://en.wikipedia.org/wiki/Moby-Dick"
-    
-        dc.add_wikipedia_url(url)
-    
-        # reload fresh object to ensure DB persistence
-        dc2 = DublinCoreMapping.DublinCoreObject()
-        dc2.load_from_database(ebook)
-    
-        urls = dc2.get_wikipedia_urls()
-    
-        self.assertIn(url, urls)
