@@ -1,6 +1,7 @@
 CHANGES
-0.10.37 (June 9, 2026)
-- Upgraded all the packages inside of `Pipfile.lock` to most recent versions.
+0.11.0 (June *, 2026)
+- Now using SQLAlchemy 2.0
+- Upgraded all the packages inside of `Pipfile.lock` to most recent versions compatible with py3.9.
 - Fixed syntax issues in `Models.py` preventing sqlalchemy upgrade.
 
 0.10.36 (May 20, 2026)
