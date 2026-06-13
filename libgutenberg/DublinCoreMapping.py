@@ -119,10 +119,10 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                         years.append((yrtype, year_match.group(2)))
                 s = s.split('$c')[0]
             if '$b' in s:
-                publisher = s.split('$b')[1].split('$')[0].strip(' :,.;[]')
+                publisher = s.split('$b')[1].split('$')[0].strip(' :,;[]')
                 s = s.split('$b')[0]
             if '$a' in s:
-                place = s.split('$a')[1].split('$')[0].strip(' :,.;[]')
+                place = s.split('$a')[1].split('$')[0].strip(' :,;[]')
             elif '$' in s:
                 place = s.split('$')[0].strip(' :[]')
             else:
@@ -264,7 +264,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 url = "%sebooks/%d.%s" % (PG_URL, ebook, file_.fk_filetypes)
             file_.url = url
 
-            if hasattr(file_, 'mediatype'):
+            if hasattr(file_, 'mediatype') and file_.mediatype:
                 self.mediatypes.add(file_.mediatype)
         #session.commit()
 

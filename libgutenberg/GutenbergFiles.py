@@ -95,13 +95,15 @@ def get_diskstatus(id_, filedir, type_):
     diskstatus determines whether a file is included in the listing of files on bibrecord page
     """
     diskstatus = 0
-
-    # hide image files and markdown files
+    # hide license and markdown files
+    if type_ in {"license", "md"}:
+        return 1
+    # hide image files
     if '/%s-' % id_ in filedir:
-        if (type_ in {"jpg", "png", "gif", "svg", "css", "xsl", "md"}
+        if (type_ in {"jpg", "png", "gif", "svg", "css", "xsl"}
                 or "/images" in filedir or "/music" in filedir
                 or "/files" in filedir or "/primefiles" in filedir):
-            diskstatus = 1
+            return 1
     return diskstatus
 
 
@@ -116,7 +118,11 @@ def get_compression(filename):
 
 
 def get_obsoleted(filedir):
-    return 1 if re.search("old(/|$)", filedir) else 0
+    if re.search("old(/|$)", filedir):
+        return 1
+    if "-src" in filedir:
+        return 1
+    return 0
 
 
 @DBUtils.managed_session

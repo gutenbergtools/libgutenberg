@@ -1,9 +1,21 @@
 CHANGES
 
-0.10.32 (December 16, 2025)
+0.10.36 (May 20, 2026)
+- stop stripping periods from pubinfo.place, pubinfo.publisher.
+
+0.10.35 (April 10, 2026)
+- use the obsoleted bit to prevent files i -src directories from being used
+- fix bug where mediatypes includes None when using DublinCoreMapping but not with GutenbergDatabaseDublinCore 
+- fix db tests to align with current db
+
+0.10.34 (March 13, 2026)
+- add install info to README
+- update cairocffi dependency
+
+0.10.33 (December 18, 2025)
 - correct GutenbergFiles.guess_type to align with currently used filenames (#49)
 - add support for markdown file typing (still need to add it to Filetypes table in db)
-- set markdown diskstatus so it won't be listed on landing pages (#49)
+- set markdown and license files diskstatus so they won't be listed on landing pages (#49)
 - Cosmetic changes to please ruff standard rules (from Benoit74) (#47)
   - respect maximum line length of 88 chars
   - replace `id` reserved word with `book_id`
