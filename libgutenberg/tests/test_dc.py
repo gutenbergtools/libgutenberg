@@ -381,6 +381,14 @@ class TestDCJson(unittest.TestCase):
         dc.remove_book_wikipedia_url(prefixed)
         self.assertEqual(dc.book_wikipedia_urls, [])
 
+        dc.add_book_wikipedia_url(f"  {bare}  ")
+        self.assertEqual(dc.book_wikipedia_urls, [prefixed])
+        dc.remove_book_wikipedia_url(f"  {bare}  ")
+        self.assertEqual(dc.book_wikipedia_urls, [])
+
+        dc.add_book_wikipedia_url(f"See also:  {bare}  ")
+        self.assertEqual(dc.book_wikipedia_urls, [f"See also:  {bare}"])
+
     def test_book_wikipedia_urls_add_and_remove(self):
         dc = DublinCoreMapping.DublinCoreObject()
 

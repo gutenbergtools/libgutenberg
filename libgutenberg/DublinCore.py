@@ -534,13 +534,12 @@ def extract_wikipedia_url(text):
 
 def format_book_wikipedia_url(url_or_text):
     """Bare URL gets default prefix; text with a URL already in it is kept as-is."""
-    text = (url_or_text or '').strip()
-    if not text:
+    if not url_or_text:
         return ''
-    url = extract_wikipedia_url(text)
-    if url and text == url:
+    url = extract_wikipedia_url(url_or_text)
+    if url and url_or_text == url:
         return f"{WIKIPEDIA_URL_PREFIX}{url}"
-    return text
+    return url_or_text
 
 
 class GutenbergDublinCore(DublinCore):
@@ -557,9 +556,10 @@ class GutenbergDublinCore(DublinCore):
 
 
     def add_book_wikipedia_url(self, url_or_text):
-        text = format_book_wikipedia_url(url_or_text)
-        if not text:
+        url_or_text = (url_or_text or '').strip()
+        if not url_or_text:
             return
+        text = format_book_wikipedia_url(url_or_text)
         url = extract_wikipedia_url(text)
         if url and any(extract_wikipedia_url(t) == url for t in self.book_wikipedia_urls):
             return
@@ -567,10 +567,12 @@ class GutenbergDublinCore(DublinCore):
 
 
     def remove_book_wikipedia_url(self, url_or_text):
-        needle = (url_or_text or '').strip()
-        key = extract_wikipedia_url(needle)
+        url_or_text = (url_or_text or '').strip()
+        if not url_or_text:
+            return
+        key = extract_wikipedia_url(url_or_text)
         for i, text in enumerate(self.book_wikipedia_urls):
-            if text == needle or (key and extract_wikipedia_url(text) == key):
+            if text == url_or_text or (key and extract_wikipedia_url(text) == key):
                 del self.book_wikipedia_urls[i]
                 return
 
