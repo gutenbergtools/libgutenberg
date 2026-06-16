@@ -1,12 +1,14 @@
 CHANGES
-0.10.38 (June 12, 2026)
+0.11.1 (June 12, 2026)
 - New field `book_wikipedia_url(s)` has been added to the DublinCore dispatcher.
 - Two functions `add_book_wikipedia_url` and `remove_book_wikipedia_url` have been added to the DublinCoreObject.
 - Wikipedia url dispatcher testing added to `test_load_from_json`.
 - Add/remove tesing can be found in `test_book_wikipedia_urls_add_and_remove` 
 	- Plus `test_book_wikipedia_url_format` which covers striping white space from client input.
-0.10.37 (June 9, 2026)
-- Upgraded all the packages inside of `Pipfile.lock` to most recent versions.
+
+0.11.0 (June *, 2026)
+- Now using SQLAlchemy 2.0
+- Upgraded all the packages inside of `Pipfile.lock` to most recent versions compatible with py3.9.
 - Fixed syntax issues in `Models.py` preventing sqlalchemy upgrade.
 
 0.10.36 (May 20, 2026)

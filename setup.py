@@ -3,7 +3,8 @@
 # libgutenberg setup.py
 #
 
-__version__ = '0.10.38'
+__version__ = '0.11.1'
+
 
 from setuptools import setup
 
@@ -46,7 +47,6 @@ setup (
         "Operating System :: OS Independent",
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],

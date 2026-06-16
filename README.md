@@ -15,3 +15,7 @@ or
 
 Depending on your system configuration, you might need to use pip or pipenv to install
 `pipenv install psycopg2-binary'
+
+cover generation may require some system packages; see
+
+<https://doc.courtbouillon.org/cairocffi/stable/overview.html#installing-cffi>
