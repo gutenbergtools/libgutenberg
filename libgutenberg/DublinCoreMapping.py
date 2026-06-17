@@ -181,7 +181,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                 (self.pubinfo.place, self.pubinfo.publisher, self.pubinfo.years) = parse260(marc.text) 
             elif marc.code == '500':
                 if extract_wikipedia_url(marc.text):
-                    self.add_book_wikipedia_url(marc.text)
+                    self.add_wikipedia_url(marc.text)
                 else:
                     self.notes = marc.text
             elif marc.code == '505':
@@ -387,7 +387,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         if self.request_key:
             self.add_attribute(self.book, self.request_key, marc=905)
 
-        self._update_book_wikipedia_urls()
+        self._update_wikipedia_urls()
 
         self.book.updatemode = 1 # prevent non-cataloguer changes
 
@@ -513,12 +513,12 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
                     fk_attriblist=marc, nonfiling=nonfiling, text=attr))
 
 
-    def _update_book_wikipedia_urls(self):
-        """Sync MARC 500 wiki rows to book_wikipedia_urls (matched by URL)."""
+    def _update_wikipedia_urls(self):
+        """Sync MARC 500 wiki rows to wikipedia_urls (matched by URL)."""
         if not self.book:
             return
         wanted = {extract_wikipedia_url(text): text
-                  for text in self.book_wikipedia_urls
+                  for text in self.wikipedia_urls
                   if extract_wikipedia_url(text)}
         for att in list(self.book.attributes):
             if att.fk_attriblist != 500:
