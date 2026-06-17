@@ -23,7 +23,7 @@ import unicodedata
 from sqlalchemy.exc import DBAPIError
 
 from . import DublinCore
-from .DublinCore import extract_wikipedia_url
+from .DublinCore import check_wikipedia_url
 from . import GutenbergGlobals as gg
 from . import GutenbergDatabase
 from . import GutenbergFiles
@@ -180,7 +180,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             elif marc.code == '260':
                 (self.pubinfo.place, self.pubinfo.publisher, self.pubinfo.years) = parse260(marc.text) 
             elif marc.code == '500':
-                if extract_wikipedia_url(marc.text):
+                if check_wikipedia_url(marc.text):
                     self.add_wikipedia_url(marc.text)
                 else:
                     self.notes = marc.text
@@ -514,20 +514,20 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
 
     def _update_wikipedia_urls(self):
-        """Sync MARC 500 wiki rows to wikipedia_urls (matched by URL)."""
+        """Sync MARC 500 wiki rows to wikipedia_urls (matched by lang and title)."""
         if not self.book:
             return
-        wanted = {extract_wikipedia_url(text): text
+        wanted = {check_wikipedia_url(text): text
                   for text in self.wikipedia_urls
-                  if extract_wikipedia_url(text)}
+                  if check_wikipedia_url(text)}
         for att in list(self.book.attributes):
             if att.fk_attriblist != 500:
                 continue
-            url = extract_wikipedia_url(att.text)
-            if not url:
+            checked = check_wikipedia_url(att.text)
+            if not checked:
                 continue
-            if url in wanted:
-                del wanted[url]
+            if checked in wanted:
+                del wanted[checked]
             else:
                 self.book.attributes.remove(att)
         for text in wanted.values():

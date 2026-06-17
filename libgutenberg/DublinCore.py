@@ -21,6 +21,7 @@ import re
 import textwrap
 import unicodedata
 from gettext import gettext as _
+from urllib.parse import unquote
 
 import six
 import lxml
@@ -523,21 +524,46 @@ def handle_dc_languages(dc, text):
                 pass
 
 
-WIKI_URL_RE = re.compile(r'https?://[^\s]*wikipedia\.org[^\s]*')
+WIKIMATCH = re.compile(
+    r"(?ix)https?://([a-z]{2,3})\.wikipedia\.org/wiki/([/!@i^*$a-z0-9_\(\)\-.:]+)")
+AVOID_WIKI = ["simple.", "File:", "/Category:", "Category:", "(disambiguation)"]
+UNTRUSTED_WIKI_LANGS = {'sco'}
 WIKIPEDIA_URL_PREFIX = 'Wikipedia page about this book: '
 
 
+def check_wikipedia_url(text):
+    """Return (lang, page_title) if text contains a valid wiki URL, else None."""
+    if not text:
+        return None
+    match = WIKIMATCH.search(text)
+    if not match:
+        return None
+    lang, page_title = match.group(1), match.group(2)
+    if lang in UNTRUSTED_WIKI_LANGS:
+        return None
+    if any(pattern in unquote(page_title) for pattern in AVOID_WIKI):
+        return None
+    return (lang, page_title)
+
+
+def wikipedia_url(lang, page_title):
+    return f"https://{lang}.wikipedia.org/wiki/{page_title}"
+
+
 def extract_wikipedia_url(text):
-    match = WIKI_URL_RE.search(text or '')
-    return match.group(0) if match else None
+    checked = check_wikipedia_url(text)
+    return wikipedia_url(*checked) if checked else None
 
 
 def format_wikipedia_url(url_or_text):
     """Bare URL gets default prefix; text with a URL already in it is kept as-is."""
     if not url_or_text:
         return ''
-    url = extract_wikipedia_url(url_or_text)
-    if url and url_or_text == url:
+    checked = check_wikipedia_url(url_or_text)
+    if not checked:
+        return url_or_text
+    url = wikipedia_url(*checked)
+    if url_or_text.strip() == url:
         return f"{WIKIPEDIA_URL_PREFIX}{url}"
     return url_or_text
 
@@ -559,10 +585,17 @@ class GutenbergDublinCore(DublinCore):
         url_or_text = (url_or_text or '').strip()
         if not url_or_text:
             return
-        text = format_wikipedia_url(url_or_text)
-        url = extract_wikipedia_url(text)
-        if url and any(extract_wikipedia_url(t) == url for t in self.wikipedia_urls):
+        checked = check_wikipedia_url(url_or_text)
+        if not checked:
+            warning('%s is not a valid wikipedia url', url_or_text)
             return
+        if any(check_wikipedia_url(text) == checked for text in self.wikipedia_urls):
+            return
+        url = wikipedia_url(*checked)
+        if url_or_text == url:
+            text = f"{WIKIPEDIA_URL_PREFIX}{url}"
+        else:
+            text = url_or_text
         self.wikipedia_urls.append(text)
 
 
@@ -570,9 +603,9 @@ class GutenbergDublinCore(DublinCore):
         url_or_text = (url_or_text or '').strip()
         if not url_or_text:
             return
-        key = extract_wikipedia_url(url_or_text)
+        checked = check_wikipedia_url(url_or_text)
         for i, text in enumerate(self.wikipedia_urls):
-            if text == url_or_text or (key and extract_wikipedia_url(text) == key):
+            if text == url_or_text or (checked and check_wikipedia_url(text) == checked):
                 del self.wikipedia_urls[i]
                 return
 
@@ -844,6 +877,9 @@ class GutenbergDublinCore(DublinCore):
                 error('%s is not a valid wikipedia url', value)
                 return
             for url in value:
+                if not check_wikipedia_url(url):
+                    error('%s is not a valid wikipedia url', url)
+                    continue
                 self.add_wikipedia_url(url)
 
 
