@@ -587,7 +587,7 @@ class GutenbergDublinCore(DublinCore):
             return
         checked = check_wikipedia_url(url_or_text)
         if not checked:
-            warning('%s is not a valid wikipedia url', url_or_text)
+            error('%s is not a valid wikipedia url', url_or_text)
             return
         if any(check_wikipedia_url(text) == checked for text in self.wikipedia_urls):
             return
