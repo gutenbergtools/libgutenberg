@@ -23,6 +23,7 @@ import unicodedata
 from sqlalchemy.exc import DBAPIError
 
 from . import DublinCore
+from .DublinCore import check_wikipedia_url
 from . import GutenbergGlobals as gg
 from . import GutenbergDatabase
 from . import GutenbergFiles
@@ -179,7 +180,10 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             elif marc.code == '260':
                 (self.pubinfo.place, self.pubinfo.publisher, self.pubinfo.years) = parse260(marc.text) 
             elif marc.code == '500':
-                self.notes = marc.text
+                if check_wikipedia_url(marc.text):
+                    self.add_wikipedia_url(marc.text)
+                else:
+                    self.notes = marc.text
             elif marc.code == '505':
                 self.contents = marc.text
             elif marc.code == '508':
@@ -215,7 +219,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         # categories(text, audiobook, etc)
         if book.categories:
             self.dcmitypes = [struct(id=cat.dcmitype[0], description=cat.dcmitype[1])
-                              for cat in book.categories]
+                            for cat in book.categories]
         else:
             self.dcmitypes = [struct(id='Text', description='Text')]
 
@@ -293,7 +297,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         try:
             session.begin_nested()
             session.add(Attribute(fk_books=id_, fk_attriblist=code,
-                                  text=gg.archive2files(id_, url)))
+                                text=gg.archive2files(id_, url)))
             session.commit()
 
         except IntegrityError:  # Duplicate key
@@ -382,6 +386,8 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
         if self.request_key:
             self.add_attribute(self.book, self.request_key, marc=905)
+
+        self._update_wikipedia_urls()
 
         self.book.updatemode = 1 # prevent non-cataloguer changes
 
@@ -480,6 +486,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         title = title.replace(' *_ *', '\n')
         self.add_attribute(book, title, nonfiling=nonfiling, marc=marc)
 
+
     def add_attribute(self, book, attr, nonfiling=0, marc=0):
         if not attr:
             return
@@ -504,6 +511,27 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             else:
                 book.attributes.append(Attribute(
                     fk_attriblist=marc, nonfiling=nonfiling, text=attr))
+
+
+    def _update_wikipedia_urls(self):
+        """Sync MARC 500 wiki rows to wikipedia_urls (matched by lang and title)."""
+        if not self.book:
+            return
+        wanted = {check_wikipedia_url(text): text
+                  for text in self.wikipedia_urls
+                  if check_wikipedia_url(text)}
+        for att in list(self.book.attributes):
+            if att.fk_attriblist != 500:
+                continue
+            checked = check_wikipedia_url(att.text)
+            if not checked:
+                continue
+            if checked in wanted:
+                del wanted[checked]
+            else:
+                self.book.attributes.remove(att)
+        for text in wanted.values():
+            self.book.attributes.append(Attribute(fk_attriblist=500, text=text))
 
     def delete(self):
         """ only delete the book! """

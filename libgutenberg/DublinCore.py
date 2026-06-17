@@ -21,6 +21,7 @@ import re
 import textwrap
 import unicodedata
 from gettext import gettext as _
+from urllib.parse import unquote
 
 import six
 import lxml
@@ -523,6 +524,50 @@ def handle_dc_languages(dc, text):
                 pass
 
 
+WIKIMATCH = re.compile(
+    r"(?ix)https?://([a-z]{2,3})\.wikipedia\.org/wiki/([/!@i^*$a-z0-9_\(\)\-.:]+)")
+AVOID_WIKI = ["simple.", "File:", "/Category:", "Category:", "(disambiguation)"]
+UNTRUSTED_WIKI_LANGS = {'sco'}
+WIKIPEDIA_URL_PREFIX = 'Wikipedia page about this book: '
+
+
+def check_wikipedia_url(text):
+    """Return (lang, page_title) if text contains a valid wiki URL, else None."""
+    if not text:
+        return None
+    match = WIKIMATCH.search(text)
+    if not match:
+        return None
+    lang, page_title = match.group(1), match.group(2)
+    if lang in UNTRUSTED_WIKI_LANGS:
+        return None
+    if any(pattern in unquote(page_title) for pattern in AVOID_WIKI):
+        return None
+    return (lang, page_title)
+
+
+def wikipedia_url(lang, page_title):
+    return f"https://{lang}.wikipedia.org/wiki/{page_title}"
+
+
+def extract_wikipedia_url(text):
+    checked = check_wikipedia_url(text)
+    return wikipedia_url(*checked) if checked else None
+
+
+def format_wikipedia_url(url_or_text):
+    """Bare URL gets default prefix; text with a URL already in it is kept as-is."""
+    if not url_or_text:
+        return ''
+    checked = check_wikipedia_url(url_or_text)
+    if not checked:
+        return url_or_text
+    url = wikipedia_url(*checked)
+    if url_or_text.strip() == url:
+        return f"{WIKIPEDIA_URL_PREFIX}{url}"
+    return url_or_text
+
+
 class GutenbergDublinCore(DublinCore):
     """ Parse from PG files. """
 
@@ -533,7 +578,36 @@ class GutenbergDublinCore(DublinCore):
         self._project_gutenberg_id = None
         self.request_key = ''
         self.scan_urls = set()
+        self.wikipedia_urls = []
 
+
+    def add_wikipedia_url(self, url_or_text):
+        url_or_text = (url_or_text or '').strip()
+        if not url_or_text:
+            return
+        checked = check_wikipedia_url(url_or_text)
+        if not checked:
+            error('%s is not a valid wikipedia url', url_or_text)
+            return
+        if any(check_wikipedia_url(text) == checked for text in self.wikipedia_urls):
+            return
+        url = wikipedia_url(*checked)
+        if url_or_text == url:
+            text = f"{WIKIPEDIA_URL_PREFIX}{url}"
+        else:
+            text = url_or_text
+        self.wikipedia_urls.append(text)
+
+
+    def remove_wikipedia_url(self, url_or_text):
+        url_or_text = (url_or_text or '').strip()
+        if not url_or_text:
+            return
+        checked = check_wikipedia_url(url_or_text)
+        for i, text in enumerate(self.wikipedia_urls):
+            if text == url_or_text or (checked and check_wikipedia_url(text) == checked):
+                del self.wikipedia_urls[i]
+                return
 
 
     @property
@@ -794,6 +868,21 @@ class GutenbergDublinCore(DublinCore):
                 self.scan_urls.add(scan_url)
 
 
+        def handle_wikipedia_urls(self, key, value):
+            if isinstance(value, str):
+                value = [value]
+            elif isinstance(value, list):
+                pass
+            else:
+                error('%s is not a valid wikipedia url', value)
+                return
+            for url in value:
+                if not check_wikipedia_url(url):
+                    error('%s is not a valid wikipedia url', url)
+                    continue
+                self.add_wikipedia_url(url)
+
+
         def handle_pubinfo(self, key, value):
             if key == 'publisher':
                 self.pubinfo.publisher = value
@@ -928,6 +1017,7 @@ class GutenbergDublinCore(DublinCore):
             'alt_title':    store,
             'creator_role':  handle_creators,
             'scans_archive_url': handle_scan_urls,
+            'wikipedia_url': handle_wikipedia_urls,
             'credit':       store,
             'publisher':    handle_pubinfo,
             'publisher_country': handle_pubinfo,
@@ -951,6 +1041,9 @@ class GutenbergDublinCore(DublinCore):
             'created':                'source_publication_years',
             'produced by':            'credit',
             'publisher_place':        'place',
+            'wikipedia_urls':         'wikipedia_url',
+            'book_wikipedia_url':     'wikipedia_url',
+            'book_wikipedia_urls':    'wikipedia_url',
             }
 
         for role in list(self.inverse_role_map.keys()):
