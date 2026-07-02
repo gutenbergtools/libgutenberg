@@ -555,19 +555,6 @@ def extract_wikipedia_url(text):
     return wikipedia_url(*checked) if checked else None
 
 
-def format_wikipedia_url(url_or_text):
-    """Bare URL gets default prefix; text with a URL already in it is kept as-is."""
-    if not url_or_text:
-        return ''
-    checked = check_wikipedia_url(url_or_text)
-    if not checked:
-        return url_or_text
-    url = wikipedia_url(*checked)
-    if url_or_text.strip() == url:
-        return f"{WIKIPEDIA_URL_PREFIX}{url}"
-    return url_or_text
-
-
 class GutenbergDublinCore(DublinCore):
     """ Parse from PG files. """
 
@@ -578,36 +565,23 @@ class GutenbergDublinCore(DublinCore):
         self._project_gutenberg_id = None
         self.request_key = ''
         self.scan_urls = set()
-        self.wikipedia_urls = []
+        self.wikipedia_urls = set()
 
 
-    def add_wikipedia_url(self, url_or_text):
-        url_or_text = (url_or_text or '').strip()
-        if not url_or_text:
+    def add_wikipedia_url(self, url):
+        url = (url or '').strip()
+        checked = check_wikipedia_url(url)
+        if not checked or url != wikipedia_url(*checked):
+            error('%s is not a valid wikipedia url', url)
             return
-        checked = check_wikipedia_url(url_or_text)
-        if not checked:
-            error('%s is not a valid wikipedia url', url_or_text)
-            return
-        if any(check_wikipedia_url(text) == checked for text in self.wikipedia_urls):
-            return
-        url = wikipedia_url(*checked)
-        if url_or_text == url:
-            text = f"{WIKIPEDIA_URL_PREFIX}{url}"
-        else:
-            text = url_or_text
-        self.wikipedia_urls.append(text)
+        self.wikipedia_urls.add(url)
 
 
-    def remove_wikipedia_url(self, url_or_text):
-        url_or_text = (url_or_text or '').strip()
-        if not url_or_text:
-            return
-        checked = check_wikipedia_url(url_or_text)
-        for i, text in enumerate(self.wikipedia_urls):
-            if text == url_or_text or (checked and check_wikipedia_url(text) == checked):
-                del self.wikipedia_urls[i]
-                return
+    def remove_wikipedia_url(self, url):
+        url = (url or '').strip()
+        checked = check_wikipedia_url(url)
+        if checked:
+            self.wikipedia_urls.discard(wikipedia_url(*checked))
 
 
     @property
@@ -877,9 +851,6 @@ class GutenbergDublinCore(DublinCore):
                 error('%s is not a valid wikipedia url', value)
                 return
             for url in value:
-                if not check_wikipedia_url(url):
-                    error('%s is not a valid wikipedia url', url)
-                    continue
                 self.add_wikipedia_url(url)
 
 
