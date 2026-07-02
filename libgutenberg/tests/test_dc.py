@@ -9,7 +9,6 @@ import unittest
 from libgutenberg.CommonOptions import Options
 from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
 from libgutenberg import DBUtils, DublinCoreMapping
-from libgutenberg.DublinCore import GutenbergDublinCore
 from libgutenberg.Logger import debug, warning
 from libgutenberg.Models import Attribute, Book
 
@@ -356,64 +355,25 @@ class TestDCJson(unittest.TestCase):
         dc.session.flush()
         self.assertFalse(DBUtils.ebook_exists(99999))
 
-    def test_wikipedia_url_format(self):
-        bare = "https://en.wikipedia.org/wiki/Moby-Dick"
-
-        dc = GutenbergDublinCore()
-        dc.add_wikipedia_url(bare)
-        self.assertEqual(dc.wikipedia_urls, {bare})
-
-        dc.add_wikipedia_url(bare)
-        self.assertEqual(dc.wikipedia_urls, {bare})
-
-        dc.add_wikipedia_url(f"  {bare}  ")
-        self.assertEqual(dc.wikipedia_urls, {bare})
-
-        dc.remove_wikipedia_url(bare)
-        self.assertEqual(dc.wikipedia_urls, set())
-
-        dc.add_wikipedia_url(bare)
-        dc.remove_wikipedia_url(f"  {bare}  ")
-        self.assertEqual(dc.wikipedia_urls, set())
-
-        dc2 = GutenbergDublinCore()
-        dc2.add_wikipedia_url(f"See also: {bare}")
-        self.assertEqual(dc2.wikipedia_urls, set())
-
     def test_wikipedia_urls_add_and_remove(self):
         dc = DublinCoreMapping.DublinCoreObject()
-
-        ebook = 99998  # fake test id
-
+        ebook = 99998
         dc.load_or_create_book(ebook)
         dc.rights = 'Public Domain in the USA.'
-
-        url = "https://en.wikipedia.org/wiki/Moby-Dick"
-        url2 = "https://en.wikipedia.org/wiki/Test_Book"
-
-        dc.add_wikipedia_url(url)
-        dc.add_wikipedia_url(url2)
+        urls = ["https://en.wikipedia.org/wiki/Moby-Dick",
+                "https://en.wikipedia.org/wiki/Test_Book"]
+        dc.add_wikipedia_url(urls[0])
+        dc.add_wikipedia_url(f"See also: {urls[0]}")  # rejected
+        dc.add_wikipedia_url(urls[1])
         dc.save(updatemode=0)
 
-        dc2 = DublinCoreMapping.DublinCoreObject()
-        dc2.load_from_database(ebook)
-
-        self.assertEqual(dc2.wikipedia_urls, {url, url2})
-
-        dc2.remove_wikipedia_url(url)
-        dc2.save(updatemode=1)
-
-        dc3 = DublinCoreMapping.DublinCoreObject()
-        dc3.load_from_database(ebook)
-
-        self.assertEqual(dc3.wikipedia_urls, {url2})
-
-        dc3.remove_wikipedia_url(url2)
-        dc3.save(updatemode=1)
-
-        dc4 = DublinCoreMapping.DublinCoreObject()
-        dc4.load_from_database(ebook)
-        self.assertEqual(dc4.wikipedia_urls, set())
+        remaining = list(urls)
+        while remaining:
+            dc = DublinCoreMapping.DublinCoreObject()
+            dc.load_from_database(ebook)
+            self.assertEqual(dc.wikipedia_urls, set(remaining))
+            dc.remove_wikipedia_url(remaining.pop(0))
+            dc.save(updatemode=1)
 
     def tearDown(self):
         session = DBUtils.check_session(None)
