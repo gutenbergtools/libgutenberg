@@ -23,7 +23,7 @@ import unicodedata
 from sqlalchemy.exc import DBAPIError
 
 from . import DublinCore
-from .DublinCore import check_wikipedia_url
+from .DublinCore import WIKIPEDIA_URL_PREFIX, check_wikipedia_url, wikipedia_url
 from . import GutenbergGlobals as gg
 from . import GutenbergDatabase
 from . import GutenbergFiles
@@ -180,8 +180,9 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
             elif marc.code == '260':
                 (self.pubinfo.place, self.pubinfo.publisher, self.pubinfo.years) = parse260(marc.text) 
             elif marc.code == '500':
-                if check_wikipedia_url(marc.text):
-                    self.add_wikipedia_url(marc.text)
+                url = DublinCore.extract_wikipedia_url(marc.text)
+                if url:
+                    self.wikipedia_urls.add(url)
                 else:
                     self.notes = marc.text
             elif marc.code == '505':
@@ -514,24 +515,24 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
 
 
     def _update_wikipedia_urls(self):
-        """Sync MARC 500 wiki rows to wikipedia_urls (matched by lang and title)."""
+        # Called from save(). Sync self.wikipedia_urls to MARC 500 wiki rows.
         if not self.book:
             return
-        wanted = {check_wikipedia_url(text): text
-                  for text in self.wikipedia_urls
-                  if check_wikipedia_url(text)}
+        remaining = set(self.wikipedia_urls)
         for att in list(self.book.attributes):
             if att.fk_attriblist != 500:
                 continue
-            checked = check_wikipedia_url(att.text)
-            if not checked:
+            wiki_key = check_wikipedia_url(att.text)
+            if not wiki_key:
                 continue
-            if checked in wanted:
-                del wanted[checked]
+            url = wikipedia_url(*wiki_key)
+            if url in remaining:
+                remaining.discard(url)
             else:
                 self.book.attributes.remove(att)
-        for text in wanted.values():
-            self.book.attributes.append(Attribute(fk_attriblist=500, text=text))
+        for url in remaining:
+            self.book.attributes.append(
+                Attribute(fk_attriblist=500, text=f"{WIKIPEDIA_URL_PREFIX}{url}"))
 
     def delete(self):
         """ only delete the book! """
