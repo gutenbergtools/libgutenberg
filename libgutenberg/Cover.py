@@ -39,10 +39,11 @@ import sys
 try:
     import cairocffi as cairo
 except ImportError:
-    # cairocffi not available
+    print("cairocffi not available")
     pass
 except OSError:
     # cairo not installed
+    print("cairo not installed")
     pass
 
 PY2 = sys.version_info[0] == 2
@@ -305,7 +306,7 @@ def _clip(value, lower, upper):
 # an Image instance which is a composition of different Cairo functionality.
 #
 
-def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg"):
+def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg", audio=0):
     """
     Main drawing function, which generates a cover of the given dimension and
     renders title, author, and graphics.
@@ -553,7 +554,14 @@ def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg"):
 
     # Allocate fonts for the title and the author, and draw the text.
     
-    def drawText():
+    def drawText(audio=0):
+        """
+        Args:
+            audio (int, optional): Display icon on cover. Defaults to 0.
+                0 = none
+                1 = audiobook (speaker)
+                2 = music (notes)
+        """
         fill = Image.colorRGB(50, 50, 50)
         white = Image.colorRGB(255, 255, 255)
 
@@ -616,6 +624,26 @@ def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg"):
         y = cover_height * 0.9
         cover_image.text(branding, x, y, width / 2, height, white, branding_font)
 
+        # If it is an audio book, add a speaker icon to the cover.
+        if audio > 0:
+            if audio == 2:
+                audio_char = "🎶"
+            else:
+                audio_char = "🔊"
+            audio_font_size = cover_width * 0.4
+            audio_font_properties = (
+                audio_font_size,
+                cairo.FONT_SLANT_NORMAL,
+                cairo.FONT_WEIGHT_NORMAL
+            )
+            audio_font = cover_image.font("Noto Emoji", audio_font_properties)
+            audio_height = audio_font_size
+            width = audio_height + 100
+            height = audio_height
+            x = (cover_width - width) / 2 + 75
+            y = (cover_height - height) / 2 + 50
+            cover_image.text(audio_char, x, y, width, height, fill, audio_font)
+
     # Create the new cover image.
     cover_margin = 2
     cover_image = Image(cover_width, cover_height)
@@ -624,12 +652,13 @@ def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg"):
     shape_color, base_color = processColors()
     drawBackground()
     drawArtwork()
-    drawText()
+    drawText(audio=audio)
 
     # Return the cover Image instance.
     return cover_image
 
 
+# IMPORTANT: the main function does not work, because the parameters to the draw() function have changed.
 #
 # The main function allows to run the cover generation to run as a standalone
 # command-line tool. Arguments can be passed, use -h or --help to get a list

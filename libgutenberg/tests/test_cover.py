@@ -8,6 +8,7 @@ import unittest
 from libgutenberg import Cover
 from libgutenberg.DublinCore import DublinCore as dc
 
+# Note: cairocffi must be installed for this test to run. If it is not installed, the test will be skipped.
 @unittest.skipIf(not 'cairo' in dir(Cover), 'cover generator not configured')
 class TestMakeCovers(unittest.TestCase):
 
@@ -20,7 +21,7 @@ class TestMakeCovers(unittest.TestCase):
 
     def test_cover(self):
         try:
-            cover_image = Cover.draw(self.dc)
+            cover_image = Cover.draw(self.dc, audio=1)
             with open(self.test_path, 'wb+') as cover:
                 cover_image.save(cover)
             self.assertTrue(os.path.exists(self.test_path))
@@ -30,5 +31,6 @@ class TestMakeCovers(unittest.TestCase):
             return None
 
     def tearDown(self):
-        if os.path.exists(self.test_path):
-            os.remove(self.test_path)
+        pass
+        #if os.path.exists(self.test_path):
+        #    os.remove(self.test_path)
