@@ -323,8 +323,14 @@ def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg", au
     """
     Main drawing function, which generates a cover of the given dimension and
     renders title, author, and graphics.
+
+    Args:
+        audio (int, optional): Display icon on cover. Defaults to 0.
+            0 = none
+            1 = audiobook (speaker)
+            2 = music (notes)
     """
-    
+
     # pull cover strings from DublinCore object
     title = dc.title_no_subtitle
     subtitle = dc.subtitle
@@ -649,6 +655,7 @@ def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg", au
                 cairo.FONT_SLANT_NORMAL,
                 cairo.FONT_WEIGHT_NORMAL
             )
+            # Plain Noto does not work for the audio icons, so use Noto Emoji instead.
             audio_font = cover_image.font("Noto Emoji", audio_font_properties)
             audio_height = audio_font_size
             width = audio_height + 100
