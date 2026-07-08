@@ -32,5 +32,3 @@ class TestMakeCovers(unittest.TestCase):
 
     def tearDown(self):
         pass
-        #if os.path.exists(self.test_path):
-        #    os.remove(self.test_path)
