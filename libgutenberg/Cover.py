@@ -31,20 +31,33 @@ import math
 import os
 import sys
 
+# Handle imports for both package and standalone usage
+try:
+    from .DublinCore import DublinCore
+except (ImportError, ValueError):
+    # If relative import fails, try adding parent directory to path
+    try:
+        from libgutenberg.DublinCore import DublinCore
+    except ModuleNotFoundError:
+        # Last resort: add parent directory to path
+        parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+        from libgutenberg.DublinCore import DublinCore
+
 
 # Applications should be able to test for cairo like this:
 # from libgutenberg import Cover
 # cairo_is_ok = hasattr(Cover, 'cairo')
 
+cairo = None
 try:
     import cairocffi as cairo
 except ImportError:
     print("cairocffi not available")
-    pass
 except OSError:
     # cairo not installed
     print("cairo not installed")
-    pass
 
 PY2 = sys.version_info[0] == 2
 if PY2:
@@ -624,7 +637,7 @@ def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg", au
         y = cover_height * 0.9
         cover_image.text(branding, x, y, width / 2, height, white, branding_font)
 
-        # If it is an audio book, add a speaker icon to the cover.
+        # If it is an audio book, add a speaker or music icon to the cover.
         if audio > 0:
             if audio == 2:
                 audio_char = "🎶"
@@ -671,18 +684,24 @@ def main():
     image generation.
     """
     # Helper function.
-    def _draw_and_save(title, subtitle, author, filename):
+    def _draw_and_save(title, subtitle, author, filename, audio=0):
         """
         Draw a cover and write it to a file. Note that only PNG is supported.
         """
-        cover_image = draw(title, subtitle, author)
+        dc_instance = DublinCore()
+        for a in author.split(","):
+            dc_instance.add_author(a)
+        dc_instance.title = title
+        dc_instance.subtitle = subtitle
+
+        cover_image = draw(dc_instance, audio=audio)
         if filename == "-":
             assert not "Implement."
         else:
             _, ext = os.path.splitext(os.path.basename(filename))
             if ext.upper() == ".PNG":
                 try:
-                    with open(filename, "wb") as f:
+                    with open(filename, "wb+") as f:
                         cover_image.save(f)
                 except FileNotFoundError:
                     print("Error opening target file " + filename)
@@ -701,6 +720,8 @@ def main():
     parser.add_argument("-a", "--author", dest="author", help="Author(s) of the book")
     parser.add_argument("-o", "--cover", dest="outfile", help="Filename of the cover image in PNG format")
     parser.add_argument("-j", "--json-covers", dest="json_covers", help="JSON file containing cover information")
+    parser.add_argument("--audio", dest="audio", help="Include audio icon in the cover image", action="store_true")
+    parser.add_argument("--music", dest="music", help="Include music icon in the cover image", action="store_true")
     args = parser.parse_args()
 
     # A JSON file is given as command line parameter; ignore the other ones.
@@ -715,11 +736,16 @@ def main():
                 for line in f:
                     data = json.loads(line)
                     print("Generating cover for " + data["identifier"])
+                    if args.audio:
+                        data["audio"] = 1
+                    elif args.music:
+                        data["audio"] = 2
                     status = _draw_and_save(
                         data["title"],
                         data["subtitle"],
                         data["authors"],
-                        data["filename"]
+                        data["filename"],
+                        data.get("audio", 0),
                     )
                     if status:
                         print("Error generating book cover image, skipping")
@@ -736,7 +762,12 @@ def main():
         elif not args.outfile:
             print("No outfile specified, exiting")
         else:
-            return _draw_and_save(args.title, args.subtitle, args.author, args.outfile)
+            audio = 0
+            if args.audio:
+                audio = 1
+            elif args.music:
+                audio = 2
+            return _draw_and_save(args.title, args.subtitle, args.author, args.outfile, audio)
     return 1
 
 
