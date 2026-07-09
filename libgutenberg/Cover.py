@@ -31,20 +31,6 @@ import math
 import os
 import sys
 
-# Handle imports for both package and standalone usage
-try:
-    from .DublinCore import DublinCore
-except (ImportError, ValueError):
-    # If relative import fails, try adding parent directory to path
-    try:
-        from libgutenberg.DublinCore import DublinCore
-    except ModuleNotFoundError:
-        # Last resort: add parent directory to path
-        parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        if parent_dir not in sys.path:
-            sys.path.insert(0, parent_dir)
-        from libgutenberg.DublinCore import DublinCore
-
 
 # Applications should be able to test for cairo like this:
 # from libgutenberg import Cover
@@ -682,16 +668,19 @@ def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg", au
     return cover_image
 
 
-# The main function allows to run the cover generation to run as a standalone
+# The main function allows running the cover generation as a standalone
 # command-line tool. Arguments can be passed, use -h or --help to get a list
 # of available switches. The generated book cover is saved as an image file.
-#
-
 def main():
     """
     The main() function handles command line arguments and maneuvers the cover
     image generation.
     """
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+    from libgutenberg.DublinCore import DublinCore
+
     # Helper function.
     def _draw_and_save(title, subtitle, author, filename, audio=None):
         """
