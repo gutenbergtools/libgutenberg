@@ -35,15 +35,7 @@ import sys
 # Applications should be able to test for cairo like this:
 # from libgutenberg import Cover
 # cairo_is_ok = hasattr(Cover, 'cairo')
-
-cairo = None
-try:
-    import cairocffi as cairo
-except ImportError:
-    print("cairocffi not available")
-except OSError:
-    # cairo not installed
-    print("cairo not installed")
+import cairocffi as cairo
 
 PY2 = sys.version_info[0] == 2
 if PY2:
