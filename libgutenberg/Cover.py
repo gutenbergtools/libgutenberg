@@ -631,20 +631,22 @@ def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg", au
                 audio_char = "🎶"
             else:
                 audio_char = "🔊"
-            audio_font_size = cover_width * 0.4
-            audio_font_properties = (
-                audio_font_size,
+            audio_font_size = cover_width * 0.5
+            # Plain Noto does not work for the audio icons, so use Noto Color Emoji instead.
+            x = (cover_width - audio_font_size) / 2
+            y = cover_height * 0.75
+            # need to pop out of context to avoid uunwanted scaling of emoji
+            cover_image.context.save()
+            cover_image.context.identity_matrix()
+            cover_image.context.set_font_size(audio_font_size)
+            cover_image.context.select_font_face(
+                "Noto Color Emoji",
                 cairo.FONT_SLANT_NORMAL,
                 cairo.FONT_WEIGHT_NORMAL
             )
-            # Plain Noto does not work for the audio icons, so use Noto Emoji instead.
-            audio_font = cover_image.font("Noto Emoji", audio_font_properties)
-            audio_height = audio_font_size
-            width = audio_height + 100
-            height = audio_height
-            x = (cover_width - width) / 2 + 75
-            y = (cover_height - height) / 2 + 50
-            cover_image.text(audio_char, x, y, width, height, fill, audio_font)
+            cover_image.context.move_to(x, y)
+            cover_image.context.show_text(audio_char)
+            cover_image.context.restore()
 
     # Create the new cover image.
     cover_margin = 2

@@ -1,5 +1,10 @@
 CHANGES
-0.11.0 (June *, 2026)
+0.11.1 (July *, 2026)
+- Cover.py now adds emoji icons to indicate music or audiobook content
+    - requires installation of "Noto Color Emoji" Font - https://fonts.google.com/noto/specimen/Noto+Color+Emoji
+
+
+0.11.0 (June 29, 2026)
 - Now using SQLAlchemy 2.0
 - Upgraded all the packages inside of `Pipfile.lock` to most recent versions compatible with py3.9.
 - Fixed syntax issues in `Models.py` preventing sqlalchemy upgrade.
