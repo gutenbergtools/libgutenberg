@@ -247,6 +247,8 @@ select dcmitype, description from dcmitypes, mn_books_categories
             dcmitype.description = row.description
             self.dcmitypes.append(dcmitype)
 
+        conn.close()
+
         self.load_files_from_database(ebook)
 
 
@@ -326,6 +328,7 @@ order by filetypes.sortorder, encodings.sortorder, fk_filetypes,
             if row.mediatype:
                 self.mediatypes.add(row.mediatype)
 
+        conn.close()
 
     def remove_filetype_from_database(self, id_, type_):
         """ Remove filetype from PG database. """
@@ -342,6 +345,8 @@ filename ~ '^cache'""",
                      'fk_filetypes': type_ })
         c.execute('commit')
 
+        conn.close()
+
 
     def remove_file_from_database(self, filename):
         """ Remove file from PG database. """
@@ -353,6 +358,8 @@ filename ~ '^cache'""",
         c.execute("delete from files where filename = %(filename)s",
                    { 'filename': filename })
         c.execute('commit')
+
+        conn.close()
 
 
     def store_file_in_database(self, id_, filename, type_):
@@ -400,6 +407,7 @@ insert into files (fk_books, filename, filesize, filemtime,
                             'diskstatus':   diskstatus})
 
             c.execute('commit')
+            conn.close()
 
         except OSError:
             error("Cannot stat %s", filename)
@@ -407,6 +415,7 @@ insert into files (fk_books, filename, filesize, filemtime,
         except IntegrityError:
             error("Book number %s is not in database.", id_)
             c.execute('rollback')
+            conn.close()
 
 
     def register_coverpage(self, id_, url, code = 901):
@@ -431,3 +440,5 @@ insert into attributes (fk_books, fk_attriblist, text) values (%(ebook)s, %(code
         except DatabaseError as what:
             warning("Error updating coverpage in database: %s.", what)
             c.execute('rollback')
+
+        conn.close()
