@@ -23,7 +23,7 @@ import unicodedata
 from sqlalchemy.exc import DBAPIError
 
 from . import DublinCore
-from .DublinCore import WIKIPEDIA_URL_PREFIX, check_wikipedia_url, wikipedia_url
+from DublinCore import WIKIPEDIA_URL_PREFIX, check_wikipedia_url, wikipedia_url
 from . import GutenbergGlobals as gg
 from . import GutenbergDatabase
 from . import GutenbergFiles
