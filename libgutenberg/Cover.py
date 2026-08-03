@@ -35,19 +35,15 @@ import sys
 # Applications should be able to test for cairo like this:
 # from libgutenberg import Cover
 # cairo_is_ok = hasattr(Cover, 'cairo')
-
-try:
-    import cairocffi as cairo
-except ImportError:
-    # cairocffi not available
-    pass
-except OSError:
-    # cairo not installed
-    pass
+import cairocffi as cairo
 
 PY2 = sys.version_info[0] == 2
 if PY2:
     FileNotFoundError = IOError
+
+AUDIOBOOK = 1
+MUSIC = 2
+
 #
 # Private helper functions.
 #
@@ -305,12 +301,18 @@ def _clip(value, lower, upper):
 # an Image instance which is a composition of different Cairo functionality.
 #
 
-def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg"):
+def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg", audio=None):
     """
     Main drawing function, which generates a cover of the given dimension and
     renders title, author, and graphics.
+
+    Args:
+        audio (int, optional): Display icon on cover. Defaults to None.
+            None = none
+            1 = audiobook (speaker)
+            2 = music (notes)
     """
-    
+
     # pull cover strings from DublinCore object
     title = dc.title_no_subtitle
     subtitle = dc.subtitle
@@ -553,7 +555,14 @@ def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg"):
 
     # Allocate fonts for the title and the author, and draw the text.
     
-    def drawText():
+    def drawText(audio=None):
+        """
+        Args:
+            audio (int, optional): Display icon on cover. Defaults to None.
+                None = no icon
+                AUDIOBOOK = speaker icon
+                MUSIC = musical notes icon
+        """
         fill = Image.colorRGB(50, 50, 50)
         white = Image.colorRGB(255, 255, 255)
 
@@ -616,6 +625,31 @@ def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg"):
         y = cover_height * 0.9
         cover_image.text(branding, x, y, width / 2, height, white, branding_font)
 
+        # If it is an audio book, add a speaker or music icon to the cover.
+        if audio in (AUDIOBOOK, MUSIC):
+            if audio == MUSIC:
+                audio_char = "🎶"
+            else:
+                audio_char = "🔊"
+
+            audio_font_size = cover_width * 0.5
+            # Plain Noto does not work for the audio icons, so use Noto Color Emoji instead.
+            x = (cover_width - audio_font_size) / 2
+            y = cover_height * 0.75
+            # need to pop out of context to avoid uunwanted scaling of emoji
+            cover_image.context.save()
+            cover_image.context.identity_matrix()
+            cover_image.context.set_font_size(audio_font_size)
+            cover_image.context.select_font_face(
+                "Noto Color Emoji",
+                cairo.FONT_SLANT_NORMAL,
+                cairo.FONT_WEIGHT_NORMAL
+            )
+            cover_image.context.move_to(x, y)
+            cover_image.context.show_text(audio_char)
+            cover_image.context.restore()
+
+
     # Create the new cover image.
     cover_margin = 2
     cover_image = Image(cover_width, cover_height)
@@ -624,36 +658,44 @@ def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg"):
     shape_color, base_color = processColors()
     drawBackground()
     drawArtwork()
-    drawText()
+    drawText(audio=audio)
 
     # Return the cover Image instance.
     return cover_image
 
 
-#
-# The main function allows to run the cover generation to run as a standalone
+# The main function allows running the cover generation as a standalone
 # command-line tool. Arguments can be passed, use -h or --help to get a list
 # of available switches. The generated book cover is saved as an image file.
-#
-
 def main():
     """
     The main() function handles command line arguments and maneuvers the cover
     image generation.
     """
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+    from libgutenberg.DublinCore import DublinCore
+
     # Helper function.
-    def _draw_and_save(title, subtitle, author, filename):
+    def _draw_and_save(title, subtitle, author, filename, audio=None):
         """
         Draw a cover and write it to a file. Note that only PNG is supported.
         """
-        cover_image = draw(title, subtitle, author)
+        dc_instance = DublinCore()
+        for a in author.split(","):
+            dc_instance.add_author(a)
+        dc_instance.title = title
+        dc_instance.subtitle = subtitle
+
+        cover_image = draw(dc_instance, audio=audio)
         if filename == "-":
             assert not "Implement."
         else:
             _, ext = os.path.splitext(os.path.basename(filename))
             if ext.upper() == ".PNG":
                 try:
-                    with open(filename, "wb") as f:
+                    with open(filename, "wb+") as f:
                         cover_image.save(f)
                 except FileNotFoundError:
                     print("Error opening target file " + filename)
@@ -672,6 +714,8 @@ def main():
     parser.add_argument("-a", "--author", dest="author", help="Author(s) of the book")
     parser.add_argument("-o", "--cover", dest="outfile", help="Filename of the cover image in PNG format")
     parser.add_argument("-j", "--json-covers", dest="json_covers", help="JSON file containing cover information")
+    parser.add_argument("--audio", help="Include audio icon in the cover image", action="store_true")
+    parser.add_argument("--music", help="Include music icon in the cover image", action="store_true")
     args = parser.parse_args()
 
     # A JSON file is given as command line parameter; ignore the other ones.
@@ -686,11 +730,16 @@ def main():
                 for line in f:
                     data = json.loads(line)
                     print("Generating cover for " + data["identifier"])
+                    if args.audio:
+                        data["audio"] = AUDIOBOOK
+                    elif args.music:
+                        data["audio"] = MUSIC
                     status = _draw_and_save(
                         data["title"],
                         data["subtitle"],
                         data["authors"],
-                        data["filename"]
+                        data["filename"],
+                        data.get("audio", None),
                     )
                     if status:
                         print("Error generating book cover image, skipping")
@@ -707,7 +756,12 @@ def main():
         elif not args.outfile:
             print("No outfile specified, exiting")
         else:
-            return _draw_and_save(args.title, args.subtitle, args.author, args.outfile)
+            audio = None
+            if args.audio:
+                audio = AUDIOBOOK
+            elif args.music:
+                audio = MUSIC
+            return _draw_and_save(args.title, args.subtitle, args.author, args.outfile, audio)
     return 1
 
 
