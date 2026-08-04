@@ -1,8 +1,12 @@
 CHANGES
-0.11.1 (July *, 2026)
+
+0.11.1 (August 3, 2026)
+- New field `book_wikipedia_url(s)` has been added to the DublinCore dispatcher.
+- Two functions `add_book_wikipedia_url` and `remove_book_wikipedia_url` have been added to the DublinCoreObject.
+- Wikipedia url dispatcher testing added to `test_load_from_json`.
+- Add/remove tesing can be found in `test_book_wikipedia_urls_add_and_remove` 
 - Cover.py now adds emoji icons to indicate music or audiobook content
     - requires installation of "Noto Color Emoji" Font - https://fonts.google.com/noto/specimen/Noto+Color+Emoji
-
 
 0.11.0 (June 29, 2026)
 - Now using SQLAlchemy 2.0

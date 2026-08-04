@@ -51,6 +51,11 @@ class TestDC(unittest.TestCase):
         dc = DublinCoreMapping.DublinCoreObject()
         self.metadata_test2(dc)
 
+    def test_wikipedia_urls_load(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+        dc.load_from_database(2701)  # Moby Dick
+        self.assertIn("https://en.wikipedia.org/wiki/Moby-Dick", dc.wikipedia_urls)
+
     def metadata_test1(self, dc):
         dc.load_from_database(self.ebook)
         self.assertEqual(dc.project_gutenberg_id, 20050)
@@ -224,7 +229,7 @@ class TestDC(unittest.TestCase):
         dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
         dc.register_coverpage(ebook, 'new_cover')
         # does nothing to avoid violates foreign key constraint
-        self.assertEqual(get_cover(ebook, dc), None) 
+        self.assertEqual(get_cover(ebook, dc), None)
         
     def tearDown(self):
         pass
@@ -297,6 +302,10 @@ class TestDCJson(unittest.TestCase):
         self.assertEqual(set_subtitle, "a true story : second line")
         self.assertEqual(len(dc.authors), 2)
         self.assertEqual(len(dc.scan_urls), 2)
+        self.assertEqual(
+            dc.wikipedia_urls,
+            {"https://en.wikipedia.org/wiki/Test_Book",
+             "https://en.wikipedia.org/wiki/Another_Book"})
         self.assertEqual(dc.pubinfo.first_year, '1920')
         self.assertEqual(dc.credit, 'Roger Frank and Sue Clark.')
         dc.add_credit('Sue Frank and Roger Clark.\n')
@@ -312,6 +321,10 @@ class TestDCJson(unittest.TestCase):
         dc.load_from_database(99999)
         self.assertEqual(set_title, dc.title)
         self.assertEqual(set_subtitle, dc.subtitle)
+        self.assertEqual(
+            dc.wikipedia_urls,
+            {"https://en.wikipedia.org/wiki/Test_Book",
+             "https://en.wikipedia.org/wiki/Another_Book"})
         marc260 = dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=260).first().text
         self.assertTrue('1920' in marc260)
         self.assertEqual(
@@ -328,6 +341,11 @@ class TestDCJson(unittest.TestCase):
                 fk_attriblist=904).all()),
             2)
         self.assertEqual(
+            len(dc.session.query(Attribute).filter_by(book=dc.book,
+                fk_attriblist=500).filter(
+                    Attribute.text.like('%wikipedia.org%')).all()),
+            2)
+        self.assertEqual(
             dc.session.query(Attribute).filter_by(book=dc.book, fk_attriblist=905).first().text,
             '20210623194947brand')
         self.assertEqual(1, marc508s.count())
@@ -337,8 +355,29 @@ class TestDCJson(unittest.TestCase):
         dc.session.flush()
         self.assertFalse(DBUtils.ebook_exists(99999))
 
+    def test_wikipedia_urls_add_and_remove(self):
+        dc = DublinCoreMapping.DublinCoreObject()
+        ebook = 99998
+        dc.load_or_create_book(ebook)
+        dc.rights = 'Public Domain in the USA.'
+        urls = ["https://en.wikipedia.org/wiki/Moby-Dick",
+                "https://en.wikipedia.org/wiki/Test_Book"]
+        dc.add_wikipedia_url(urls[0])
+        dc.add_wikipedia_url(f"See also: {urls[0]}")  # rejected
+        dc.add_wikipedia_url(urls[1])
+        dc.save(updatemode=0)
+
+        remaining = list(urls)
+        while remaining:
+            dc = DublinCoreMapping.DublinCoreObject()
+            dc.load_from_database(ebook)
+            self.assertEqual(dc.wikipedia_urls, set(remaining))
+            dc.remove_wikipedia_url(remaining.pop(0))
+            dc.save(updatemode=1)
+
     def tearDown(self):
         session = DBUtils.check_session(None)
         DBUtils.remove_author('Lorem Ipsum Jr.', session=session)
         session.query(Book).filter(Book.pk == 99999).delete()
+        session.query(Book).filter(Book.pk == 99998).delete()
         session.commit()

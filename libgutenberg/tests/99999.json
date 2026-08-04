@@ -26,6 +26,10 @@
             "https://archive.org/details/in.ernet.dli.2013.179137",
             "https://babel.hathitrust.org/cgi/pt?id=uieg.30152019845839"
         ],
+        "BOOK_WIKIPEDIA_URLS": [
+            "https://en.wikipedia.org/wiki/Test_Book",
+            "https://en.wikipedia.org/wiki/Another_Book"
+        ],
         "CREDIT": "Roger Frank and Sue Clark.",
         "LANGUAGE": "English",
         "PUBLISHER": "Frank A. Munsey Company",
