@@ -37,16 +37,25 @@ import sys
 # cairo_is_ok = hasattr(Cover, 'cairo')
 import cairocffi as cairo
 
+from .GutenbergGlobals import Struct
+
 PY2 = sys.version_info[0] == 2
 if PY2:
     FileNotFoundError = IOError
 
+# Emoji names
 AUDIOBOOK = 1
 MUSIC = 2
+
 
 #
 # Private helper functions.
 #
+def cat_struct(pk):
+    struct = Struct()
+    struct.pk = pk
+    struct.category = ''
+    return [struct]
 
 def _join(s, tail):
     """
@@ -301,22 +310,28 @@ def _clip(value, lower, upper):
 # an Image instance which is a composition of different Cairo functionality.
 #
 
-def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg", audio=None):
+def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg"):
     """
     Main drawing function, which generates a cover of the given dimension and
     renders title, author, and graphics.
-
-    Args:
-        audio (int, optional): Display icon on cover. Defaults to None.
-            None = none
-            1 = audiobook (speaker)
-            2 = music (notes)
+    
+    title, author, and category (i.e. audio, music) are passed in dc
     """
 
     # pull cover strings from DublinCore object
     title = dc.title_no_subtitle
     subtitle = dc.subtitle
     author = dc.authors_short()
+    audio = 0
+    # categories is a list of (pk, label)
+    for cat in dc.categories:
+        if cat.pk in {1, 2, 6}:
+            audio = AUDIOBOOK
+            break
+        elif cat.pk in {3, 4}:
+            audio = MUSIC
+            break
+            
     
     # Based on some initial constants and the title+author strings, generate a base
     # background color and a shape color to draw onto the background. Try to keep
@@ -678,7 +693,7 @@ def main():
     from libgutenberg.DublinCore import DublinCore
 
     # Helper function.
-    def _draw_and_save(title, subtitle, author, filename, audio=None):
+    def _draw_and_save(title, subtitle, author, filename, categories):
         """
         Draw a cover and write it to a file. Note that only PNG is supported.
         """
@@ -687,8 +702,9 @@ def main():
             dc_instance.add_author(a)
         dc_instance.title = title
         dc_instance.subtitle = subtitle
+        dc_instance.categories = categories
 
-        cover_image = draw(dc_instance, audio=audio)
+        cover_image = draw(dc_instance)
         if filename == "-":
             assert not "Implement."
         else:
@@ -731,15 +747,17 @@ def main():
                     data = json.loads(line)
                     print("Generating cover for " + data["identifier"])
                     if args.audio:
-                        data["audio"] = AUDIOBOOK
+                        data["categories"] = cat_struct(1)
                     elif args.music:
-                        data["audio"] = MUSIC
+                        data["categories"] = cat_struct(3)
+                    else:
+                        data["categories"] = []
                     status = _draw_and_save(
                         data["title"],
                         data["subtitle"],
                         data["authors"],
                         data["filename"],
-                        data.get("audio", None),
+                        data["categories"],
                     )
                     if status:
                         print("Error generating book cover image, skipping")
@@ -756,11 +774,12 @@ def main():
         elif not args.outfile:
             print("No outfile specified, exiting")
         else:
-            audio = None
+            # fake db row
+            audio = [] = None
             if args.audio:
-                audio = AUDIOBOOK
+                audio = cat_struct(1)
             elif args.music:
-                audio = MUSIC
+                audio = cat_struct(3)
             return _draw_and_save(args.title, args.subtitle, args.author, args.outfile, audio)
     return 1
 

@@ -18,10 +18,11 @@ class TestMakeCovers(unittest.TestCase):
         self.dc.add_author("Duck, Donald")
         self.dc.add_author("Mickey Mouse")
         self.dc.title = "A truly amazing book: (但不是那么神奇)"
+        self.dc.categories = Cover.cat_struct(1)
 
     def test_cover(self):
         try:
-            cover_image = Cover.draw(self.dc, audio=1)
+            cover_image = Cover.draw(self.dc)
             with open(self.test_path, 'wb+') as cover:
                 cover_image.save(cover)
             self.assertTrue(os.path.exists(self.test_path))
