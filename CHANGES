@@ -1,4 +1,6 @@
 CHANGES
+0.11.2 (August ?, 2026)
+- Ebookmaker expected that Cover.draw would use the dc object to determine whether an audio or music icon was needed, but Cover.draw expected an explicit parameter. Now it does what Ebookmaker was expecting.
 
 0.11.1 (August 4, 2026)
 - New field `book_wikipedia_url(s)` has been added to the DublinCore dispatcher.
