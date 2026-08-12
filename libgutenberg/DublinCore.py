@@ -525,21 +525,27 @@ def handle_dc_languages(dc, text):
 
 
 WIKIMATCH = re.compile(
-    r"(?ix)https?://([a-z]{2,3})\.wikipedia\.org/wiki/([/!@i^*$a-z0-9_\(\)\-.:]+)")
+    r"(?ix)https?://([a-z]{2,3})\.wikipedia\.org/wiki/([^\s?#]+)"
+)
 AVOID_WIKI = ["simple.", "File:", "/Category:", "Category:", "(disambiguation)"]
 UNTRUSTED_WIKI_LANGS = {'sco'}
 WIKIPEDIA_URL_PREFIX = 'Wikipedia page about this book: '
 
 
 def check_wikipedia_url(text):
-    """Return (lang, page_title) if text contains a valid wiki URL, else None."""
+    """Return (lang, page_title) for a wikipedia.org /wiki/ URL, else None.
+
+    This only checks shape: http(s), <lang>.wikipedia.org, /wiki/<path>,
+    no query/fragment kept, reject sco / a few junk patterns. It does not
+    validate path characters or call MediaWiki.
+    """
     if not text:
         return None
     match = WIKIMATCH.search(text)
     if not match:
         return None
-    lang, page_title = match.group(1), match.group(2)
-    if lang in UNTRUSTED_WIKI_LANGS:
+    lang, page_title = match.group(1).lower(), match.group(2)
+    if not page_title or lang in UNTRUSTED_WIKI_LANGS:
         return None
     if any(pattern in unquote(page_title) for pattern in AVOID_WIKI):
         return None
@@ -547,6 +553,7 @@ def check_wikipedia_url(text):
 
 
 def wikipedia_url(lang, page_title):
+    """Build https wiki URL from lang + path (path kept as captured; no re-encoding)."""
     return f"https://{lang}.wikipedia.org/wiki/{page_title}"
 
 
