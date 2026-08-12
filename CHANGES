@@ -1,5 +1,6 @@
 CHANGES
-0.11.2 (August ?, 2026)
+0.11.2 (August 12, 2026)
+- wikipedia matcher failed matching for urls with percent-encoding. Now the matcher only checks for the "shape" of the url.
 - Ebookmaker expected that Cover.draw would use the dc object to determine whether an audio or music icon was needed, but Cover.draw expected an explicit parameter. Now it does what Ebookmaker was expecting.
 
 0.11.1 (August 4, 2026)
