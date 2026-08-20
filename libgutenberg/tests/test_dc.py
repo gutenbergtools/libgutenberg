@@ -7,10 +7,13 @@ import unittest
 
 
 from libgutenberg.CommonOptions import Options
-from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore, DummyConnectionPool
+from libgutenberg import GutenbergDatabase, GutenbergDatabaseDublinCore
 from libgutenberg import DBUtils, DublinCoreMapping
 from libgutenberg.Logger import debug, warning
 from libgutenberg.Models import Attribute, Book
+
+from sqlalchemy import create_engine
+from sqlalchemy.pool.impl import NullPool
 
 global db_exists
 
@@ -33,16 +36,12 @@ class TestDC(unittest.TestCase):
     ebook2 = 2600 # war and peace
 
     def setUp(self):
-        GutenbergDatabase.DB = GutenbergDatabase.Database()
-        GutenbergDatabase.DB.connect()
-        self.dummypool = DummyConnectionPool.ConnectionPool()
-        #self.dc2 = self.dc
-        
+        self.pool = create_engine(GutenbergDatabase.get_sqlalchemy_url(), poolclass=NullPool).pool
 
     def test_metadata(self):
-        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
+        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.pool)
         self.metadata_test1(dc)
-        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
+        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.pool)
         self.metadata_test2(dc)
 
     def test_orm_metadata(self):
@@ -95,7 +94,7 @@ class TestDC(unittest.TestCase):
 
 
     def test_files(self):
-        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
+        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.pool)
         self.files_test1(dc)
         self.files_test2(dc)
 
@@ -142,7 +141,6 @@ class TestDC(unittest.TestCase):
 
 
     def exercise(self, ebook, dc):
-        dc.__init__(self.dummypool)
         dc.load_from_database(ebook)
         test = '%s%s%s%s' % (dc.title, dc.title_file_as, dc.rights,dc.rights)
         test = [lang.id for lang in dc.languages]
@@ -154,7 +152,7 @@ class TestDC(unittest.TestCase):
         class DCCompat(DublinCoreMapping.DublinCoreObject):
             def __init__(self, pool):
                 DublinCoreMapping.DublinCoreObject.__init__(self, session=None, pooled=True)
-        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
+        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.pool)
         start_time = datetime.datetime.now()
 
         for ebook in range(5, 60005, 60):
@@ -172,7 +170,7 @@ class TestDC(unittest.TestCase):
         print(' Finished 1000 orm_dc tests. Total time: %s' % (end_time - start_time))
 
     def test_add_delete(self):
-        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
+        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.pool)
         self.add_delete_files(dc)
 
     def test_add_delete_orm(self):
@@ -208,7 +206,7 @@ class TestDC(unittest.TestCase):
 
     def test_delete_types(self):
         fn = 'cache_for_test'  # command only remove filenames starting with 'cache'
-        dc2 = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
+        dc2 = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.pool)
         dc2.load_files_from_database(self.ebook2)
         numfiles = len(dc2.files)
         dc2.store_file_in_database(self.ebook2, fn, 'qioo') # type is extinct
@@ -226,7 +224,7 @@ class TestDC(unittest.TestCase):
                     return marc.text
         #ebook = 46     # tests the method, but there's no code to undo the test
         ebook = 199     # no ebook by that number
-        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.dummypool)
+        dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.pool)
         dc.register_coverpage(ebook, 'new_cover')
         # does nothing to avoid violates foreign key constraint
         self.assertEqual(get_cover(ebook, dc), None)
