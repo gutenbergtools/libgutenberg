@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import unittest
 
 from libgutenberg import GutenbergDatabase
 from libgutenberg import GutenbergFiles
 from libgutenberg.DublinCoreMapping import DublinCoreObject 
-from libgutenberg.DBUtils import check_session, ebook_exists
-from libgutenberg.GutenbergFiles import store_file_in_database, PUBLIC, FILES, FTP
+from libgutenberg.GutenbergFiles import store_file_in_database
 from libgutenberg.Models import Book, File
 
 global db_exists
@@ -31,10 +31,13 @@ class TestGutenbergFiles(unittest.TestCase):
 
     @unittest.skipIf(not db_exists, 'database not configured')
     def test_file_save_and_read(self):
-        ''' Make sure there's a file at /Users/Shared/Documents/pg/dev/html/files/99999/99999.txt
-            and that  FILES is set in .env '''
-        
-        self.assertEqual(FILES, '/Users/Shared/Documents/pg/dev/html/files/')
+        # TODO: get this file checked into the repo -- don't rely on it on
+        # the file system
+
+        filepath = '/Users/Shared/Documents/pg/dev/html/files/'
+        if not os.path.exists(filepath):
+            self.skipTest(f"{filepath} doesn't exist to load book from")
+
         book = self.dc.load_or_create_book(99999)
         store_file_in_database(99999,
             '/Users/Shared/Documents/pg/dev/html/files/99999/99999.txt', None,
