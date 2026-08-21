@@ -148,6 +148,10 @@ class PubInfo(object):
 RE_MARC_SUBFIELD = re.compile(r"\$[a-z]")
 RE_MARC_SPSEP = re.compile(r"[\n ](,|:)([A-Za-z0-9])")
 
+# Translated format strings
+TRANS_AND_JOINER = _(' and ')
+TRANS_TITLE_BY_AUTHORS = _('{title} by {authors}')
+TRANS_TITLE_BY_AUTHORS_ET_AL = _('{title} by {authors} et al.')
 
 class DublinCore(object):
     """ Hold DublinCore attributes.
@@ -272,7 +276,7 @@ class DublinCore(object):
         """
         if len(list_) > 2:
             list_ = (', '.join(list_[:-1]) + ',', list_[-1])
-        return _(' and ').join(list_)
+        return TRANS_AND_JOINER.join(list_)
 
 
     @staticmethod
@@ -327,11 +331,11 @@ class DublinCore(object):
 
         for tail in (self.strunk(fullnames), self.strunk(surnames)):
             if len(tail) + title_len < size:
-                return _('{title} by {authors}').format(title = title, authors = tail)
+                return TRANS_TITLE_BY_AUTHORS.format(title = title, authors = tail)
 
         for tail in (fullnames[0], surnames[0]):
             if len(tail) + title_len < size:
-                return _('{title} by {authors} et al.').format(title = title, authors = tail)
+                return TRANS_TITLE_BY_AUTHORS_ET_AL.format(title = title, authors = tail)
 
         return cutoff(title, size)
 
