@@ -308,9 +308,7 @@ def archive_dir(ebook):
     ebook = str(ebook)
     if len(ebook) == 1:
         return '0/' + ebook
-    a = []
-    for c in ebook:
-        a.append(c)
+    a = [c for c in ebook]
     a[-1] = ebook
     return "/".join(a)
 
