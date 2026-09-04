@@ -69,7 +69,7 @@ NSMAP = {
 }
 
 NONFILINGS = {'The ', 'A ', 'An ', 'Der ', 'Die ', 'Das ', 'Eine ', 'Ein ',
-		      'La ', 'Le ', 'Les ', 'L\'', 'El '}
+		      'La ', 'Le ', 'Les ', 'Un ', 'Une ', 'L\'', 'El '}
 ROLES = {
     'adp': 'Adapter',
     'ann': 'Annotator',
