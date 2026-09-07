@@ -125,8 +125,12 @@ class Database(object):
         """ connect to database """
 
         try:
-            vpncmd = getattr(options.config, 'PGVPNCMD', None)
-            vpncmd = os.environ.get('PGVPNCMD', vpncmd)
+            try:
+                vpncmd = getattr(options.config, 'PGVPNCMD', None)
+                vpncmd = os.environ.get('PGVPNCMD', vpncmd)
+            except (NameError, AttributeError):
+                vpncmd = None
+
             if vpncmd:
                 debug("Starting VPN ...")
                 os.system(vpncmd)
