@@ -1,7 +1,8 @@
 CHANGES
-0.11.3 (September 7, 2026)
+0.11.3 (September 8, 2026)
 - fixed bug in Cover generation.
-- add spanish and other language articles to the NONFILING list. 
+    - dc.categories was never populated. Now it is.
+- add spanish and other language articles to the NONFILING list.
     - The list is now {'The ', 'A ', 'An ', 'Der ', 'Die ', 'Das ', 'Eine ', 'Ein ',
 		      'La ', 'Le ', 'Les ', 'L\'', 'Un ', 'Une ', 'El ', 'Az ', 'Het ', 'Os '}
     - It's used on initial entry, it's not retroactive.
