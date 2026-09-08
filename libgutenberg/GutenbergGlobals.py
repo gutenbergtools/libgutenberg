@@ -68,8 +68,11 @@ NSMAP = {
     'xslfo':      'http://www.w3.org/1999/XSL/Format',
 }
 
+# This set of strings is used to compute the "nonfiling" value that keeps titles
+# beginning with "The " from sorting under T
 NONFILINGS = {'The ', 'A ', 'An ', 'Der ', 'Die ', 'Das ', 'Eine ', 'Ein ',
-		      'La ', 'Le ', 'Les ', 'L\'', 'El '}
+		      'La ', 'Le ', 'Les ', 'L\'', 'Un ', 'Une ', 'El ', 'Az ', 'Het ', 'Os '}
+
 ROLES = {
     'adp': 'Adapter',
     'ann': 'Annotator',
