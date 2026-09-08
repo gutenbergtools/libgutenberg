@@ -324,7 +324,7 @@ def draw(dc, cover_width=400, cover_height=600, branding="Project Gutenberg"):
     author = dc.authors_short()
     audio = 0
     # categories is a list of (pk, label)
-    for cat in dc.book.categories:
+    for cat in dc.categories:
         if cat.pk in {1, 2, 6}:
             audio = AUDIOBOOK
             break
