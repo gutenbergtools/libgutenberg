@@ -19,11 +19,13 @@ import re
 import os
 import datetime
 
+import psycopg2
+
 from . import DublinCore
 from . import GutenbergGlobals as gg
 from .GutenbergGlobals import Struct, PG_URL
 from .Logger import debug, info, warning, error
-from .GutenbergDatabase import xl, DatabaseError, IntegrityError
+from .GutenbergDatabase import DatabaseError, IntegrityError
 
 RE_FIRST_AZ = re.compile (r"^[a-z]")
 
@@ -60,8 +62,8 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
         """
 
         conn = self.pool.connect()
-        c  = conn.cursor()
-        c2 = conn.cursor()
+        c = conn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+        c2 = conn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 
         # id, copyright and release date
 
@@ -71,8 +73,7 @@ class GutenbergDatabaseDublinCore(DublinCore.GutenbergDublinCore):
 select copyrighted, release_date, downloads from books where pk = %(ebook)s""",
                    {'ebook': id_})
 
-        for row in c.fetchall():
-            row = xl(c, row)
+        for row in c:
             self.release_date = row.release_date
             self.rights = ('Copyrighted. Read the copyright notice inside this book for details.'
                            if row.copyrighted
@@ -92,9 +93,7 @@ SELECT authors.pk as pk, author, born_floor, born_ceil, died_floor, died_ceil, f
 WHERE mn_books_authors.fk_books = %(ebook)s
 ORDER BY heading, role, author""", {'ebook': id_})
 
-        for row in c.fetchall():
-            row = xl(c, row)
-
+        for row in c:
             author = Struct()
             author.id             = row.pk
             author.name           = row.author
@@ -117,8 +116,7 @@ ORDER BY heading, role, author""", {'ebook': id_})
 
             c2.execute("SELECT alias, alias_heading from aliases where fk_authors = %d"
                         % row.pk)
-            for row2 in c2.fetchall():
-                row2 = xl(c2, row2)
+            for row2 in c2:
                 alias = Struct()
                 alias.alias = row2.alias
                 alias.heading = row2.alias_heading
@@ -126,8 +124,7 @@ ORDER BY heading, role, author""", {'ebook': id_})
 
             c2.execute("""
 SELECT description, url from author_urls where fk_authors = %d""" % row.pk)
-            for row2 in c2.fetchall():
-                row2 = xl(c2, row2)
+            for row2 in c2:
                 webpage = Struct()
                 webpage.description = row2.description
                 webpage.url = row2.url
@@ -146,9 +143,7 @@ select attributes.text, attributes.nonfiling,
    and attributes.fk_attriblist = attriblist.pk
  order by attriblist.name""", {'ebook': id_})
 
-        for row in c.fetchall():
-            row = xl(c, row)
-
+        for row in c:
             marc = Struct()
             marc.code = row.name.split(' ')[0]
             marc.text = self.strip_marc_subfields(row.text)
@@ -173,10 +168,12 @@ select pk, lang from langs, mn_books_langs
         rows = c.fetchall()
 
         if not rows:
-            rows.append(('en', 'English' ) )
+            row = Struct()
+            row.pk = 'en'
+            row.lang = 'English'
+            rows.append(row)
 
         for row in rows:
-            row = xl(c, row)
             language = Struct()
             language.id = row.pk
             language.language = row.lang
@@ -190,8 +187,7 @@ select pk, subject from subjects, mn_books_subjects
   where subjects.pk = mn_books_subjects.fk_subjects
     and mn_books_subjects.fk_books = %(ebook)s""", {'ebook': id_})
 
-        for row in c.fetchall():
-            row = xl(c, row)
+        for row in c:
             subject = Struct()
             subject.id = row.pk
             subject.subject = row.subject
@@ -205,8 +201,7 @@ select pk, bookshelf from bookshelves, mn_books_bookshelves
   where bookshelves.pk = mn_books_bookshelves.fk_bookshelves
     and mn_books_bookshelves.fk_books = %(ebook)s""", {'ebook': id_})
 
-        for row in c.fetchall():
-            row = xl(c, row)
+        for row in c:
             bookshelf = Struct()
             bookshelf.id = row.pk
             bookshelf.bookshelf = row.bookshelf
@@ -220,8 +215,7 @@ select pk, locc from loccs, mn_books_loccs
   where loccs.pk = mn_books_loccs.fk_loccs
     and mn_books_loccs.fk_books = %(ebook)s""", {'ebook': id_})
 
-        for row in c.fetchall():
-            row = xl(c, row)
+        for row in c:
             locc = Struct()
             locc.id = row.pk
             locc.locc = row.locc
@@ -237,10 +231,12 @@ select dcmitype, description from dcmitypes, mn_books_categories
         rows = c.fetchall()
 
         if not rows:
-            rows.append(('Text', 'Text') )
+            row = Struct()
+            row.dcmitype = 'Text'
+            row.description = 'Text'
+            rows.append(row)
 
         for row in rows:
-            row = xl(c, row)
             self.categories.append(row.dcmitype)
             dcmitype = Struct()
             dcmitype.id = row.dcmitype
@@ -264,7 +260,7 @@ select dcmitype, description from dcmitypes, mn_books_categories
         self.generated_files = []
 
         conn = self.pool.connect()
-        c  = conn.cursor()
+        c = conn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 
         # files (not strictly DublinCore but useful)
 
@@ -280,9 +276,7 @@ where fk_books = %(ebook)s
 order by filetypes.sortorder, encodings.sortorder, fk_filetypes,
          fk_encodings, fk_compressions, filename""",  {'ebook': id_})
 
-        for row in c.fetchall():
-            row = xl(c, row)
-
+        for row in c:
             file_ = Struct()
             fn = row.filename
             file_.archive_path = fn
