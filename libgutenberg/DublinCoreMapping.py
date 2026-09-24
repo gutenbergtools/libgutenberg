@@ -221,6 +221,7 @@ class DublinCoreObject(DublinCore.GutenbergDublinCore):
         if book.categories:
             self.dcmitypes = [struct(id=cat.dcmitype[0], description=cat.dcmitype[1])
                             for cat in book.categories]
+            self.categories = book.categories
         else:
             self.dcmitypes = [struct(id='Text', description='Text')]
 
