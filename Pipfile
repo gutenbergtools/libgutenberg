@@ -4,10 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-psycopg2 = "*"
-lxml = ">=4.9.1"
-cairocffi = ">1.7.0"
-libgutenberg = {file = ".", editable = true}
+libgutenberg = {extras = ["postgres", "covers"], file = ".", editable = true}
 
 [dev-packages]
 
