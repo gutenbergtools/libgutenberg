@@ -1,4 +1,8 @@
 CHANGES
+0.11.4
+- minor performance optimizations and code modernizations in GutenbergDatabaseDublinCore
+- fix failure when config not defined
+
 0.11.3 (September 8, 2026)
 - fixed bug in Cover generation.
     - dc.categories was never populated. Now it is.
