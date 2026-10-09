@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+''' test handling of files and file objects '''
 
 import unittest
 from pathlib import Path
 
 from libgutenberg import GutenbergDatabase
 from libgutenberg import GutenbergFiles
-from libgutenberg.DublinCoreMapping import DublinCoreObject 
-from libgutenberg.DBUtils import check_session, ebook_exists
-from libgutenberg.GutenbergFiles import store_file_in_database, PUBLIC, FILES, FTP
+from libgutenberg.DublinCoreMapping import DublinCoreObject
+from libgutenberg.GutenbergFiles import store_file_in_database, FILES
 from libgutenberg.Models import Book, File
 
 global db_exists
@@ -18,7 +18,7 @@ class TestGutenbergFiles(unittest.TestCase):
     def setUp(self):
         self.dc = DublinCoreObject()
         self.dc.get_my_session()
-        
+
     def test_guess_filetype(self):
         ft, enc = GutenbergFiles.guess_filetype("99999-0.txt")
         self.assertEqual(ft, 'txt')
@@ -32,7 +32,7 @@ class TestGutenbergFiles(unittest.TestCase):
 
     @unittest.skipIf(not db_exists, 'database not configured')
     def test_file_save_and_read(self):
-        ''' Make sure that FILES or PUBLIC is set in .env 
+        ''' Make sure that FILES or PUBLIC is set in .env
         and that FILES is a directory in the local system,
         and test the code that represents a local file in the database '''
         self.assertTrue(Path(FILES).is_dir())
