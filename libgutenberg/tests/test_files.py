@@ -31,6 +31,7 @@ class TestGutenbergFiles(unittest.TestCase):
         self.assertFalse(enc)
 
     @unittest.skipIf(not db_exists, 'database not configured')
+    @unittest.skipIf(not Path(FILES).is_dir(), 'environment not configured for file testing')
     def test_file_save_and_read(self):
         ''' Make sure that FILES or PUBLIC is set in .env
         and that FILES is a directory in the local system,
