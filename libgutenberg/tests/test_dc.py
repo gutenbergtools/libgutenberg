@@ -12,7 +12,7 @@ from libgutenberg import DBUtils, DublinCoreMapping
 from libgutenberg.Models import Attribute, Book
 
 from sqlalchemy import create_engine
-from sqlalchemy.pool.impl import NullPool
+from sqlalchemy.pool.impl import QueuePool
 
 global db_exists
 
@@ -28,7 +28,7 @@ class TestDC(unittest.TestCase):
     ebook2 = 2600 # war and peace
 
     def setUp(self):
-        self.pool = create_engine(GutenbergDatabase.get_sqlalchemy_url(), poolclass=NullPool).pool
+        self.pool = create_engine(GutenbergDatabase.get_sqlalchemy_url(), poolclass=QueuePool).pool
 
     def test_metadata(self):
         dc = GutenbergDatabaseDublinCore.GutenbergDatabaseDublinCore(self.pool)
