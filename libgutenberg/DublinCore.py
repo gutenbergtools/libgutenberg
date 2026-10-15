@@ -153,6 +153,8 @@ TRANS_AND_JOINER = _(' and ')
 TRANS_TITLE_BY_AUTHORS = _('{title} by {authors}')
 TRANS_TITLE_BY_AUTHORS_ET_AL = _('{title} by {authors} et al.')
 
+PGPREFIX = '979-8-238-'
+
 class DublinCore(object):
     """ Hold DublinCore attributes.
 
@@ -206,6 +208,22 @@ class DublinCore(object):
         self.credit = ''
         self.pubinfo = PubInfo()
 
+    @property
+    def isbn(self):
+        if self.categories[0] != 'Text' or self.rights.startswith('C'):
+            return ''
+        pgid = self.project_gutenberg_id
+        pg_id = str(pgid).zfill(5)
+        sum = 82
+        for i in range(5):       
+            c = int(pg_id[i])
+            w = 1 if i % 2 else 3 
+            sum += w * c
+        r = 10 - (sum % 10)
+        if r == 10:
+            return f'{PGPREFIX}{pg_id}-0'
+        else:
+            return f'{PGPREFIX}{pg_id}-{r}'
 
     @staticmethod
     def format_author_date(author):
