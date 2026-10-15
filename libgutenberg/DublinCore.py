@@ -153,7 +153,7 @@ TRANS_AND_JOINER = _(' and ')
 TRANS_TITLE_BY_AUTHORS = _('{title} by {authors}')
 TRANS_TITLE_BY_AUTHORS_ET_AL = _('{title} by {authors} et al.')
 
-PGPREFIX = '979-8-238-'
+PG_ISBN_PREFIX = '979-8-238-'
 
 class DublinCore(object):
     """ Hold DublinCore attributes.
@@ -220,9 +220,9 @@ class DublinCore(object):
             sum += w * c
         r = 10 - (sum % 10)
         if r == 10:
-            return f'{PGPREFIX}{pg_id}-0'
+            return f'{PG_ISBN_PREFIX}{pg_id}-0'
         else:
-            return f'{PGPREFIX}{pg_id}-{r}'
+            return f'{PG_ISBN_PREFIX}{pg_id}-{r}'
 
     @staticmethod
     def format_author_date(author):
