@@ -212,8 +212,7 @@ class DublinCore(object):
     def isbn(self):
         if self.categories[0] != 'Text' or self.rights.startswith('C'):
             return ''
-        pgid = self.project_gutenberg_id
-        pg_id = str(pgid).zfill(5)
+        pg_id = str(self.project_gutenberg_id).zfill(5)
         sum = 82
         for i in range(5):       
             c = int(pg_id[i])
