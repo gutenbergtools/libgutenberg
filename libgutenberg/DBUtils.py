@@ -7,7 +7,7 @@ from libgutenberg import GutenbergDatabase as gdb
 from libgutenberg.Logger import info, debug, warning, error, exception
 
 if gdb.db_exists:
-    OB = gdb.Objectbase(False)
+    OB = gdb.Objectbase(True)
 else:
     OB = None
 

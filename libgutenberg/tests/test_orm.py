@@ -30,7 +30,7 @@ if db_exists:
 class TestORM(unittest.TestCase):
 
     def setUp(self):
-        ob = GutenbergDatabase.Objectbase(False)
+        ob = GutenbergDatabase.Objectbase(True)
         self.session = ob.get_session()
 
     def test_query(self):
