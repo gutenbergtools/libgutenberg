@@ -75,7 +75,7 @@ class TestDC(unittest.TestCase):
         self.assertEqual(dc.bookshelves[0].bookshelf, 'DE Kinderbuch')
         self.assertEqual(dc.loccs[0].locc, 'Geography, Anthropology, Recreation: Folklore')
         self.assertEqual(dc.dcmitypes[0].id, 'Sound')
-
+        self.assertEqual(dc.isbn, '')
 
     def metadata_test2(self, dc2):
         dc2.load_from_database(self.ebook2)
@@ -83,6 +83,7 @@ class TestDC(unittest.TestCase):
         self.assertEqual(len(dc2.bookshelves), 9)
         self.assertEqual(dc2.bookshelves[0].bookshelf, 'Napoleonic(Bookshelf)')
         self.assertEqual(dc2.dcmitypes[0].id, 'Text')
+        self.assertEqual(dc2.isbn, '979-8-238-02600-8')
 
 
     def test_files(self):
