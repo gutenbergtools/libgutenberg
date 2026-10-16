@@ -210,7 +210,7 @@ class DublinCore(object):
 
     @property
     def isbn(self):
-        if self.dcmitypes[0].id != 'Text' or self.rights.startswith('C'):
+        if self.dcmitypes == [] or self.dcmitypes[0].id != 'Text' or self.rights.startswith('C'):
             return ''
         pg_id = str(self.project_gutenberg_id).zfill(5)
         sum = 82

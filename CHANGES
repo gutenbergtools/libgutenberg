@@ -1,5 +1,5 @@
 CHANGES
-0.11.4 (October 16, 2016)
+0.11.5 (October 16, 2016)
 - minor performance optimizations and code modernizations in GutenbergDatabaseDublinCore
 - fix failure when config not defined
 - add isbn method to DublinCore.
