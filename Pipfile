@@ -10,6 +10,7 @@ cairocffi = ">1.7.0"
 libgutenberg = {file = ".", editable = true}
 
 [dev-packages]
+twine = "*"
 
 [requires]
 python_version = ">=3.7"

@@ -3,7 +3,7 @@
 # libgutenberg setup.py
 #
 
-__version__ = '0.11.3'
+__version__ = '0.11.4'
 
 
 from setuptools import setup
@@ -37,13 +37,12 @@ setup (
     maintainer_email = "eric@hellman.net",
     description = "Common files used by Project Gutenberg python projects.",
     long_description = "Useless as standalone install. Used only as requirement for other packages.",
-    license = "GPL v3",
+    license = "GPL-3.0-or-later",
     keywords = "project gutenberg",
     url = "https://github.com/gutenbergtools/libgutenberg/",
 
     classifiers = [
         "Intended Audience :: Other Audience",
-        "License :: OSI Approved :: GNU General Public License (GPL)",
         "Operating System :: OS Independent",
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',

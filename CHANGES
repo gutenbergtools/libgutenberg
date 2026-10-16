@@ -1,9 +1,20 @@
 CHANGES
-0.11.4
+0.11.4 (October 16, 2016)
 - minor performance optimizations and code modernizations in GutenbergDatabaseDublinCore
 - fix failure when config not defined
 - add isbn method to DublinCore.
     - This does not touch the database, as it's derived from the project_gutenberg_id.
+- remove DummyConnectionPool which mocked a real connection pool and was only used in testing
+- close connections that we open
+    - DummyConnectionPool didn't handle connection closing!
+    - makes better use of real connection pools
+- files tests now work when PUBLIC is configured correctly, tests are skipped otherwise
+- if you're not using a VPN, you don't have to configure PGVPNCMD
+- added Pipfile.lock to .gitignore
+    - the lock file was causing dependency thrashing among environments
+    - libgutenberg should be deployed using setup.py specs.
+- removed obsolete `.travis.yml` file
+
 
 
 0.11.3 (September 8, 2026)
