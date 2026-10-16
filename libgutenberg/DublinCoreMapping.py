@@ -41,7 +41,7 @@ RE_PLACE = re.compile(r'^\[?([\w\. ]*):')
 class DublinCoreObject(DublinCore.GutenbergDublinCore):
     """ Augment GutenbergDublinCore class. """
 
-    def __init__(self, session=None, pooled=True):
+    def __init__(self, session=None, pooled=False):
         DublinCore.GutenbergDublinCore.__init__ (self)
 
         self.new_filesystem = False
