@@ -28,6 +28,12 @@ class Struct(object):
     """
     pass
 
+def struct(**args):
+    s = Struct()
+    for key in args:
+        setattr(s, key, args[key])
+    return s
+
 PG_CANONICAL_HOST = 'www.gutenberg.org'
 
 PG_URL = 'https://' + PG_CANONICAL_HOST + '/'
