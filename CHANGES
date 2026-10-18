@@ -1,4 +1,11 @@
 CHANGES
+0.11.7 (October 18, 2016)
+Changes to support isbn in Ebookmaker
+- utility struct method moved to GutenbergGlobals
+- isbn added to method that writes metadata to html
+- onix namespace added to GutenbergGlobals.NSMAP for EPUB3 metadata declarations
+
+
 0.11.5 (October 16, 2016)
 - minor performance optimizations and code modernizations in GutenbergDatabaseDublinCore
 - fix failure when config not defined
