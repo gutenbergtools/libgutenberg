@@ -52,6 +52,7 @@ NSMAP = {
     'marcrel':    'http://id.loc.gov/vocabulary/relators/',
     'mathml':     'http://www.w3.org/1998/Math/MathML',
     'mbp':        'http://mobipocket.com/mbp',
+    'onix':       'http://ns.editeur.org/onix/3.0/reference',
     'ncx':        'http://www.daisy.org/z3986/2005/ncx/',
     'opds':       'http://opds-spec.org/2010/Catalog',
     'opf':        'http://www.idpf.org/2007/opf',
