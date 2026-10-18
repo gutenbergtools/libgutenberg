@@ -216,7 +216,7 @@ class DublinCore(object):
         sum = 82
         for i in range(5):       
             c = int(pg_id[i])
-            w = 1 if i % 2 else 3 
+            w = 1 if i % 2 else 3
             sum += w * c
         r = 10 - (sum % 10)
         if r == 10:
@@ -637,6 +637,9 @@ class GutenbergDublinCore(DublinCore):
         lit('dc:publisher',  self.publisher)
         lit('dc:rights',     self.rights)
         uri('dcterms:isFormatOf', self.is_format_of)
+
+        if self.isbn:
+            lit('dc:identifier', f'urn:isbn:{self.isbn}')
 
         for author in self.authors:
             if author.marcrel in ('aut', 'cre'):
